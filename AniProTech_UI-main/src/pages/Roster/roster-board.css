@@ -1,0 +1,383 @@
+.roster-board {
+    color: #354052;
+    background: #fff;
+    font-size: 13px;
+}
+.roster-workspace {
+    min-width: 0;
+}
+.roster-board button,
+.roster-board select,
+.roster-board input {
+    font: inherit;
+    border: 1px solid #97a9c2;
+    border-radius: 4px;
+    background: white;
+    padding: 7px 10px;
+    max-width: 100%;
+}
+.roster-board button:disabled {
+    opacity: 0.5;
+}
+.rb-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #c7d2e0;
+}
+.rb-week {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: auto;
+}
+.rb-dropdown {
+    position: relative;
+}
+.rb-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    z-index: 25;
+    width: 230px;
+    padding: 8px;
+    background: white;
+    box-shadow: 0 3px 9px #12345644;
+    border: 1px solid #d8e0ea;
+}
+.rb-menu label,
+.rb-menu button {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+}
+.rb-menu input {
+    width: auto;
+}
+.roster-board .rb-primary {
+    background: #19847f;
+    color: white;
+    border-color: #19847f;
+}
+.rb-days {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    overflow: auto;
+    align-items: center;
+}
+.rb-days button {
+    white-space: nowrap;
+}
+.rb-days button[aria-pressed="true"] {
+    background: #173866;
+    color: white;
+}
+.rb-summary {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    padding: 10px 15px;
+    border-bottom: 1px solid #cbd5e1;
+    color: #5c6879;
+}
+.rb-legend {
+    color: #182f59;
+}
+.rb-legend b {
+    color: #5433a0;
+    font-weight: 400;
+}
+.rb-legend em {
+    color: #2d6f2c;
+    font-style: normal;
+}
+.rb-scroll {
+    overflow: auto;
+    max-height: calc(100vh - 255px);
+    min-height: 400px;
+}
+.rb-grid {
+    position: relative;
+}
+.rb-row,
+.rb-hour-row {
+    display: flex;
+    position: relative;
+    border-bottom: 1px solid #b1bed0;
+}
+.rb-hour-row {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    background: #fff;
+    height: 48px;
+}
+.rb-person {
+    width: 190px;
+    flex-shrink: 0;
+    position: sticky;
+    left: 0;
+    background: white;
+    border-right: 1px solid #b1bed0;
+    padding: 10px 12px;
+    z-index: 10;
+    overflow: hidden;
+}
+.rb-person strong {
+    display: block;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.rb-person small {
+    display: block;
+    font-size: 11px;
+    color: #647083;
+    margin-top: 4px;
+}
+.rb-track {
+    position: relative;
+    flex-shrink: 0;
+    background: #f8fafc;
+    min-height: 64px;
+}
+.rb-track::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to right, #acb9cb70 1px, transparent 1px);
+    background-size: var(--half-hour, 40px) 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+.rb-hours {
+    display: flex;
+    flex-shrink: 0;
+}
+.rb-hours span {
+    display: block;
+    padding: 14px 0;
+    border-left: 1px solid #d4ddea;
+    flex-shrink: 0;
+}
+.rb-base,
+.rb-available,
+.rb-absent {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+.rb-base {
+    inset: 0;
+    background: #cbd3dfb0;
+}
+.rb-unknown {
+    background: #e8edf455;
+}
+.rb-available {
+    background: #fff;
+}
+.rb-absent {
+    background: repeating-linear-gradient(45deg, #b5c0d5 0, #b5c0d5 5px, #dce3ed 5px, #dce3ed 10px);
+    z-index: 1;
+}
+.roster-board .rb-visit {
+    position: absolute;
+    height: 33px;
+    border: 0;
+    color: white;
+    text-align: left;
+    padding: 3px 5px;
+    overflow: hidden;
+    border-radius: 3px;
+    z-index: 4;
+    line-height: 13px;
+}
+.rb-visit strong,
+.rb-visit small {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+}
+.rb-SCHEDULED {
+    background: #172e58 !important;
+    color: white;
+}
+.rb-DRAFT {
+    background: #6b7f9c !important;
+    color: white;
+}
+.rb-IN_PROGRESS {
+    background: #5231a0 !important;
+    color: white;
+}
+.rb-COMPLETED {
+    background: #306f2b !important;
+    color: white;
+}
+.rb-CANCELLED {
+    background: #9b9b9b !important;
+    color: white;
+    text-decoration: line-through;
+}
+.rb-now {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ee941a;
+    z-index: 3;
+    pointer-events: none;
+}
+.rb-gap {
+    position: absolute;
+    top: 25px;
+    height: 5px;
+    background: #778399;
+    z-index: 2;
+}
+.rb-gap-short {
+    background: #c63732;
+}
+.rb-day-list {
+    padding: 20px;
+    max-height: 65vh;
+    overflow: auto;
+}
+.rb-day-list h2 {
+    font-weight: 600;
+    margin: 10px 0;
+}
+.rb-day-card {
+    display: block;
+    margin: 8px 0;
+    text-align: left;
+}
+.rb-help {
+    padding: 10px 14px;
+    color: #67768a;
+}
+.rb-help a {
+    text-decoration: underline;
+}
+.rb-error {
+    padding: 12px;
+    background: #fff0ef;
+    color: #a42121;
+}
+.rb-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0c234c88;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+.rb-plan {
+    background: #fff;
+    border-radius: 9px;
+    padding: 24px;
+    width: min(850px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+}
+.rb-plan header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+.rb-plan h2 {
+    font-size: 22px;
+    font-weight: 600;
+}
+.rb-plan h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 15px 0;
+}
+.rb-plan p {
+    margin: 12px 0;
+    color: #637084;
+}
+.rb-plan label {
+    display: block;
+    margin: 12px 0;
+}
+.rb-plan label > input:not([type="checkbox"]),
+.rb-plan label > select {
+    display: block;
+    margin-top: 6px;
+    width: 100%;
+}
+.rb-run-picks,
+.rb-preview {
+    max-height: 300px;
+    overflow: auto;
+    border: 1px solid #dce3eb;
+    padding: 10px;
+    margin: 10px 0;
+}
+.rb-run-picks label {
+    display: flex;
+    gap: 10px;
+}
+.rb-preview article {
+    border-bottom: 1px solid #e0e5ec;
+    padding: 10px;
+}
+.rb-saved {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+    gap: 10px;
+}
+.roster-edit-panel {
+    position: fixed;
+    inset: 90px 3vw 20px auto;
+    width: min(900px, 94vw);
+    z-index: 70;
+    overflow: auto;
+    box-shadow: 0 0 0 100vw #0c234c77;
+}
+.rb-plan button:focus-visible,
+.rb-visit:focus-visible {
+    outline: 3px solid #ecad35;
+    outline-offset: 2px;
+}
+@media (max-width: 700px) {
+    .rb-person {
+        width: 130px;
+    }
+    .rb-week {
+        flex-wrap: wrap;
+    }
+    .rb-toolbar {
+        gap: 6px;
+    }
+    .rb-summary {
+        gap: 8px;
+    }
+    .rb-scroll {
+        max-height: 65vh;
+    }
+    .rb-menu {
+        right: auto;
+        left: 0;
+    }
+    .rb-plan {
+        padding: 16px;
+    }
+    .roster-edit-panel {
+        top: 75px;
+    }
+}

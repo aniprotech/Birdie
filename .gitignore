@@ -1,0 +1,35 @@
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/web-build/
+**/.expo/
+
+# Secrets and local runtime state
+**/.env
+**/.env.*.local
+**/.env.txt
+**/data/
+**/uploads/
+**/outbox/
+**/*.log
+
+# Generated review material and local tools
+*-checks/
+*.zip
+cloudflared.exe
+mobile-preview-qr.png
+expo-config-check.json
+mobile-audit.json
+test-login.html
+frontend-package-lock.original.json
+node-dependency-audit.json
+migration-inventory.cjs
+.tools/
+.claude/
+AniProTech_Backend-main/
+frontend-lint.json
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/

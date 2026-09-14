@@ -1,0 +1,5624 @@
+{
+  "AuditModel": {
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "String",
+        "name": "firstName"
+      },
+      {
+        "type": "String",
+        "name": "lastName"
+      }
+    ]
+  },
+  "CarePlanMedicationAssessmentEntity": {
+    "table": "care_pan_medication_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "CarePlanMedicationEntity",
+        "name": "medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "administration_support_level"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "friends_and_family_administration"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "needs_with_medication_support"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "taking_oral_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "on_insulin"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "peg_in_situ"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "taking_inhalers"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "blood_glucose_testing_required"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "has_recipient_suffered_side_effects_from_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "taking_warfarin_or_anticoagulant"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "on_syringe_driver"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_container"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_taken_at_set_time"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "prn_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "over_the_counter_medication_authorised"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "over_the_counter_medication_authorised_help_requested"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_decision_making_concerns"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_understand_their_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "want_to_take_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "forget_their_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_read_medication_label"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risk_of_overdose"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "excess_medication_available"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_open_bottles_and_packets"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_pour_liquids"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_apply_remove_patches"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_apply_creams_ointments"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_instill_ear_drops"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_instill_eye_drops"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_instill_nasal_sprays"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "has_medication_that_requires_sharps"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_temper_with_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "prescription_ordering_method"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "prescription_ordering_person"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "prescription_collection_method"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_obtaining_problems"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medicine_collection_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_stored_appropriately"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_storing_method"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_location"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_access_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "excess_medication_disposition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medication_disposition"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "CarePlanMedicationEntity": {
+    "table": "care_pan_medication",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<CarePlanMedicationAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "CarePlanRisksMitigationsEntity": {
+    "table": "risks_mitigations",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UUID",
+        "name": "entityId"
+      },
+      {
+        "type": "CarePlanEntityType",
+        "name": "entityType"
+      },
+      {
+        "type": "String",
+        "name": "risk"
+      },
+      {
+        "type": "String",
+        "name": "mitigation"
+      },
+      {
+        "type": "List<CarePlanRelatedAssessment>",
+        "name": "relatedAssessments"
+      },
+      {
+        "type": "CarePlanRiskLevel",
+        "name": "riskLevel"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientAdministrativeAssessmentEntity": {
+    "table": "client_administrative_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientAdministrativeEntity",
+        "name": "administrative"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "finances_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "advanced_directive"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "advanced_directive_location"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "will"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "will_location"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientAdministrativeEntity": {
+    "table": "client_administrative",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientAdministrativeAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientBehaviourAssessmentEntity": {
+    "table": "client_behaviour_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientBehaviourEntity",
+        "name": "behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "behaviours_challenge"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "nature_behaviours"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "describe_behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_frequently_behaviour_occur"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_long_behaviour_last_for"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "known_reasons_behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "reasons_behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "purpose_function_behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "anything_trigger_behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "getting_not_getting_from_behaviours_makes_them_do_again"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "impact_behaviour_on"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "impact_behaviour_on_others"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "already_behaviour_management_plan_place"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "mostly_calm_relaxed_how_do_they_present"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_carers_respond_during_phase_calm"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "behaviour_initially_starts_escalate_how_do_they_present"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_carers_respond_during_phase_escalate"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_challenging_behaviour_occurs_how_present"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_carers_respond_during_phase_behaviour_occurs"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "starts_relax_again_how_do_they_present"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_carers_respond_during_phase_relax_again"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "preventatitve_strategies"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_carers_record_report_incidents_with_behaviour"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientBehaviourEntity": {
+    "table": "client_behaviour",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientBehaviourAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientCareCircleMemberLogEntity": {
+    "table": "client_care_circle_member_logs",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UUID",
+        "name": "agencyId"
+      },
+      {
+        "type": "ClientCareCircleMemeberEntity",
+        "name": "careCircleMember"
+      },
+      {
+        "type": "Action",
+        "name": "action"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "at"
+      },
+      {
+        "type": "UserEntity",
+        "name": "by"
+      }
+    ]
+  },
+  "ClientCareCircleMemeberEntity": {
+    "table": "client_care_circle_members",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UUID",
+        "name": "agencyId"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "firstName"
+      },
+      {
+        "type": "String",
+        "name": "lastName"
+      },
+      {
+        "type": "Boolean",
+        "name": "isInviteSent"
+      },
+      {
+        "type": "Enums.CareCircleMemeberRelationship",
+        "name": "relationship"
+      },
+      {
+        "type": "String",
+        "name": "phoneCode"
+      },
+      {
+        "type": "long",
+        "name": "phoneNumber"
+      },
+      {
+        "type": "String",
+        "name": "email"
+      },
+      {
+        "type": "Boolean",
+        "name": "isEmergencyContact"
+      },
+      {
+        "type": "Boolean",
+        "name": "isLPA"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientCareTeamEntity": {
+    "table": "client_care_team",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "carer"
+      },
+      {
+        "type": "UserEntity",
+        "name": "client"
+      },
+      {
+        "type": "Boolean",
+        "name": "viewAccess"
+      },
+      {
+        "type": "Boolean",
+        "name": "revokeViewaccess"
+      },
+      {
+        "type": "Boolean",
+        "name": "allowedToVisit"
+      },
+      {
+        "type": "Boolean",
+        "name": "declineCarer"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientCommunicationAssessmentEntity": {
+    "table": "client_communication_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientCommunicationEntity",
+        "name": "communication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "speech_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "speech_support"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "hearing_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "hearing_support"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "sight_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "sight_support"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "comprehension_level"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "expression_level"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "phone_problems"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "emergency_summoning_problems"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "english_appropriate"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "preferred_language"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "communication_method"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "contact_method"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientCommunicationEntity": {
+    "table": "client_communication",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientCommunicationAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientConditionSpecificAssessmentEntity": {
+    "table": "client_condition_specific_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientConditionSpecificEntity",
+        "name": "conditionSpecific"
+      },
+      {
+        "type": "String",
+        "name": "name"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "confirmed_diagnosis"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "condition_diagnosed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "concerns_about_capacity_make_decisions_about_management_their_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "impact_condition_on"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_condition_affect_on_good_day"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_condition_affect_on_bad_day"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "what_if_anything_most_difficult_relation_their_medical_condition_right_now"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "manage_condition_themselves"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_manage_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "take_regular_medication_help_manage_their_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_can_care_team_support_manage_their_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "services_not_currently_touch_with_could_help_with_managing_their_condition"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "services_details"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "concerns_about_managing_their_condition_future"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "add_further_guidance_on_meeting_condition_specific_needs"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientConditionSpecificEntity": {
+    "table": "client_condition_specific",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientConditionSpecificAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientControlSubstancesAssessmentEntity": {
+    "table": "client_control_substance_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientControlSubstancesEntity",
+        "name": "controlSubstance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "activity_substance_used_for"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_often_activity_carried_out"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_much_substance_used_at_time"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_substance_being_used"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_substance_stored_not_use"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "category_substance_fit_into"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "type_substance_it"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "route_exposure"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "who_at_risk_exposure"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_health"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_exposure_substance_controlled"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "ppe_needed_using_substance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_substance_and_or_contaminated_containers_disposed_of"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "first_aid_measures_needed_if_exposed_substance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risk_rating_product_following_control_measures"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientControlSubstancesEntity": {
+    "table": "client_control_substance",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientControlSubstancesAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientCovidAssessmentEntity": {
+    "table": "client_covid_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientCovidEntity",
+        "name": "covid"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "currently_confirmed_suspected_case_covid_19"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "previously_confirmed_suspected_case_covid_19"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "considered_extremely_clinically_vulnerable_at_risk_covid_19"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "received_their_first_dose_covid_19_vaccine"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "vaccine_did_receive"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "vaccine_administered"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "received_their_second_dose_covid_19_vaccine"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "vaccine_did_receive_second"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "vaccine_administered_second"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "received_their_first_booster_dose_covid_19_vaccine"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "vaccine_did_receive_first_booster"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "vaccine_administered_first_booster"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "currently_isolating"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "reasons_currently_isolating"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "isolated_past"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "were_reasons_isolating_past"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "been_impact_isolation_on_care_needs"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "practices_place_control_risk_infection"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "procedure_should_followed_if_tests_positive_covid_19"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "procedure_should_followed_if_carer_who_recently_visited_tests_positive_covid_19"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientCovidEntity": {
+    "table": "client_covid",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientCovidAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientDysphagiaAssessmentEntity": {
+    "table": "client_dysphagia_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientDysphagiaEntity",
+        "name": "dysphagia"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "confirmed_diagnosis_dysphagia"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "known_speech_language_therapy_team"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "speech_language_therapy_salt_guidelines_eating_drinking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "these_guidelines_being_followed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "why_arent_these_guidelines_being_followed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "been_known_choking_incident_last_12_months"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_many_times_happened_last_12_months"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "eating_and_or_drinking_at_time_incident"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "being_eaten_and_or_drunk"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "choking_incident_additional_details"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "behaviours_increase_their_risk_choking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "strategies_place_manage_behaviour"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "dentures"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "usually_wear_these_eating_drinking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "why_not_wear_their_dentures_eating_drinking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "frequently_continually_cough_before_during_after_eating"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "frequently_continually_cough_before_during_after_drinking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "ever_difficulty_breathing_whilst_they_eating"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "currently_able_chew_normal_diet"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "started_eating_less"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "hold_food_their_mouth"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lost_their_enjoyment_food"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "food_texture_need_modified"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "level_should_food_texture_according_iddsi_framework"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "drinks_texture_need_modified"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "level_should_drinks_texture_according_iddsi_framework"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_these_prepared"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_thickening_powder_stored"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "measuring_jug_preparing_thickened_fluids"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_kept"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "use_special_cutlery_cups_help_with_eating_drinking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "take_oral_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "difficulties_swallowing_their_oral_medication"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "strategies_place_help_take_their_medication_more_easily"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_not_captured_here"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "can_do_reduce_their_risk_choking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "should_care_team_do_reduce_risk_choking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "warning_signs_might_choking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_should_carers_support_if_they_begin_choking"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientDysphagiaEntity": {
+    "table": "client_dysphagia",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientDysphagiaAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEmergencyContactsEntity": {
+    "table": "client_emergency_contacts",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientInformationEntity",
+        "name": "clientInformation"
+      },
+      {
+        "type": "String",
+        "name": "firstName"
+      },
+      {
+        "type": "String",
+        "name": "lastName"
+      },
+      {
+        "type": "Enums.RelationShip",
+        "name": "relationShip"
+      },
+      {
+        "type": "long",
+        "name": "phoneNumber"
+      },
+      {
+        "type": "String",
+        "name": "phoneCode"
+      },
+      {
+        "type": "String",
+        "name": "email"
+      },
+      {
+        "type": "List<Enums.TypeOfContact>",
+        "name": "typeOfContact"
+      },
+      {
+        "type": "Boolean",
+        "name": "careMattersDiscussionAgreement"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientEndOfLifeAssessmentEntity": {
+    "table": "client_end_of_life_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientEndOfLifeEntity",
+        "name": "endOfLife"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "does_need_end_of_life"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "is_comfortable_discussing_topic"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "anyone_else_present_during_discussion"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "does_require_communication_support"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "already_has_end_of_life_in_place"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "topics_to_avoid_or_encourage"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "concerns_around_ability_consent"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lpa_in_place_health_welfare"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lpa_certificate_number_health_welfare"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lpa_in_place_property_financial"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lpa_certificate_number_property_financial"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "adrt"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_is_it_kept_adrt"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "respect_plan_in_place"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_is_it_kept_respect"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "made_a_will"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_is_it_kept_will"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "named_executor_will"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "opt_out_organ_donation"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "organ_donation_number"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "health_deterioration_where_be_cared"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_details"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "thoughts_pain_management"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "specific_care_plan"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_is_it_kept_care_plan"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "treatments_dont_want"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "important_final_days_hours"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "wishes_final_days_hours"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "present_final_days_hours"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "worry_final_days_hours"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "comfort_final_days_hours"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "religious_cultural_beliefs"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "buried_or_cremated"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "funeral_wishes"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "further_guidance_eof_needs"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEndOfLifeEntity": {
+    "table": "client_end_of_life",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientEndOfLifeAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEnvironmentalAssessmentEntity": {
+    "table": "environmental_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientEnvironmentalEntity",
+        "name": "environmental"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "home_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "home_concerns"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "home_stair_complete"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "home_stair_flights"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pets"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pet_types"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "smoking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "housekeeping_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "housekeeping_support"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEnvironmentalEntity": {
+    "table": "client_environmental",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientEnvironmentalAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEnvironmentFireAssessmentEntity": {
+    "table": "client_environment_fire_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientEnvironmentFireEntity",
+        "name": "environmentFire"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "parking_available"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_parking_available"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_parking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_parking"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "steps_railings_outside_property"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_steps_railings"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_steps_railings"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_outside_entrance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_outside_entrance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_doorbell"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_doorbell"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "concerns_with_locks_on_doors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_locks_doors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_keys_windows_doors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_windows_doors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "cctv_installed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_cctv_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_cctv"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_cctv"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_related_entrance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_related_entrance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_gas_cut_off_point_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_gas_cut_off_point"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_gas_cut_off"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_electricity_point_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_electricity_cut_off_point"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_electricity_cut_off"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_water_cut_off_point_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_water_cut_off_point"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_water_cut_off"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_rubbish_storage_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_rubbish_storage"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_rubbish_storage"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_medication_stored"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_medication_storage"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_medication_storage"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_other_residents_visitors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_residents_visitors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pets_property"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pets_have"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_pets"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_risks_pets"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_doorway"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_doorway"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_walkway"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_walkway"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_rugs_carpets"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_rugs_carpets"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_living_area_lighting"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_living_area"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_electrical_cords_living_area"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_cords_living_area"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_living_area"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_other_risks_living_area"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_taps"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_taps"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_electrical_cords_kitchen"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_cords_kitchen"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_kitchen_flooring"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_kitchen_flooring"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_dishes_pots_pans_cutlery"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_pans_cutlery"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_fridge_freezer"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_fridge_freezer"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_cooker_oven_hob"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_oven_hob"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_kitchen"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_other_risks_kitchen"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_shower_bath"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_shower_bath"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_toilet"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_toilet"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_bathroom_flooring"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_bathroom_flooring"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_bathroom"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_other_risks_bathroom"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_bed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_bed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_bedroom_flooring"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_bedroom_flooring"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "concerns_with_electrical_cords_bedroom"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_electrical_cords_bedroom"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_bedroom"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_other_risks_bedroom"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_smoke_detectors_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_smoke_detectors"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_smoke_detector"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_smokers_property"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_smokers_property"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_fire_fighting_equipment_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_fire_fighting_equipment"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_fighting_equipment"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_escape_routes_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_escape_routes"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_escape_routes"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "escape_plan"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_escape_plan"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_escape_plan"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_risks_related_fire_prevention"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_fire_prevention"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "where_carbon_monoxide_detector_located"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks_with_carbon_monoxide_detector"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_carbon_monoxide_detector"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lone_worker_risks_related_environment_fire_aware_of"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "how_will_these_risks_mitigated_lone_worker"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEnvironmentFireEntity": {
+    "table": "client_environment_fire",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientEnvironmentFireAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEveryDayActivitiesAssessmentEntity": {
+    "table": "client_everyday_activities_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientEveryDayActivityEntity",
+        "name": "everydayActivity"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "everyday_activities_shopping_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "everyday_activities_telephone_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "everyday_activities_laundry_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "falls_and_mobility_had_fall"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "falls_and_mobility_number"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "falls_and_mobility_when"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "falls_and_mobility_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "falls_and_mobility_support_types"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "sensory_vision_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "sensory_hearing_dependence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "sensory_speech_dependence"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientEveryDayActivityEntity": {
+    "table": "client_everyday_activity",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientEveryDayActivitiesAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientFinancialAssessmentEntity": {
+    "table": "client_financial_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientFinancialEntity",
+        "name": "financial"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pension_collection"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pension_collection_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pension_collection_support_provider"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "pension_collection_support_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "money_collection"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "money_collection_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "money_collection_support_provider"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "money_collection_support_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "allowance_collection"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "allowance_collection_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "allowance_collection_support_provider"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "allowance_collection_support_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "shopping_collection"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "shopping_collection_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "shopping_collection_support_provider"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "shopping_collection_support_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "bill_payment"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "bill_payment_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "bill_payment_support_provider"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "bill_payment_support_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "finance_management"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "finance_management_frequency"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "finance_management_support_provider"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "finance_management_support_type"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientFinancialEntity": {
+    "table": "client_financial",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientFinancialAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientInactivityEntity": {
+    "table": "client_inactivity",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "ClientInformationEntity",
+        "name": "clientInformation"
+      },
+      {
+        "type": "ClientInactivityType",
+        "name": "type"
+      },
+      {
+        "type": "ClientInactivityReason",
+        "name": "reason"
+      },
+      {
+        "type": "LocalDate",
+        "name": "startDate"
+      },
+      {
+        "type": "LocalTime",
+        "name": "startTime"
+      },
+      {
+        "type": "LocalDate",
+        "name": "endDate"
+      },
+      {
+        "type": "LocalTime",
+        "name": "endTime"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientInformationEntity": {
+    "table": "client_information",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "Ethnicity"
+      },
+      {
+        "type": "String",
+        "name": "religion"
+      },
+      {
+        "type": "String",
+        "name": "cultureImpact"
+      },
+      {
+        "type": "Enums.ClientInformationSex",
+        "name": "sex"
+      },
+      {
+        "type": "Enums.ClientInformationGender",
+        "name": "gender"
+      },
+      {
+        "type": "String",
+        "name": "sexualOrientation"
+      },
+      {
+        "type": "String",
+        "name": "sexualOrientationImpact"
+      },
+      {
+        "type": "String",
+        "name": "jobsAndOccupations"
+      },
+      {
+        "type": "String",
+        "name": "importantPeople"
+      },
+      {
+        "type": "String",
+        "name": "significantPlaces"
+      },
+      {
+        "type": "String",
+        "name": "otherNotes"
+      },
+      {
+        "type": "String",
+        "name": "routinesAndPreferences"
+      },
+      {
+        "type": "String",
+        "name": "dislikes"
+      },
+      {
+        "type": "String",
+        "name": "hobbiesAndInterests"
+      },
+      {
+        "type": "Long",
+        "name": "nhsNumber"
+      },
+      {
+        "type": "List<String>",
+        "name": "medicalHistory"
+      },
+      {
+        "type": "Boolean",
+        "name": "medicalSupport"
+      },
+      {
+        "type": "String",
+        "name": "allergiesIntolerances"
+      },
+      {
+        "type": "String",
+        "name": "gpPracticeName"
+      },
+      {
+        "type": "String",
+        "name": "gpPracticeIdentifier"
+      },
+      {
+        "type": "String",
+        "name": "gpName"
+      },
+      {
+        "type": "Long",
+        "name": "gpPhoneNumber"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyName"
+      },
+      {
+        "type": "Long",
+        "name": "pharmacyPhoneNumber"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyPhoneCode"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyAddress"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyPostCode"
+      },
+      {
+        "type": "Enums.ClientInformationFeaturePlanning",
+        "name": "healthCapacityDecision"
+      },
+      {
+        "type": "Enums.ClientInformationFeaturePlanning",
+        "name": "healthWelfareLpa"
+      },
+      {
+        "type": "Enums.ClientInformationFeaturePlanning",
+        "name": "propertyFinancialLpa"
+      },
+      {
+        "type": "Enums.ClientInformationFeaturePlanning",
+        "name": "dnacpr"
+      },
+      {
+        "type": "Enums.ClientInformationFeaturePlanning",
+        "name": "adrt"
+      },
+      {
+        "type": "Enums.ClientInformationFeaturePlanning",
+        "name": "respect"
+      },
+      {
+        "type": "String",
+        "name": "uniqueClientIdentifier"
+      },
+      {
+        "type": "LocalDate",
+        "name": "serviceStartDate"
+      },
+      {
+        "type": "Boolean",
+        "name": "receivesRegulatedCare"
+      },
+      {
+        "type": "Enums.ClientInformationRiskLevel",
+        "name": "overallRiskLevel"
+      },
+      {
+        "type": "String",
+        "name": "riskLevelDetails"
+      },
+      {
+        "type": "Enums.ClientInformationFamilyInvolvementLevel",
+        "name": "familyInvolvementLevel"
+      },
+      {
+        "type": "String",
+        "name": "staffingCrisisPlan"
+      },
+      {
+        "type": "String",
+        "name": "weatherConditionsPlan"
+      },
+      {
+        "type": "List<Enums.ClientInformationCommunicationOrInformationNeeds>",
+        "name": "communicationOrInformationNeeds"
+      },
+      {
+        "type": "String",
+        "name": "additionalDetails"
+      },
+      {
+        "type": "Enums.ClientInformationPreferredContactMethod",
+        "name": "preferredContactMethod"
+      },
+      {
+        "type": "List<Enums.ClientInformationFundingOption>",
+        "name": "fundingOption"
+      },
+      {
+        "type": "String",
+        "name": "localAuthorityId"
+      },
+      {
+        "type": "Enums.ClientInformationCarerPreferences",
+        "name": "carerPreferences"
+      },
+      {
+        "type": "String",
+        "name": "otherPreferences"
+      },
+      {
+        "type": "List<ClientEmergencyContactsEntity>",
+        "name": "clientEmergencyContacts"
+      },
+      {
+        "type": "List<ClientProfessionalsEntity>",
+        "name": "clientProfessionals"
+      },
+      {
+        "type": "List<ClientInactivityEntity>",
+        "name": "clientInactivity"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientMedicationEntity": {
+    "table": "client_medications",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "allergies"
+      },
+      {
+        "type": "String",
+        "name": "gpsName"
+      },
+      {
+        "type": "String",
+        "name": "gpsContact"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyName"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyAddress"
+      },
+      {
+        "type": "String",
+        "name": "pharmacyPostcode"
+      },
+      {
+        "type": "Boolean",
+        "name": "isMedicineSupportProvided"
+      }
+    ]
+  },
+  "ClientMedicationPastAdministrationEntity": {
+    "table": "client_medications_administration",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientMedicationSchedulingEntity",
+        "name": "medication"
+      },
+      {
+        "type": "LocalDate",
+        "name": "date"
+      },
+      {
+        "type": "String",
+        "name": "slot"
+      },
+      {
+        "type": "Enums.ClientMedicationOutcomeOption",
+        "name": "outcome"
+      },
+      {
+        "type": "Enums.ClientMedicationReasonOption",
+        "name": "reason"
+      },
+      {
+        "type": "String",
+        "name": "note"
+      },
+      {
+        "type": "Timestamp",
+        "name": "createdAt"
+      },
+      {
+        "type": "Timestamp",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientMedicationSchedulingEntity": {
+    "table": "client_medications_scheduling",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "clientFirstName"
+      },
+      {
+        "type": "String",
+        "name": "clientLastName"
+      },
+      {
+        "type": "String",
+        "name": "medicationDescription"
+      },
+      {
+        "type": "String",
+        "name": "medicationName"
+      },
+      {
+        "type": "String",
+        "name": "support"
+      },
+      {
+        "type": "String",
+        "name": "type"
+      },
+      {
+        "type": "String",
+        "name": "dose"
+      },
+      {
+        "type": "String",
+        "name": "route"
+      },
+      {
+        "type": "String",
+        "name": "routeType"
+      },
+      {
+        "type": "String",
+        "name": "additionalInstructions"
+      },
+      {
+        "type": "String",
+        "name": "bodyMapData"
+      },
+      {
+        "type": "String",
+        "name": "frequencyType"
+      },
+      {
+        "type": "Integer",
+        "name": "dailyTimes"
+      },
+      {
+        "type": "Integer",
+        "name": "customRepeat"
+      },
+      {
+        "type": "String",
+        "name": "customUnit"
+      },
+      {
+        "type": "String",
+        "name": "timingPreference"
+      },
+      {
+        "type": "List<String>",
+        "name": "selectedTimeSlots"
+      },
+      {
+        "type": "Map<String, String>",
+        "name": "exactTimes"
+      },
+      {
+        "type": "LocalDate",
+        "name": "firstDoseDate"
+      },
+      {
+        "type": "String",
+        "name": "firstDoseTime"
+      },
+      {
+        "type": "LocalDate",
+        "name": "lastDoseDate"
+      },
+      {
+        "type": "String",
+        "name": "lastDoseTime"
+      },
+      {
+        "type": "String",
+        "name": "quantityAmount"
+      },
+      {
+        "type": "String",
+        "name": "rangeFrom"
+      },
+      {
+        "type": "String",
+        "name": "rangeTo"
+      },
+      {
+        "type": "String",
+        "name": "otherDose"
+      },
+      {
+        "type": "String",
+        "name": "additionalDetails"
+      },
+      {
+        "type": "String",
+        "name": "timeBetweenDoses"
+      },
+      {
+        "type": "String",
+        "name": "timeBetweenUnit"
+      },
+      {
+        "type": "String",
+        "name": "maxDoseCount"
+      },
+      {
+        "type": "String",
+        "name": "maxDosePeriod"
+      },
+      {
+        "type": "String",
+        "name": "maxDoseUnit"
+      },
+      {
+        "type": "String",
+        "name": "maxDoseType"
+      },
+      {
+        "type": "List<String>",
+        "name": "medicalCondition"
+      },
+      {
+        "type": "Boolean",
+        "name": "restrictClinicalSearch"
+      },
+      {
+        "type": "String",
+        "name": "medicalConditionDetails"
+      },
+      {
+        "type": "String",
+        "name": "circumstances"
+      },
+      {
+        "type": "String",
+        "name": "clientExpression"
+      },
+      {
+        "type": "List<String>",
+        "name": "gpLiaison"
+      },
+      {
+        "type": "LocalDate",
+        "name": "prnStartDate"
+      },
+      {
+        "type": "LocalDate",
+        "name": "prnEndDate"
+      },
+      {
+        "type": "Boolean",
+        "name": "isStopped"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "LocalDate",
+        "name": "scheduledStopDate"
+      },
+      {
+        "type": "LocalTime",
+        "name": "scheduledStopTime"
+      },
+      {
+        "type": "List<ClientMedicationPastAdministrationEntity>",
+        "name": "pastAdministrations"
+      }
+    ]
+  },
+  "ClientMentalCapacityAssessmentEntity": {
+    "table": "client_mental_capacity_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientMentalCapacityEntity",
+        "name": "mentalCapacity"
+      },
+      {
+        "type": "String",
+        "name": "name"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "brain_impairment"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "lacks_capacity_for_decisions"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "general_understanding_of_decisions"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "general_understanding_of_decision_consequences"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "understand_remember_compare_information"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "able_to_communicate_decision"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "decision_making_support_details"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "decision_making_wishes_details"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "mental_capacity_consent"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "best_interest_decision_required"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "best_interest_decision_maker"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "best_interest_decision_maker_relation"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "circumstances_values"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "relevant_circumstances"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "who_was_involved"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "best_interests"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "consultation_wishes"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "has_imca"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "imca_date"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "imca_name"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "imca_organisation"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "imca_phone_number"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "imca_email"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "imca_referral"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "first_option"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "benefits"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "risks"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "second_option"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "describe_second_option"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "second_option_benefits"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "second_option_risks"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "third_option"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "describe_third_option"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "third_option_benefits"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "third_option_risks"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "final_decision_describe"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "reasons"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "other_options"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "least_restrictive"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "disagree"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "intend_to_proceed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "client_involved"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "future_review"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientMentalCapacityEntity": {
+    "table": "client_mental_capacity",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientMentalCapacityAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientNutritionHydrationAssessmentEntity": {
+    "table": "client_nutrition_hydration_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientNutritionHydrationEntity",
+        "name": "nutritionHydration"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "relative_appetite"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "ability_to_swallow"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "medical_conditions_affecting_swallow"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "ability_to_self_feed"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "ability_to_prepare_light_meals_or_snacks"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "ability_to_cook_meals"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "care_recipient_weight"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "weight_stability"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "care_recipient_must_score"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "food_alergies"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "present_food_alergies"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "allergies_impact"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "diet_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "dietary_likes"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "dietary_dislikes"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "support_planning_meals"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "support_buying_meals"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "support_preparing_meals"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "support_carrying_food"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientNutritionHydrationEntity": {
+    "table": "client_nutrition_hydration",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientNutritionHydrationAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientPersonalCareAssessmentEntity": {
+    "table": "client_personal_care_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientPersonalCareEntity",
+        "name": "personalCare"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "bathing_washing_independence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "oral_hygiene_maintenance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "oral_hygiene_dentures"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "personal_appearance_maintenance"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "personal_appearance_dressing_independence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "toilet_independence"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "toilet_bowel_control"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "toilet_bladder_control"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "toilet_support_types"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientPersonalCareEntity": {
+    "table": "client_personal_care",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientPersonalCareAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientProfessionalsEntity": {
+    "table": "client_professionals",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientInformationEntity",
+        "name": "clientInformation"
+      },
+      {
+        "type": "String",
+        "name": "firstName"
+      },
+      {
+        "type": "String",
+        "name": "lastName"
+      },
+      {
+        "type": "String",
+        "name": "role"
+      },
+      {
+        "type": "String",
+        "name": "serviceName"
+      },
+      {
+        "type": "long",
+        "name": "phoneNumber"
+      },
+      {
+        "type": "String",
+        "name": "phoneCode"
+      },
+      {
+        "type": "String",
+        "name": "email"
+      },
+      {
+        "type": "Boolean",
+        "name": "careMattersDiscussionAgreement"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientPsychologicalAssessmentEntity": {
+    "table": "client_psychological_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientPsychologicalEntity",
+        "name": "psychological"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "health_satisfaction"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "health_maintenance_motivation"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "mood"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "sleep"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "memory_concerns"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "memory_loss"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientPsychologicalEntity": {
+    "table": "client_psychological",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientPsychologicalAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientSettingsEntity": {
+    "table": "client_settings",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "Boolean",
+        "name": "lateMissedVistAlerts"
+      },
+      {
+        "type": "boolean",
+        "name": "visitPlanning"
+      },
+      {
+        "type": "boolean",
+        "name": "geoLocationCheckIn"
+      },
+      {
+        "type": "boolean",
+        "name": "qrCodeCheckIn"
+      },
+      {
+        "type": "UUID",
+        "name": "qrCodeId"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "qrCodeChangedAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientShareAccessEntity": {
+    "table": "client_share_access",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "Long",
+        "name": "accessCode"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "ClientSignatoriesEntity": {
+    "table": "client_signature_signatories",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "String",
+        "name": "name"
+      },
+      {
+        "type": "String",
+        "name": "role"
+      },
+      {
+        "type": "String",
+        "name": "note"
+      },
+      {
+        "type": "ClientSignatureDocumentEntity",
+        "name": "document"
+      }
+    ]
+  },
+  "ClientSignatureDocumentEntity": {
+    "table": "client_signature_documents",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "file"
+      },
+      {
+        "type": "String",
+        "name": "fileName"
+      },
+      {
+        "type": "String",
+        "name": "fileUrl"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "signedAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "collectedBy"
+      },
+      {
+        "type": "UUID",
+        "name": "documentId"
+      },
+      {
+        "type": "UUID",
+        "name": "documentPackId"
+      },
+      {
+        "type": "String",
+        "name": "documentUniqueId"
+      },
+      {
+        "type": "String",
+        "name": "notes"
+      },
+      {
+        "type": "List<ClientSignatoriesEntity>",
+        "name": "signatories"
+      }
+    ]
+  },
+  "ClientSocialSupportAssessmentEntity": {
+    "table": "client_social_support_assessment",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientSocialSupportEntity",
+        "name": "socialSupport"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "housemates"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "informal_care"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "informal_care_providers"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "informal_care_type"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "informal_care_concerns"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "formal_care"
+      },
+      {
+        "type": "Map<String, Object>",
+        "name": "formal_care_type"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "submittedAt"
+      },
+      {
+        "type": "Boolean",
+        "name": "assessmentInprogress"
+      },
+      {
+        "type": "Boolean",
+        "name": "reviewInprogress"
+      },
+      {
+        "type": "UserEntity",
+        "name": "submittedBy"
+      },
+      {
+        "type": "Enums.CarePlanReviewOutcome",
+        "name": "reviewOutcome"
+      },
+      {
+        "type": "String",
+        "name": "reviewDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "reviewedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "reviewedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientSocialSupportEntity": {
+    "table": "client_social_support",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<ClientSocialSupportAssessmentEntity>",
+        "name": "assessments"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      },
+      {
+        "type": "List<CarePlanRisksMitigationsEntity>",
+        "name": "risks"
+      },
+      {
+        "type": "String",
+        "name": "assessmentSummaryOutcomes"
+      },
+      {
+        "type": "UserEntity",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UserEntity",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientTaskCategoryEntity": {
+    "table": "client_task_categories",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "String",
+        "name": "name"
+      },
+      {
+        "type": "String",
+        "name": "description"
+      },
+      {
+        "type": "List<ClientTaskEntity>",
+        "name": "tasks"
+      }
+    ]
+  },
+  "ClientTaskEntity": {
+    "table": "client_tasks",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientTaskCategoryEntity",
+        "name": "clientTaskCategory"
+      },
+      {
+        "type": "String",
+        "name": "name"
+      },
+      {
+        "type": "String",
+        "name": "description"
+      }
+    ]
+  },
+  "ClientTaskPlanEntity": {
+    "table": "client_task_plans",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "ClientTaskEntity",
+        "name": "task"
+      },
+      {
+        "type": "UUID",
+        "name": "entityId"
+      },
+      {
+        "type": "CarePlanEntityType",
+        "name": "entityType"
+      },
+      {
+        "type": "boolean",
+        "name": "isEssential"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "details"
+      },
+      {
+        "type": "Boolean",
+        "name": "isAnyTime"
+      },
+      {
+        "type": "List<Enums.ClientTaskPlanSessions>",
+        "name": "sessions"
+      },
+      {
+        "type": "Enums.TeamAvailablityFrequency",
+        "name": "frequency"
+      },
+      {
+        "type": "List<Enums.DaysInWeek>",
+        "name": "selectedDays"
+      },
+      {
+        "type": "Long",
+        "name": "repeatEvery"
+      },
+      {
+        "type": "Enums.TeamAvailabilityRepeatUnits",
+        "name": "repeatUnit"
+      },
+      {
+        "type": "LocalDate",
+        "name": "startDate"
+      },
+      {
+        "type": "LocalDate",
+        "name": "endDate"
+      },
+      {
+        "type": "LocalDate",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDate",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      }
+    ]
+  },
+  "ClientUploadDocumentEntity": {
+    "table": "client_documents",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "fileType"
+      },
+      {
+        "type": "String",
+        "name": "file"
+      },
+      {
+        "type": "String",
+        "name": "fileName"
+      },
+      {
+        "type": "String",
+        "name": "fileUrl"
+      },
+      {
+        "type": "Boolean",
+        "name": "readAccessToCareGivers"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      }
+    ]
+  },
+  "LoginTokenEntity": {
+    "table": "login_token",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "tempPassword"
+      },
+      {
+        "type": "String",
+        "name": "token"
+      },
+      {
+        "type": "Boolean",
+        "name": "isUsed"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "expiresAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      }
+    ]
+  },
+  "TeamAbsenceEntity": {
+    "table": "team_Absence",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "LocalDate",
+        "name": "startDate"
+      },
+      {
+        "type": "LocalDate",
+        "name": "endDate"
+      },
+      {
+        "type": "LocalTime",
+        "name": "startTime"
+      },
+      {
+        "type": "LocalTime",
+        "name": "endTime"
+      },
+      {
+        "type": "Enums.TeamAbsenceType",
+        "name": "type"
+      },
+      {
+        "type": "String",
+        "name": "reason"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "TeamAvailabilityEntity": {
+    "table": "team_availability",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "Enums.TeamAvailablityFrequency",
+        "name": "frequency"
+      },
+      {
+        "type": "LocalTime",
+        "name": "startTime"
+      },
+      {
+        "type": "LocalTime",
+        "name": "endTime"
+      },
+      {
+        "type": "Boolean",
+        "name": "isEnds"
+      },
+      {
+        "type": "LocalDate",
+        "name": "startDate"
+      },
+      {
+        "type": "LocalDate",
+        "name": "endDate"
+      },
+      {
+        "type": "List<Enums.DaysInWeek>",
+        "name": "selectedDays"
+      },
+      {
+        "type": "Long",
+        "name": "repeatEvery"
+      },
+      {
+        "type": "Enums.TeamAvailabilityRepeatUnits",
+        "name": "repeatUnit"
+      },
+      {
+        "type": "List<LocalDate>",
+        "name": "deletedDate"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "TeamOnboardingAdditionalDocumentEntity": {
+    "table": "team_onboarding_additional_document",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "TeamOnboardingEntity",
+        "name": "onboarding"
+      },
+      {
+        "type": "String",
+        "name": "additionalDocumentDescription"
+      },
+      {
+        "type": "Enums.TeamOnboardingAdditionalDocCategories",
+        "name": "additionalDocumentCategory"
+      },
+      {
+        "type": "Boolean",
+        "name": "additionalDocumentExpires"
+      },
+      {
+        "type": "LocalDate",
+        "name": "additionalDocumentExpiresOn"
+      },
+      {
+        "type": "String",
+        "name": "additionaDocumentFilePath"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      }
+    ]
+  },
+  "TeamOnboardingEntity": {
+    "table": "team_onboarding",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "List<TeamOnboardingAdditionalDocumentEntity>",
+        "name": "teamOnboardingAdditionalDocuments"
+      },
+      {
+        "type": "LocalDate",
+        "name": "started"
+      },
+      {
+        "type": "String",
+        "name": "niNumber"
+      },
+      {
+        "type": "String",
+        "name": "socialWorkerNumber"
+      },
+      {
+        "type": "String",
+        "name": "employeeNumber"
+      },
+      {
+        "type": "Enums.TeamOnboardingRoles",
+        "name": "role"
+      },
+      {
+        "type": "Enums.TeamOnboardingContractType",
+        "name": "contractType"
+      },
+      {
+        "type": "Integer",
+        "name": "weeklyContractedHours"
+      },
+      {
+        "type": "String",
+        "name": "contractFilePath"
+      },
+      {
+        "type": "Enums.TeamOnboardingCovidStatus",
+        "name": "covidVaccinationStatus"
+      },
+      {
+        "type": "String",
+        "name": "idFilePath"
+      },
+      {
+        "type": "String",
+        "name": "drivingLicenceFilePath"
+      },
+      {
+        "type": "String",
+        "name": "bankStatementFilePath"
+      },
+      {
+        "type": "String",
+        "name": "utilityBillFilePath"
+      },
+      {
+        "type": "String",
+        "name": "referencesFilePath"
+      },
+      {
+        "type": "String",
+        "name": "dbsRecordFilePath"
+      }
+    ]
+  },
+  "TeamOperationsEntity": {
+    "table": "team_operations",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "address"
+      },
+      {
+        "type": "String",
+        "name": "rateCard"
+      },
+      {
+        "type": "String",
+        "name": "travelRateCard"
+      },
+      {
+        "type": "Enums.TransportMethod",
+        "name": "transportMethod"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "TeamSkillsEntity": {
+    "table": "team_skills",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "name"
+      },
+      {
+        "type": "Boolean",
+        "name": "endsAt"
+      },
+      {
+        "type": "LocalDate",
+        "name": "endsOn"
+      },
+      {
+        "type": "String",
+        "name": "skillsFilePath"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      }
+    ]
+  },
+  "UserEntity": {
+    "table": "users",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "Enums.Title",
+        "name": "title"
+      },
+      {
+        "type": "String",
+        "name": "profileImagePath"
+      },
+      {
+        "type": "String",
+        "name": "firstName"
+      },
+      {
+        "type": "String",
+        "name": "lastName"
+      },
+      {
+        "type": "String",
+        "name": "email"
+      },
+      {
+        "type": "String",
+        "name": "preferredName"
+      },
+      {
+        "type": "Enums.ReferredAs",
+        "name": "referredAs"
+      },
+      {
+        "type": "LocalDate",
+        "name": "dateOfBirth"
+      },
+      {
+        "type": "Enums.Gender",
+        "name": "gender"
+      },
+      {
+        "type": "String",
+        "name": "highlights"
+      },
+      {
+        "type": "List<Enums.MethodOfContact>",
+        "name": "methodOfContact"
+      },
+      {
+        "type": "Long",
+        "name": "primaryPhone"
+      },
+      {
+        "type": "String",
+        "name": "primaryPhoneCode"
+      },
+      {
+        "type": "Enums.PhoneType",
+        "name": "primaryPhoneType"
+      },
+      {
+        "type": "Long",
+        "name": "secondaryPhone"
+      },
+      {
+        "type": "String",
+        "name": "secondaryPhoneCode"
+      },
+      {
+        "type": "Enums.PhoneType",
+        "name": "secondaryPhoneType"
+      },
+      {
+        "type": "Enums.Role",
+        "name": "role"
+      },
+      {
+        "type": "Boolean",
+        "name": "isActive"
+      },
+      {
+        "type": "UUID",
+        "name": "agencyId"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      },
+      {
+        "type": "UserTerminationEntity",
+        "name": "termination"
+      },
+      {
+        "type": "List<UserKeyContactEntity>",
+        "name": "keyContacts"
+      },
+      {
+        "type": "List<TeamOnboardingEntity>",
+        "name": "teamOnboardings"
+      },
+      {
+        "type": "List<UserPrimaryAddressEntity>",
+        "name": "addresses"
+      },
+      {
+        "type": "List<ClientTaskPlanEntity>",
+        "name": "taskPlans"
+      }
+    ]
+  },
+  "UserKeyContactEntity": {
+    "table": "user_key_contacts",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "String",
+        "name": "firstName"
+      },
+      {
+        "type": "String",
+        "name": "lastName"
+      },
+      {
+        "type": "Enums.RelationShip",
+        "name": "relationShip"
+      },
+      {
+        "type": "long",
+        "name": "phoneNumber"
+      },
+      {
+        "type": "String",
+        "name": "phoneCode"
+      },
+      {
+        "type": "String",
+        "name": "email"
+      },
+      {
+        "type": "List<Enums.TypeOfContact>",
+        "name": "typeOfContact"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "UserPrimaryAddressEntity": {
+    "table": "user_primary_address",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "Enums.ClientAddressType",
+        "name": "addressType"
+      },
+      {
+        "type": "String",
+        "name": "addressLine1"
+      },
+      {
+        "type": "String",
+        "name": "addressLine2"
+      },
+      {
+        "type": "String",
+        "name": "county"
+      },
+      {
+        "type": "String",
+        "name": "city"
+      },
+      {
+        "type": "String",
+        "name": "postalCode"
+      },
+      {
+        "type": "String",
+        "name": "country"
+      },
+      {
+        "type": "String",
+        "name": "secureCheckin"
+      },
+      {
+        "type": "Boolean",
+        "name": "isPrimary"
+      },
+      {
+        "type": "String",
+        "name": "accessDetails"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  },
+  "UserTerminationEntity": {
+    "table": "user_termination",
+    "fields": [
+      {
+        "type": "UUID",
+        "name": "id"
+      },
+      {
+        "type": "UserEntity",
+        "name": "user"
+      },
+      {
+        "type": "LocalDate",
+        "name": "lastWorkingDay"
+      },
+      {
+        "type": "Enums.TerminationType",
+        "name": "type"
+      },
+      {
+        "type": "List<Enums.TerminationReason>",
+        "name": "reason"
+      },
+      {
+        "type": "String",
+        "name": "note"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "createdAt"
+      },
+      {
+        "type": "UUID",
+        "name": "createdBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "updatedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "updatedBy"
+      },
+      {
+        "type": "LocalDateTime",
+        "name": "deletedAt"
+      },
+      {
+        "type": "UUID",
+        "name": "deletedBy"
+      }
+    ]
+  }
+}

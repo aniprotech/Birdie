@@ -1,0 +1,291 @@
+.finance-shell {
+    display: grid;
+    grid-template-columns: 245px minmax(0, 1fr);
+    min-height: calc(100dvh - 64px);
+    background: #fff;
+    color: #26374b;
+    font:
+        14px Arial,
+        sans-serif;
+}
+.finance-shell button,
+.finance-shell input,
+.finance-shell select,
+.finance-shell textarea {
+    font: inherit;
+}
+.finance-shell button {
+    cursor: pointer;
+}
+.finance-shell button:disabled {
+    cursor: default;
+    opacity: 0.45;
+}
+.finance-shell > aside {
+    border-right: 1px solid #dce3ed;
+    background: #fbfcfe;
+    padding: 20px 8px;
+}
+.finance-shell > aside h1 {
+    font-size: 17px;
+    margin: 0 10px 22px;
+}
+.finance-shell > aside button {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-left: 3px solid transparent;
+    background: transparent;
+    text-align: left;
+    padding: 12px 18px;
+    color: #17335d;
+}
+.finance-shell > aside button.active {
+    border-left-color: #17335d;
+    background: #eef3fb;
+    font-weight: 600;
+}
+.finance-shell > main {
+    min-width: 0;
+}
+.finance-shell > main > header {
+    height: 64px;
+    border-bottom: 1px solid #dce3ed;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+.finance-shell > main > header h2 {
+    font-size: 18px;
+    margin: 0;
+}
+.fin-content {
+    max-width: 1240px;
+    margin: 45px auto;
+    padding: 0 24px;
+}
+.fin-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.fin-summary article {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid #dbe3ee;
+    border-radius: 6px;
+    background: #f7fafc;
+}
+.fin-summary strong { font-size: 24px; color: #173c70; }
+.fin-content h3 { margin: 26px 0 12px; font-size: 17px; }
+.fin-filters {
+    border: 1px solid #dbe3ee;
+    border-radius: 5px;
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 18px;
+}
+.fin-content label {
+    display: grid;
+    gap: 7px;
+    font-weight: 600;
+}
+.fin-content input,
+.fin-content select,
+.fin-content textarea {
+    border: 1px solid #b9c6d8;
+    border-radius: 4px;
+    padding: 9px;
+    background: white;
+    color: #26374b;
+    min-width: 0;
+}
+.fin-tabs {
+    display: flex;
+    gap: 5px;
+    border-bottom: 1px solid #aebdd0;
+    margin-top: 32px;
+}
+.fin-tabs button {
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: white;
+    padding: 12px;
+    color: #244b89;
+}
+.fin-tabs button.active {
+    border-bottom-color: #18386c;
+    font-weight: 600;
+}
+.fin-toolbar {
+    display: flex;
+    align-items: end;
+    gap: 14px;
+    padding: 16px 8px;
+    flex-wrap: wrap;
+}
+.fin-toolbar label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.fin-toolbar span {
+    margin-left: auto;
+}
+.fin-toolbar button,
+.fin-content form button,
+.fin-overlay button {
+    border: 1px solid #8295af;
+    border-radius: 4px;
+    background: white;
+    color: #173c70;
+    padding: 9px 15px;
+}
+.fin-toolbar .primary,
+.fin-content form button:last-child,
+.fin-overlay button:last-child {
+    background: #16877f;
+    color: white;
+    border-color: #16877f;
+}
+.fin-hint {
+    background: #eef5fb;
+    border-left: 4px solid #567ca9;
+    padding: 11px;
+}
+.fin-table {
+    border: 1px solid #dbe3ee;
+    overflow: auto;
+}
+.fin-table table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1050px;
+}
+.fin-table th {
+    background: #e6ecf3;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.fin-table th,
+.fin-table td {
+    padding: 11px;
+    text-align: left;
+    border-bottom: 1px solid #dbe3ee;
+    vertical-align: top;
+}
+.fin-table a {
+    color: #285a9b;
+    text-decoration: underline;
+}
+.fin-warning {
+    color: #a63b12;
+    font-weight: 600;
+}
+.fin-error,
+.finance-shell > main > [role="status"] {
+    margin: 15px 24px;
+    padding: 12px;
+    border-radius: 4px;
+}
+.fin-error {
+    background: #fff0ed;
+    color: #9f2f22;
+}
+.finance-shell > main > [role="status"] {
+    background: #e8faed;
+    color: #1d6b2a;
+}
+.fin-content > form {
+    display: flex;
+    align-items: end;
+    gap: 14px;
+    flex-wrap: wrap;
+    border: 1px solid #dbe3ee;
+    padding: 20px;
+    margin: 20px 0;
+}
+.fin-content > article {
+    border: 1px solid #dbe3ee;
+    border-radius: 5px;
+    padding: 14px;
+    margin: 10px 0;
+    background: #fff;
+}
+.fin-content > article p {
+    margin: 7px 0;
+}
+.fin-overlay {
+    position: fixed;
+    inset: 0;
+    background: #17243a88;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+.fin-overlay section {
+    width: min(500px, 100%);
+    background: #fff;
+    border-radius: 7px;
+    padding: 24px;
+    box-shadow: 0 15px 50px #0004;
+}
+.fin-overlay textarea {
+    min-height: 100px;
+    width: 100%;
+    resize: vertical;
+}
+.fin-overlay button {
+    margin: 15px 10px 0 0;
+}
+.finance-shell :focus-visible {
+    outline: 2px solid #248be5;
+    outline-offset: 2px;
+}
+@media (max-width: 900px) {
+    .finance-shell {
+        grid-template-columns: 190px minmax(0, 1fr);
+    }
+    .fin-filters {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+}
+@media (max-width: 650px) {
+    .finance-shell {
+        display: block;
+    }
+    .finance-shell > aside {
+        display: flex;
+        overflow: auto;
+        padding: 8px;
+    }
+    .finance-shell > aside h1 {
+        display: none;
+    }
+    .finance-shell > aside button {
+        width: auto;
+        white-space: nowrap;
+        border-left: 0;
+        border-bottom: 3px solid transparent;
+    }
+    .finance-shell > aside button.active {
+        border-bottom-color: #17335d;
+    }
+    .fin-content {
+        margin: 20px auto;
+        padding: 0 12px;
+    }
+    .fin-filters {
+        grid-template-columns: 1fr;
+    }
+    .fin-summary { grid-template-columns: 1fr; }
+    .fin-toolbar span {
+        margin-left: 0;
+        width: 100%;
+    }
+}

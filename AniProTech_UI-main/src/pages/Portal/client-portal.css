@@ -1,0 +1,152 @@
+.client-portal {
+    min-height: 100vh;
+    background: #f3f6f9;
+    color: #1b334f;
+    font-family: Arial, sans-serif;
+}
+.client-portal > header {
+    padding: 20px 28px;
+    background: #0b2039;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.client-portal header strong {
+    font-size: 22px;
+}
+.client-portal header span {
+    font-size: 13px;
+}
+.client-portal header button {
+    margin-left: auto;
+}
+.client-portal main {
+    max-width: 950px;
+    padding: 30px 20px 60px;
+    margin: auto;
+}
+.client-portal h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+.client-portal h2 {
+    font-size: 21px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+.client-portal h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 15px 0 8px;
+}
+.client-portal p {
+    line-height: 1.65;
+    margin: 12px 0;
+}
+.client-portal button {
+    padding: 10px 15px;
+    border: 1px solid #168580;
+    background: #168580;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.client-portal button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.client-portal .cp-login {
+    max-width: 480px;
+    background: #fff;
+    border: 1px solid #dce5ef;
+    border-radius: 12px;
+    padding: 28px;
+    margin: 20px auto;
+}
+.cp-login label {
+    display: block;
+    margin: 18px 0;
+    font-size: 14px;
+}
+.cp-login input {
+    display: block;
+    width: 100%;
+    border: 1px solid #b9c8d8;
+    padding: 11px;
+    border-radius: 5px;
+    margin-top: 8px;
+    background: white;
+}
+.cp-login input[readonly] {
+    background: #f4f6fa;
+    color: #708198;
+    font-size: 12px;
+}
+.client-portal section {
+    background: white;
+    border: 1px solid #dce5ef;
+    border-radius: 10px;
+    padding: 25px;
+    margin: 24px 0;
+}
+.client-portal dl > div {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    padding: 12px 0;
+    border-bottom: 1px solid #edf0f4;
+    gap: 15px;
+}
+.client-portal dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+.client-portal dt {
+    color: #6e7e90;
+}
+.cp-muted,
+.client-portal small {
+    font-size: 12px;
+    color: #758498;
+}
+.cp-pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.cp-error {
+    padding: 13px;
+    background: #fff0ed;
+    color: #9b2f25;
+    border: 1px solid #f2cdc7;
+}
+.client-portal article {
+    border-bottom: 1px solid #dce5ef;
+    padding: 12px 0;
+}
+.client-portal footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 25px;
+    font-size: 13px;
+}
+@media (max-width: 600px) {
+    .client-portal main {
+        padding: 20px 12px;
+    }
+    .client-portal > header {
+        padding: 16px;
+        gap: 10px;
+    }
+    .client-portal .cp-login,
+    .client-portal section {
+        padding: 20px;
+    }
+    .client-portal dl > div {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+}

@@ -1,0 +1,246 @@
+.time-off {
+    background: #f5f6f8;
+    min-height: calc(100vh - 65px);
+    padding: 48px 24px;
+    color: #303946;
+    font-size: 15px;
+}
+.to-content {
+    max-width: 796px;
+    margin: auto;
+}
+.time-off header,
+.to-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.time-off h1 {
+    font-size: 30px;
+    font-weight: 650;
+}
+.time-off h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+.time-off button,
+.time-off select {
+    border: 1px solid #8296b8;
+    border-radius: 4px;
+    padding: 9px 15px;
+    background: white;
+}
+.time-off button:disabled {
+    opacity: 0.5;
+}
+.to-warning {
+    background: #fff0cf;
+    border-left: 4px solid #ac790b;
+    padding: 12px;
+    margin: 16px 0;
+}
+.to-warning button {
+    border: 0;
+    background: transparent;
+    text-decoration: underline;
+    padding: 0;
+    color: #755009;
+}
+.to-toolbar {
+    background: #d8e1f5;
+    padding: 12px;
+    margin: 16px 0;
+    border-radius: 8px;
+}
+.to-toolbar span {
+    color: #57647a;
+    font-size: 12px;
+}
+.time-off section {
+    padding: 12px 16px;
+    background: white;
+    border-radius: 9px;
+    margin: 16px 0;
+}
+.time-off section p {
+    margin-top: 5px;
+}
+.time-off article {
+    border-top: 1px solid #e0e6ef;
+    margin-top: 14px;
+    padding-top: 12px;
+}
+.time-off article button {
+    margin-top: 10px;
+    display: block;
+}
+.to-reason {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.to-error {
+    background: #ffeeed;
+    color: #a12626;
+    padding: 12px;
+}
+.to-notice {
+    background: #e5f6ef;
+    padding: 12px;
+}
+.to-overlay {
+    position: fixed;
+    inset: 0;
+    background: #12345666;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+.to-overlay form {
+    background: white;
+    border-radius: 9px;
+    padding: 24px;
+    width: min(540px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+}
+.to-overlay label {
+    display: block;
+    margin: 16px 0;
+}
+.to-overlay input,
+.to-overlay select,
+.to-overlay textarea {
+    display: block;
+    width: 100%;
+    border: 1px solid #9cacbf;
+    border-radius: 4px;
+    padding: 9px;
+    margin-top: 6px;
+}
+.to-overlay .to-check {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.to-check input {
+    width: auto;
+    margin: 0;
+}
+.to-overlay footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+}
+.time-off .to-primary {
+    background: #18827d;
+    color: white;
+}
+.to-overlay textarea {
+    min-height: 80px;
+}
+@media (max-width: 600px) {
+    .time-off {
+        padding: 22px 12px;
+    }
+    .time-off h1 {
+        font-size: 24px;
+    }
+    .time-off h2 {
+        font-size: 17px;
+        overflow-wrap: anywhere;
+    }
+    .time-off select {
+        max-width: 100%;
+    }
+    .time-off section {
+        padding: 12px;
+    }
+}
+
+.to-year-picker {
+    position: relative;
+    max-width: 100%;
+}
+.to-year-picker > button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 250px;
+    max-width: 100%;
+    font-size: 14px;
+}
+.to-year-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 270px;
+    max-width: calc(100vw - 32px);
+    z-index: 20;
+    background: white;
+    border: 1px solid #dce2e9;
+    border-radius: 5px;
+    box-shadow: 0 3px 8px #18314c33;
+    overflow: hidden;
+}
+.to-year-options {
+    max-height: 270px;
+    overflow: auto;
+    padding: 4px 0;
+}
+.time-off .to-year-menu button {
+    display: block;
+    border: 0;
+    border-radius: 0;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    padding: 12px 16px;
+    color: #485a74;
+}
+.time-off .to-year-menu button:hover,
+.time-off .to-year-menu button:focus-visible {
+    background: #edf3fb;
+    outline: 2px solid #6688b8;
+    outline-offset: -2px;
+}
+.time-off .to-year-menu button[aria-current="true"] {
+    background: #edf3fb;
+    color: #18385e;
+    font-weight: 600;
+}
+.to-year-footer {
+    border-top: 1px solid #e2e6ed;
+}
+.time-off .to-year-footer button {
+    padding: 9px 16px;
+    font-size: 12px;
+}
+.to-count {
+    display: inline-block;
+    background: #edf1f6;
+    color: #59697d;
+    border-radius: 12px;
+    font-size: 12px;
+    padding: 2px 8px;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+@media (max-width: 600px) {
+    .to-year-picker {
+        width: 100%;
+    }
+    .to-year-picker > button {
+        min-width: 0;
+        width: 100%;
+        white-space: normal;
+    }
+    .to-year-menu {
+        width: 100%;
+        min-width: 0;
+    }
+}

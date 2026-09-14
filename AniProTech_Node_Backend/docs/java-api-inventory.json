@@ -1,0 +1,2755 @@
+[
+  {
+    "controller": "AuthController",
+    "method": "POST",
+    "path": "/api/auth/request-link",
+    "signature": "public ResponseEntity<?> requestAccess(@RequestBody @Valid AuthModel request)",
+    "calls": [
+      {
+        "service": "authService",
+        "method": "handleLoginLinkRequest",
+        "args": "request.getEmail().toLowerCase()"
+      }
+    ]
+  },
+  {
+    "controller": "AuthController",
+    "method": "POST",
+    "path": "/api/auth/get-token",
+    "signature": "public ResponseEntity<?> requestToken(\n            @RequestBody @Validated(AuthModel.GetTokenValidation.class) AuthModel request)",
+    "calls": [
+      {
+        "service": "authService",
+        "method": "getTokenRequest",
+        "args": "request.getEmail(), request.getPassword()"
+      }
+    ]
+  },
+  {
+    "controller": "AuthController",
+    "method": "POST",
+    "path": "/api/auth/validate-token",
+    "signature": "public ResponseEntity<?> validateToken(\n            @RequestHeader(value = \"Authorization\", required = false) String authorizationHeader)",
+    "calls": [
+      {
+        "service": "ResponseUtils",
+        "method": "returnData",
+        "args": "ResponseType.FAILURE, HttpStatus.BAD_REQUEST, \"Token not provided or invalid\""
+      },
+      {
+        "service": "authService",
+        "method": "validateTokenRequest",
+        "args": "token"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/medication/{clientId}",
+    "signature": "public ResponseEntity<?> getClientMedication(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "carePlanMedicationService",
+        "method": "getMedication",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "POST",
+    "path": "/api/client-care-plan/medication/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid CarePlanMedicationModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "carePlanMedicationService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/medication/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "carePlanMedicationService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/medication/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "carePlanMedicationService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "POST",
+    "path": "/api/client-care-plan/medication/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid CarePlanMedicationModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "carePlanMedicationService",
+        "method": "updateMedicationRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/medication/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "CarePlanMedicationController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/medication/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "GET",
+    "path": "/api/client-care-plan/administrative/{clientId}",
+    "signature": "public ResponseEntity<?> getClientAdministrative(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientAdministrativeService",
+        "method": "getAdministrative",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/administrative/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientAdministrative(\n            @PathVariable UUID clientId,\n            @RequestBody ClientAdministrativeModel.UpdateAdministrativeRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientAdministrativeService",
+        "method": "updateAdministrative",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "POST",
+    "path": "/api/client-care-plan/administrative/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientAdministrativeModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientAdministrativeService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "GET",
+    "path": "/api/client-care-plan/administrative/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientAdministrativeService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/administrative/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientAdministrativeService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "POST",
+    "path": "/api/client-care-plan/administrative/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid CarePlanRisksMitigationsModel.CreateOrUpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientAdministrativeService",
+        "method": "updateAdministrativeRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "GET",
+    "path": "/api/client-care-plan/administrative/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientAdministrativeController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/administrative/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "GET",
+    "path": "/api/client-care-plan/behaviour/{clientId}",
+    "signature": "public ResponseEntity<?> getClientBehaviour(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientBehaviourService",
+        "method": "getBehaviour",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "POST",
+    "path": "/api/client-care-plan/behaviour/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientBehaviourModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientBehaviourService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "GET",
+    "path": "/api/client-care-plan/behaviour/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientBehaviourService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/behaviour/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientBehaviourService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "POST",
+    "path": "/api/client-care-plan/behaviour/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientBehaviourModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientBehaviourService",
+        "method": "updateBehaviourRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "GET",
+    "path": "/api/client-care-plan/behaviour/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientBehaviourController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/behaviour/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareCircleController",
+    "method": "POST",
+    "path": "/api/client-care-circle/create",
+    "signature": "public ResponseEntity<?> createCareCircleMember(\n            @RequestBody @Valid ClientCareCircleMemberModel.Createrequest request,\n            HttpServletRequest header)",
+    "calls": [
+      {
+        "service": "clientCareCircleService",
+        "method": "createCareCircleMember",
+        "args": "request, adminId, agencyId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareCircleController",
+    "method": "PUT",
+    "path": "/api/client-care-circle/update/{id}",
+    "signature": "public ResponseEntity<?> updateCareCircleMember(\n            @PathVariable(\"id\") UUID careCircleMemberId,\n            @RequestBody ClientCareCircleMemberModel.UpdateRequest request,\n            HttpServletRequest header)",
+    "calls": [
+      {
+        "service": "clientCareCircleService",
+        "method": "updateCareCircleMember",
+        "args": "careCircleMemberId, request, adminId, agencyId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareCircleController",
+    "method": "PUT",
+    "path": "/api/client-care-circle/invitation/{id}",
+    "signature": "public ResponseEntity<?> manageInvitation(\n            @PathVariable(\"id\") UUID careCircleMemberId,\n            @RequestBody ClientCareCircleMemberModel.InvitationRequest request,\n            HttpServletRequest header)",
+    "calls": [
+      {
+        "service": "clientCareCircleService",
+        "method": "updateInvitationStatus",
+        "args": "careCircleMemberId, request.getIsInviteSent(), adminId, agencyId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareCircleController",
+    "method": "DELETE",
+    "path": "/api/client-care-circle/delete/{id}",
+    "signature": "public ResponseEntity<?> deleteCareCircleMember(\n            @PathVariable(\"id\") UUID careCircleMemberId,\n            HttpServletRequest header)",
+    "calls": [
+      {
+        "service": "clientCareCircleService",
+        "method": "deleteCareCircleMember",
+        "args": "careCircleMemberId, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareCircleController",
+    "method": "GET",
+    "path": "/api/client-care-circle/client/{clientId}",
+    "signature": "public ResponseEntity<?> getAllCareCircleMembersByClientId(\n            @PathVariable(\"clientId\") UUID clientId)",
+    "calls": [
+      {
+        "service": "clientCareCircleService",
+        "method": "getAllCareCircleMembersByClientId",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareCircleController",
+    "method": "GET",
+    "path": "/api/client-care-circle/{id}",
+    "signature": "public ResponseEntity<?> getCareCircleMemberById(\n            @PathVariable(\"id\") UUID careCircleMemberId)",
+    "calls": [
+      {
+        "service": "clientCareCircleService",
+        "method": "getCareCircleMemberById",
+        "args": "careCircleMemberId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCarePlanController",
+    "method": "GET",
+    "path": "/api/care-plan/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCarePlanController",
+    "method": "DELETE",
+    "path": "/api/care-plan/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareTeamController",
+    "method": "POST",
+    "path": "/api/client-care-team/getByClient/{clientId}",
+    "signature": "public ResponseEntity<?> getAllCareTeam(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientCareTeamModel.GetAllRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCareTeamService",
+        "method": "getAllCareTeam",
+        "args": "clientId, request, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareTeamController",
+    "method": "PUT",
+    "path": "/api/client-care-team/update/{clientId}",
+    "signature": "public ResponseEntity<?> updateCareTeam(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientCareTeamModel.UpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCareTeamService",
+        "method": "updateCareTeam",
+        "args": "clientId, request, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCareTeamController",
+    "method": "PUT",
+    "path": "/api/client-care-team/bulk-update/{clientId}",
+    "signature": "public ResponseEntity<?> updateMultipleCareTeam(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid List<ClientCareTeamModel.UpdateRequest> requestList,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCareTeamService",
+        "method": "bulkUpdateCareTeam",
+        "args": "clientId, requestList, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/communication/{clientId}",
+    "signature": "public ResponseEntity<?> getClientCommunication(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientCommunicationService",
+        "method": "getCommunication",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "POST",
+    "path": "/api/client-care-plan/communication/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientCommunicationModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCommunicationService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/communication/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCommunicationService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/communication/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCommunicationService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "POST",
+    "path": "/api/client-care-plan/communication/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientCommunicationModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCommunicationService",
+        "method": "updateCommunicationRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/communication/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCommunicationController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/communication/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "GET",
+    "path": "/api/client-care-plan/condition-specific/{clientId}",
+    "signature": "public ResponseEntity<?> getClientConditionSpecific(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientConditionSpecificService",
+        "method": "getConditionSpecific",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "POST",
+    "path": "/api/client-care-plan/condition-specific/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientConditionSpecificModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientConditionSpecificService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "GET",
+    "path": "/api/client-care-plan/condition-specific/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientConditionSpecificService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/condition-specific/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientConditionSpecificService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "POST",
+    "path": "/api/client-care-plan/condition-specific/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientConditionSpecificModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientConditionSpecificService",
+        "method": "updateConditionSpecificRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "GET",
+    "path": "/api/client-care-plan/condition-specific/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientConditionSpecificController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/condition-specific/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientController",
+    "method": "POST",
+    "path": "/api/client/get-all-clients",
+    "signature": "public ResponseEntity<?> getClients(@RequestBody ClientSearchFilter request)",
+    "calls": [
+      {
+        "service": "clientService",
+        "method": "getClients",
+        "args": "request"
+      }
+    ]
+  },
+  {
+    "controller": "ClientController",
+    "method": "GET",
+    "path": "/api/client/get-client/{id}",
+    "signature": "public ResponseEntity<?> getClient(@PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientService",
+        "method": "getClientById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientController",
+    "method": "POST",
+    "path": "/api/client/create",
+    "signature": "public ResponseEntity<?> updateClient(\n            @RequestParam(value = \"id\", required = false) UUID id,\n            @RequestParam String title,\n            @RequestParam(required = false) MultipartFile profileImage,\n            @RequestParam String firstName,\n            @RequestParam String lastName,\n            @RequestParam String preferredName,\n            @RequestParam String referredAs,\n            @RequestParam String dateOfBirth,\n            @RequestParam String email,\n            @RequestParam(required = false) String highlights,\n            @RequestParam String primaryPhone,\n            @RequestParam String primaryPhoneCode,\n            @RequestParam String primaryPhoneType,\n            @RequestParam(required = false) String secondaryPhone,\n            @RequestParam(required = false) String secondaryPhoneCode,\n            @RequestParam(required = false) String secondaryPhoneType,\n            @RequestParam String role,\n            @RequestParam(required = false) String addresses,\n            @RequestParam(required = false) String filesToRemove)",
+    "calls": [
+      {
+        "service": "clientService",
+        "method": "updateClient",
+        "args": " id, title, profileImage, firstName, lastName, preferredName, referredAs, dateOfBirth, email, highlights, primaryPhone, primaryPhoneCode, primaryPhoneType, secondaryPhone, secondaryPhoneCode, secondaryPhoneType, role, addresses, filesToRemove"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "GET",
+    "path": "/api/client-care-plan/control-substances/{clientId}",
+    "signature": "public ResponseEntity<?> getClientControlSubstances(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientControlSubstancesService",
+        "method": "getControlSubstances",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "POST",
+    "path": "/api/client-care-plan/control-substances/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientControlSubstancesModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientControlSubstancesService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "GET",
+    "path": "/api/client-care-plan/control-substances/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientControlSubstancesService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/control-substances/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientControlSubstancesService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "POST",
+    "path": "/api/client-care-plan/control-substances/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientControlSubstancesModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientControlSubstancesService",
+        "method": "updateControlSubstancesRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "GET",
+    "path": "/api/client-care-plan/control-substances/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientControlSubstancesController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/control-substances/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "GET",
+    "path": "/api/client-care-plan/covid/{clientId}",
+    "signature": "public ResponseEntity<?> getClientCovid(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientCovidService",
+        "method": "getCovid",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "POST",
+    "path": "/api/client-care-plan/covid/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientCovidModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCovidService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "GET",
+    "path": "/api/client-care-plan/covid/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCovidService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/covid/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCovidService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "POST",
+    "path": "/api/client-care-plan/covid/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientCovidModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientCovidService",
+        "method": "updateCovidRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "GET",
+    "path": "/api/client-care-plan/covid/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientCovidController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/covid/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "GET",
+    "path": "/api/client-care-plan/dysphagia/{clientId}",
+    "signature": "public ResponseEntity<?> getClientDysphagia(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientDysphagiaService",
+        "method": "getDysphagia",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "POST",
+    "path": "/api/client-care-plan/dysphagia/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientDysphagiaModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientDysphagiaService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "GET",
+    "path": "/api/client-care-plan/dysphagia/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientDysphagiaService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/dysphagia/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientDysphagiaService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "POST",
+    "path": "/api/client-care-plan/dysphagia/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientDysphagiaModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientDysphagiaService",
+        "method": "updateDysphagiaRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "GET",
+    "path": "/api/client-care-plan/dysphagia/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientDysphagiaController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/dysphagia/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "GET",
+    "path": "/api/client-care-plan/end-of-life/{clientId}",
+    "signature": "public ResponseEntity<?> getClientEndOfLife(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientEndOfLifeService",
+        "method": "getEndOfLife",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "POST",
+    "path": "/api/client-care-plan/end-of-life/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEndOfLifeModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEndOfLifeService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "GET",
+    "path": "/api/client-care-plan/end-of-life/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEndOfLifeService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/end-of-life/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEndOfLifeService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "POST",
+    "path": "/api/client-care-plan/end-of-life/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEndOfLifeModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEndOfLifeService",
+        "method": "updateEndOfLifeRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "GET",
+    "path": "/api/client-care-plan/end-of-life/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEndOfLifeController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/end-of-life/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "GET",
+    "path": "/api/client-care-plan/environmental/{clientId}",
+    "signature": "public ResponseEntity<?> getClientEnvironmental(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientEnvironmentalService",
+        "method": "getEnvironmental",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/environmental/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientEnvironmental(\n            @PathVariable UUID clientId,\n            @RequestBody ClientEnvironmentalModel.UpdateEnvironmentalRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEnvironmentalService",
+        "method": "updateEnvironmental",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "POST",
+    "path": "/api/client-care-plan/environmental/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEnvironmentalModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEnvironmentalService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "GET",
+    "path": "/api/client-care-plan/environmental/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEnvironmentalService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/environmental/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEnvironmentalService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "POST",
+    "path": "/api/client-care-plan/environmental/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEnvironmentalModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEnvironmentalService",
+        "method": "updateEnvironmentalRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "GET",
+    "path": "/api/client-care-plan/environmental/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentalController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/environmental/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "GET",
+    "path": "/api/client-care-plan/environment-fire/{clientId}",
+    "signature": "public ResponseEntity<?> getClientEnvironmentFire(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientEnvironmentFireService",
+        "method": "getEnvironmentFire",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "POST",
+    "path": "/api/client-care-plan/environment-fire/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEnvironmentFireModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEnvironmentFireService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "GET",
+    "path": "/api/client-care-plan/environment-fire/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEnvironmentFireService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/environment-fire/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEnvironmentFireService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "POST",
+    "path": "/api/client-care-plan/environment-fire/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEnvironmentFireModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEnvironmentFireService",
+        "method": "updateEnvironmentFireRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "GET",
+    "path": "/api/client-care-plan/environment-fire/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEnvironmentFireController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/environment-fire/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "GET",
+    "path": "/api/client-care-plan/every-day-activity/{clientId}",
+    "signature": "public ResponseEntity<?> getClientPersonalCare(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientEveryDayActivityService",
+        "method": "getEveryDayActivity",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/every-day-activity/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientPersonalCare(\n            @PathVariable UUID clientId,\n            @RequestBody UpdateEveryDayActivityRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEveryDayActivityService",
+        "method": "updateEveryDayActivity",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "POST",
+    "path": "/api/client-care-plan/every-day-activity/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientEveryDayActivityModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEveryDayActivityService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "GET",
+    "path": "/api/client-care-plan/every-day-activity/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEveryDayActivityService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/every-day-activity/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteassessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientEveryDayActivityService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "POST",
+    "path": "/api/client-care-plan/every-day-activity/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid CarePlanRisksMitigationsModel.CreateOrUpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientEveryDayActivityService",
+        "method": "updateEveryDayActivityRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "GET",
+    "path": "/api/client-care-plan/every-day-activity/risk/{clientId}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientEveryDayActivityController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/every-day-activity/risk/{clientId}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "GET",
+    "path": "/api/client-care-plan/financial/{clientId}",
+    "signature": "public ResponseEntity<?> getClientFinancial(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientFinancialService",
+        "method": "getFinancial",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "POST",
+    "path": "/api/client-care-plan/financial/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientFinancialModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientFinancialService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "GET",
+    "path": "/api/client-care-plan/financial/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientFinancialService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/financial/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientFinancialService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "POST",
+    "path": "/api/client-care-plan/financial/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientFinancialModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientFinancialService",
+        "method": "updateFinancialRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "GET",
+    "path": "/api/client-care-plan/financial/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientFinancialController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/financial/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientInformationController",
+    "method": "GET",
+    "path": "/api/client-information/{userId}",
+    "signature": "public ResponseEntity<?> getClientInformation(@PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "service",
+        "method": "getByUserId",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientInformationController",
+    "method": "POST",
+    "path": "/api/client-information/update/{userId}",
+    "signature": "public ResponseEntity<?> updateClientInformation(\n        @PathVariable UUID userId,\n        @RequestBody ClientInformationModel.UpdateRequest request,\n        HttpServletRequest httpRequest\n    )",
+    "calls": [
+      {
+        "service": "service",
+        "method": "update",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationController",
+    "method": "POST",
+    "path": "/api/client-medication/create/{userId}",
+    "signature": "public ResponseEntity<?> createMedication(\n            @PathVariable UUID userId,\n            @RequestBody ClientMedicationModel model\n    )",
+    "calls": [
+      {
+        "service": "clientMedicationService",
+        "method": "createMedication",
+        "args": "userId, model"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationController",
+    "method": "PUT",
+    "path": "/api/client-medication/update/{id}",
+    "signature": "public ResponseEntity<?> updateMedication(\n            @PathVariable UUID id,\n            @RequestBody ClientMedicationModel model\n    )",
+    "calls": [
+      {
+        "service": "clientMedicationService",
+        "method": "updateMedication",
+        "args": "id, model"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationController",
+    "method": "GET",
+    "path": "/api/client-medication/get-by-id/{userId}",
+    "signature": "public ResponseEntity<?> getMedicationByUser(@PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "clientMedicationService",
+        "method": "getMedicationByUser",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "POST",
+    "path": "/api/client-medication-scheduling/create/{userId}",
+    "signature": "public ResponseEntity<APIResponse> create(\n            @PathVariable UUID userId,\n            @RequestBody @Valid ClientMedicationSchedulingEntity entity)",
+    "calls": [
+      {
+        "service": "ResponseEntity",
+        "method": "ok",
+        "args": "new APIResponse(\"Schedule Created successfully\", false, 200, saved)"
+      },
+      {
+        "service": "ResponseEntity",
+        "method": "badRequest",
+        "args": ").body(new APIResponse(\"Creation failed: \" + e.getMessage(), true, 400, null)"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "GET",
+    "path": "/api/client-medication-scheduling/get-all-by-client-id/{userId}",
+    "signature": "public ResponseEntity<APIResponse> getAllByClientId(\n            @PathVariable UUID userId,\n            @RequestParam(required = false) String dateFilter\n    )",
+    "calls": [
+      {
+        "service": "ResponseEntity",
+        "method": "ok",
+        "args": "new APIResponse(\"Schedule Fetched successfully\", false, 200, result)"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "GET",
+    "path": "/api/client-medication-scheduling/get-by-id/{id}",
+    "signature": "public ResponseEntity<APIResponse> getById(@PathVariable UUID id)",
+    "calls": []
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "PUT",
+    "path": "/api/client-medication-scheduling/update/{id}",
+    "signature": "public ResponseEntity<APIResponse> update(\n            @PathVariable UUID id,\n            @RequestBody @Valid ClientMedicationSchedulingEntity updated)",
+    "calls": [
+      {
+        "service": "ResponseEntity",
+        "method": "ok",
+        "args": "new APIResponse(\"Schedule Updated successfully\", false, 200, saved)"
+      },
+      {
+        "service": "ResponseEntity",
+        "method": "status",
+        "args": "404).body(new APIResponse(\"Update failed: Not found\", true, 404, null)"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "DELETE",
+    "path": "/api/client-medication-scheduling/delete/{id}",
+    "signature": "public ResponseEntity<APIResponse> delete(@PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "ResponseEntity",
+        "method": "ok",
+        "args": "new APIResponse(\"Schedule Deleted successfully\", false, 200, null)"
+      },
+      {
+        "service": "ResponseEntity",
+        "method": "status",
+        "args": "404).body(new APIResponse(\"Delete failed: Not found\", true, 404, null)"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "PUT",
+    "path": "/api/client-medication-scheduling/stop-scheduling/{id}",
+    "signature": "public ResponseEntity<APIResponse> stopScheduling(\n            @PathVariable UUID id,\n            @RequestBody Map<String, String> payload\n    )",
+    "calls": [
+      {
+        "service": "ResponseEntity",
+        "method": "ok",
+        "args": "new APIResponse(\"Schedule Stopped successfully\", false, 200, null)"
+      },
+      {
+        "service": "ResponseEntity",
+        "method": "badRequest",
+        "args": ").body(new APIResponse(\"Failed to stop\", true, 400, null)"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMedicationSchedulingController",
+    "method": "PUT",
+    "path": "/api/client-medication-scheduling/update/past-administration",
+    "signature": "public ResponseEntity<APIResponse> updatePastAdministration(\n            @RequestBody ClientMedicationSchedulingModel.PastAdministrationSingleUpdateRequest request\n    )",
+    "calls": [
+      {
+        "service": "ResponseEntity",
+        "method": "ok",
+        "args": "new APIResponse(\"Past administration saved\", false, 200, Map.of(\"isUpdated\", true))"
+      },
+      {
+        "service": "ResponseEntity",
+        "method": "badRequest",
+        "args": ").body(new APIResponse(\"Update failed\", true, 400, Map.of(\"isUpdated\", false))"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "GET",
+    "path": "/api/client-care-plan/mental-capacity/{clientId}",
+    "signature": "public ResponseEntity<?> getClientMentalCapacity(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientMentalCapacityService",
+        "method": "getMentalCapacity",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "POST",
+    "path": "/api/client-care-plan/mental-capacity/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientMentalCapacityModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientMentalCapacityService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "GET",
+    "path": "/api/client-care-plan/mental-capacity/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientMentalCapacityService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/mental-capacity/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientMentalCapacityService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "POST",
+    "path": "/api/client-care-plan/mental-capacity/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientMentalCapacityModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientMentalCapacityService",
+        "method": "updateMentalCapacityRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "GET",
+    "path": "/api/client-care-plan/mental-capacity/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientMentalCapacityController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/mental-capacity/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/nutrition-hydration/{clientId}",
+    "signature": "public ResponseEntity<?> getClientSocialSupport(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientNutritionHydrationService",
+        "method": "getNeutritionHydration",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/nutrition-hydration/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientSocialSupport(\n            @PathVariable UUID clientId,\n            @RequestBody ClientNutritionHydrationModel.UpdateNutritionHydrationRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientNutritionHydrationService",
+        "method": "updateNutritionHydration",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "POST",
+    "path": "/api/client-care-plan/nutrition-hydration/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientNutritionHydrationModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientNutritionHydrationService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/nutrition-hydration/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientNutritionHydrationService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/nutrition-hydration/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientNutritionHydrationService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "POST",
+    "path": "/api/client-care-plan/nutrition-hydration/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid CarePlanRisksMitigationsModel.CreateOrUpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientNutritionHydrationService",
+        "method": "updateNutritionHydrationRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "GET",
+    "path": "/api/client-care-plan/nutrition-hydration/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientNutritionHydrationController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/nutrition-hydration/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "GET",
+    "path": "/api/client-care-plan/personal-care/{clientId}",
+    "signature": "public ResponseEntity<?> getClientPersolCare(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientPersonalCareService",
+        "method": "getPersonalCare",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/personal-care/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientPersolCare(\n            @PathVariable UUID clientId,\n            @RequestBody ClientPersonalCareModel.UpdatePersonalCareRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientPersonalCareService",
+        "method": "updatePersonalCare",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "GET",
+    "path": "/api/client-care-plan/personal-care/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientPersonalCareService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "POST",
+    "path": "/api/client-care-plan/personal-care/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientPersonalCareModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientPersonalCareService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/personal-care/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteassessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientPersonalCareService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "POST",
+    "path": "/api/client-care-plan/personal-care/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientPersonalCareModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientPersonalCareService",
+        "method": "updatePersonalCareRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "GET",
+    "path": "/api/client-care-plan/personal-care/risk/{clientId}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPersonalCareController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/personal-care/risk/{clientId}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "GET",
+    "path": "/api/client-care-plan/psychological/{clientId}",
+    "signature": "public ResponseEntity<?> getClientPsychological(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientPsychologicalService",
+        "method": "getPsychological",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/psychological/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientPsychological(\n            @PathVariable UUID clientId,\n            @RequestBody ClientPsychologicalModel.UpdatePsychologicalRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientPsychologicalService",
+        "method": "updatePsychological",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "POST",
+    "path": "/api/client-care-plan/psychological/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientPsychologicalModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientPsychologicalService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "GET",
+    "path": "/api/client-care-plan/psychological/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientPsychologicalService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/psychological/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientPsychologicalService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "POST",
+    "path": "/api/client-care-plan/psychological/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientPsychologicalModel.CreateOrUpdateRiskRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientPsychologicalService",
+        "method": "updatePsychologicalRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "GET",
+    "path": "/api/client-care-plan/psychological/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientPsychologicalController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/psychological/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSettingsController",
+    "method": "GET",
+    "path": "/api/client-settings/getByClient/{userId}",
+    "signature": "public ResponseEntity<?> getSettingsByClient(\n            @PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "clientSettingsService",
+        "method": "getClientSettings",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSettingsController",
+    "method": "PUT",
+    "path": "/api/client-settings/update/{userId}",
+    "signature": "public ResponseEntity<?> updateClientSettings(\n            @PathVariable UUID userId,\n            @RequestBody ClientSettingsModel.UpdateRequest request)",
+    "calls": [
+      {
+        "service": "clientSettingsService",
+        "method": "updateClientSettings",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSettingsController",
+    "method": "POST",
+    "path": "/api/client-settings/regenerate-qrcode/{userId}",
+    "signature": "public ResponseEntity<?> regenerateQRCode(\n            @PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "clientSettingsService",
+        "method": "regenerateQRCode",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientShareAccessController",
+    "method": "POST",
+    "path": "/api/client-share-access/generate",
+    "signature": "public ResponseEntity<?> generateAccessCode(@RequestBody ClientShareAccessModel.GenerateCodeRequest request)",
+    "calls": [
+      {
+        "service": "clientShareAccessService",
+        "method": "generateAccessCode",
+        "args": "request.getClientId()"
+      }
+    ]
+  },
+  {
+    "controller": "ClientShareAccessController",
+    "method": "GET",
+    "path": "/api/client-share-access/{clientId}",
+    "signature": "public ResponseEntity<?> getAccessInfo(@PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientShareAccessService",
+        "method": "getAccessInfo",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientShareAccessController",
+    "method": "POST",
+    "path": "/api/client-share-access/send-magic-link",
+    "signature": "public ResponseEntity<?> sendMagicLink(@RequestBody ClientShareAccessModel.SendMagicLinkRequest request)",
+    "calls": [
+      {
+        "service": "clientShareAccessService",
+        "method": "sendMagicLink",
+        "args": "request.getClientId()"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "POST",
+    "path": "/api/client-care-plan/signature/upload",
+    "signature": "public ResponseEntity<?> uploadSignatureDocument(\n            @RequestParam(\"file\") MultipartFile file,\n            @RequestParam(\"clientId\") UUID clientId)",
+    "calls": [
+      {
+        "service": "signatureDocumentService",
+        "method": "uploadClientDocument",
+        "args": "request, clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "GET",
+    "path": "/api/client-care-plan/signature/uploaded-documents/{clientId}",
+    "signature": "public ResponseEntity<?> getAllUploadedDocuments(@PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "signatureDocumentService",
+        "method": "getAllUploadedDocuments",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "GET",
+    "path": "/api/client-care-plan/signature/signed-documents/{clientId}",
+    "signature": "public ResponseEntity<?> getAllSignedDocuments(@PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "signatureDocumentService",
+        "method": "getAllSignedDocuments",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "POST",
+    "path": "/api/client-care-plan/signature/save-signed-documents",
+    "signature": "public ResponseEntity<?> saveSignedDocument(@RequestBody SaveSignatureDocument request)",
+    "calls": [
+      {
+        "service": "signatureDocumentService",
+        "method": "saveSignedDocument",
+        "args": "request"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "GET",
+    "path": "/api/client-care-plan/signature/document-pack/{clientId}",
+    "signature": "public ResponseEntity<?> getDocumentPackDetails(@PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "signatureDocumentService",
+        "method": "getDocumentPackDetails",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "POST",
+    "path": "/api/client-care-plan/signature/document-pack/create",
+    "signature": "public ResponseEntity<?> createDocumentPack(@RequestBody Map<String, Object> body)",
+    "calls": [
+      {
+        "service": "ResponseUtils",
+        "method": "generateResponse",
+        "args": "\"Invalid input data\", true, HttpStatus.BAD_REQUEST.value(), null"
+      },
+      {
+        "service": "signatureDocumentService",
+        "method": "createDocumentPack",
+        "args": "documentIds, clientId "
+      }
+    ]
+  },
+  {
+    "controller": "ClientSignatureDocumentController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/signature/document-pack/delete/{packId}",
+    "signature": "public ResponseEntity<?> deleteDocumentPack(@PathVariable UUID packId)",
+    "calls": [
+      {
+        "service": "signatureDocumentService",
+        "method": "deleteDocumentPack",
+        "args": "packId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "GET",
+    "path": "/api/client-care-plan/social-support/{clientId}",
+    "signature": "public ResponseEntity<?> getClientSocialSupport(\n            @PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientSocialSupportService",
+        "method": "getSocialSupport",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/social-support/{clientId}",
+    "signature": "public ResponseEntity<?> updateClientSocialSupport(\n            @PathVariable UUID clientId,\n            @RequestBody ClientSocialSupportModel.UpdateSocialSupportRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientSocialSupportService",
+        "method": "updateSocialSupport",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "POST",
+    "path": "/api/client-care-plan/social-support/assessment/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateAssessment(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid ClientSocialSupportModel.CreateOrUpdateAssessmentRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientSocialSupportService",
+        "method": "createOrUpdateAssessment",
+        "args": "clientId, request, requesterId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "GET",
+    "path": "/api/client-care-plan/social-support/assessment/{id}",
+    "signature": "public ResponseEntity<?> getAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientSocialSupportService",
+        "method": "getAssessmentById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/social-support/assessment/{id}",
+    "signature": "public ResponseEntity<?> deleteAssessment(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientSocialSupportService",
+        "method": "deleteAssessment",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "POST",
+    "path": "/api/client-care-plan/social-support/risk/{clientId}",
+    "signature": "public ResponseEntity<?> createOrUpdateRisk(\n            @PathVariable UUID clientId,\n            @RequestBody @Valid CarePlanRisksMitigationsModel.CreateOrUpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "clientSocialSupportService",
+        "method": "updateSocialSupportRisk",
+        "args": "clientId, request, userId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "GET",
+    "path": "/api/client-care-plan/social-support/risk/{id}",
+    "signature": "public ResponseEntity<?> getRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "getRiskById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientSocialSupportController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/social-support/risk/{id}",
+    "signature": "public ResponseEntity<?> deleteRisk(\n            @PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "clientCarePlanService",
+        "method": "deleteRisk",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "GET",
+    "path": "/api/client-task-plan/categories",
+    "signature": "public ResponseEntity<?> getAllTaskCategories()",
+    "calls": []
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "POST",
+    "path": "/api/client-task-plan/categories/tasks",
+    "signature": "public ResponseEntity<?> getTasksByCategories(@RequestBody ClientTaskPlanModel.TaskSearchRequest request)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "getTasksByCategories",
+        "args": "request.getCategory(), request.getSearchString()"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "POST",
+    "path": "/api/client-task-plan/tasks",
+    "signature": "public ResponseEntity<?> getTasks(@RequestBody ClientTaskPlanModel.TaskSearchRequest request)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "getTasks",
+        "args": "request.getSearchString()"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "POST",
+    "path": "/api/client-task-plan/create",
+    "signature": "public ResponseEntity<?> createTaskPlan(@RequestBody @Valid ClientTaskPlanModel taskPlanModel)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "createTaskPlan",
+        "args": "taskPlanModel"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "PUT",
+    "path": "/api/client-task-plan/update/{taskPlanId}",
+    "signature": "public ResponseEntity<?> updateTaskPlan(\n            @PathVariable UUID taskPlanId,\n            @RequestBody @Valid ClientTaskPlanModel taskPlanModel)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "updateTaskPlan",
+        "args": "taskPlanId, taskPlanModel"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "DELETE",
+    "path": "/api/client-task-plan/delete/{taskPlanId}",
+    "signature": "public ResponseEntity<?> deleteTaskPlan(@PathVariable UUID taskPlanId)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "deleteTaskPlan",
+        "args": "taskPlanId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "POST",
+    "path": "/api/client-task-plan/getByClient/{userId}",
+    "signature": "public ResponseEntity<?> getTaskPlansByUser(\n            @PathVariable UUID userId,\n            @RequestBody ClientTaskPlanModel.GetByClientRequest request)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "getTaskPlansByUser",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "GET",
+    "path": "/api/client-task-plan/getByClient/{userId}",
+    "signature": "public ResponseEntity<?> getTaskPlansByUserDefault(@PathVariable UUID userId,\n    @RequestBody ClientTaskPlanModel.GetByClientRequest request)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "getTaskPlansByUser",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "ClientTaskPlanController",
+    "method": "GET",
+    "path": "/api/client-task-plan/getById/{taskPlanId}",
+    "signature": "public ResponseEntity<?> getTaskPlanById(@PathVariable UUID taskPlanId)",
+    "calls": [
+      {
+        "service": "clientTaskPlanService",
+        "method": "getTaskPlanById",
+        "args": "taskPlanId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientUploadDocumentController",
+    "method": "POST",
+    "path": "/api/client-care-plan/files/upload-document",
+    "signature": "public ResponseEntity<?> uploadDocuments(\n            @RequestParam(\"file\") MultipartFile file,\n            @RequestParam(\"fileType\") String fileType,\n            @RequestParam(\"readAccessToCareGivers\") Boolean readAccessToCareGivers,\n            @RequestParam(\"clientId\") UUID clientId)",
+    "calls": [
+      {
+        "service": "clientUploadDocumentService",
+        "method": "uploadFiles",
+        "args": "request, clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientUploadDocumentController",
+    "method": "GET",
+    "path": "/api/client-care-plan/files/{clientId}",
+    "signature": "public ResponseEntity<?> getAllDocuments(@PathVariable UUID clientId)",
+    "calls": [
+      {
+        "service": "clientUploadDocumentService",
+        "method": "getAllDocuments",
+        "args": "clientId"
+      }
+    ]
+  },
+  {
+    "controller": "ClientUploadDocumentController",
+    "method": "PUT",
+    "path": "/api/client-care-plan/files/update/{fileId}",
+    "signature": "public ResponseEntity<?> updateReadAccess(\n            @PathVariable UUID fileId,\n            @RequestBody Map<String, Boolean> body)",
+    "calls": [
+      {
+        "service": "clientUploadDocumentService",
+        "method": "updateReadAccess",
+        "args": "fileId, readAccess"
+      }
+    ]
+  },
+  {
+    "controller": "ClientUploadDocumentController",
+    "method": "DELETE",
+    "path": "/api/client-care-plan/files/delete-document/{fileId}",
+    "signature": "public ResponseEntity<?> deleteDocument(@PathVariable UUID fileId)",
+    "calls": [
+      {
+        "service": "clientUploadDocumentService",
+        "method": "deleteDocuments",
+        "args": "fileId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamAbsenceController",
+    "method": "POST",
+    "path": "/api/team-absence/create/{userId}",
+    "signature": "public ResponseEntity<?> createAbsence(\n            @PathVariable UUID userId,\n            @RequestBody @Valid TeamAbsenceModel.CreateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamAbsenceService",
+        "method": "createAbsence",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamAbsenceController",
+    "method": "POST",
+    "path": "/api/team-absence/getAll/{userId}",
+    "signature": "public ResponseEntity<?> getAllAvailability(\n            @PathVariable UUID userId,\n            @RequestBody @Valid TeamAbsenceModel.DateRangeRequest request)",
+    "calls": [
+      {
+        "service": "teamAbsenceService",
+        "method": "getAllabsence",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamAbsenceController",
+    "method": "DELETE",
+    "path": "/api/team-absence/delete/{id}",
+    "signature": "public ResponseEntity<?> deleteAbsence(\n            @PathVariable UUID id,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamAbsenceService",
+        "method": "deletAbsence",
+        "args": "id, updatedBy"
+      }
+    ]
+  },
+  {
+    "controller": "TeamAvailabilityController",
+    "method": "POST",
+    "path": "/api/team-availability/create/{userId}",
+    "signature": "public ResponseEntity<?> createTeamAvailability(\n            @PathVariable UUID userId,\n            @RequestBody @Valid TeamAvailabilityModel.CreateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamAvailabilityService",
+        "method": "createAvailability",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamAvailabilityController",
+    "method": "POST",
+    "path": "/api/team-availability/getAll/{userId}",
+    "signature": "public ResponseEntity<?> getAllAvailability(\n            @PathVariable UUID userId,\n            @RequestBody @Valid TeamAvailabilityModel.DateRangeRequest request)",
+    "calls": [
+      {
+        "service": "teamAvailabilityService",
+        "method": "getAllAvailability",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamAvailabilityController",
+    "method": "DELETE",
+    "path": "/api/team-availability/delete/{id}",
+    "signature": "public ResponseEntity<?> deleteavailability(\n            @PathVariable UUID id,\n            @RequestBody @Valid TeamAvailabilityModel.DeleteRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamAvailabilityService",
+        "method": "deleteAvailability",
+        "args": "id, request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamClientsController",
+    "method": "POST",
+    "path": "/api/team-clients/getByTeamMember/{teamMemberId}",
+    "signature": "public ResponseEntity<?> getAllClients(\n            @PathVariable UUID teamMemberId,\n            @RequestBody @Valid TeamClientsModel.GetAllRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamClientsService",
+        "method": "getAllClients",
+        "args": "teamMemberId, request, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamClientsController",
+    "method": "PUT",
+    "path": "/api/team-clients/update/{teamMemberId}",
+    "signature": "public ResponseEntity<?> updateTeamClient(\n            @PathVariable UUID teamMemberId,\n            @RequestBody @Valid TeamClientsModel.UpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamClientsService",
+        "method": "updateTeamClient",
+        "args": "teamMemberId, request, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamClientsController",
+    "method": "PUT",
+    "path": "/api/team-clients/bulk-update/{teamMemberId}",
+    "signature": "public ResponseEntity<?> updateMultipleTeamClient(\n            @PathVariable UUID teamMemberId,\n            @RequestBody @Valid List<TeamClientsModel.UpdateRequest> requestList,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamClientsService",
+        "method": "bulkUpdateTeamClient",
+        "args": "teamMemberId, requestList, adminId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamController",
+    "method": "POST",
+    "path": "/api/team/create-user",
+    "signature": "public ResponseEntity<?> addNewUser(@RequestBody @Valid TeamModel.CreateRequest request,\n            HttpServletRequest header)",
+    "calls": [
+      {
+        "service": "teamService",
+        "method": "addUser",
+        "args": "request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamController",
+    "method": "PUT",
+    "path": "/api/team/update-user/{userId}",
+    "signature": "public ResponseEntity<?> updateUserData(\n            @PathVariable UUID userId,\n            @RequestBody UpdateRequest updateRequest)",
+    "calls": [
+      {
+        "service": "teamService",
+        "method": "applyUserChanges",
+        "args": "userId, updateRequest"
+      }
+    ]
+  },
+  {
+    "controller": "TeamController",
+    "method": "POST",
+    "path": "/api/team/get-all-users",
+    "signature": "public ResponseEntity<?> getAllUsers(@RequestBody UserSearchFilter filter)",
+    "calls": [
+      {
+        "service": "teamService",
+        "method": "getUsers",
+        "args": "filter"
+      }
+    ]
+  },
+  {
+    "controller": "TeamController",
+    "method": "GET",
+    "path": "/api/team/get-user/{id}",
+    "signature": "public ResponseEntity<?> getUserDetailById(@PathVariable UUID id)",
+    "calls": [
+      {
+        "service": "teamService",
+        "method": "getUserById",
+        "args": "id"
+      }
+    ]
+  },
+  {
+    "controller": "TeamOnboardingController",
+    "method": "GET",
+    "path": "/api/team-onboarding/{userId}",
+    "signature": "public ResponseEntity<?> getOnboardingDetails(@PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "teamOnboardingService",
+        "method": "getOnboardingDetailsByUserId",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamOnboardingController",
+    "method": "POST",
+    "path": "/api/team-onboarding/update/{userId}",
+    "signature": "public ResponseEntity<?> updateOrCreateOnboarding(\n            @PathVariable UUID userId,\n            HttpServletRequest request,\n            @RequestParam Map<String, MultipartFile> multipartFileMap,\n            @RequestParam(value = \"started\", required = false) String started,\n            @RequestParam(value = \"niNumber\", required = false) String niNumber,\n            @RequestParam(value = \"socialWorkerNumber\", required = false) String socialWorkerNumber,\n            @RequestParam(value = \"employeeNumber\", required = false) String employeeNumber,\n            @RequestParam(value = \"role\", required = false) String role,\n            @RequestParam(value = \"contractType\", required = false) String contractType,\n            @RequestParam(value = \"weeklyContractedHours\", required = false) Integer weeklyContractedHours,\n            @RequestParam(value = \"covidVaccinationStatus\", required = false) String covidVaccinationStatus,\n            @RequestParam(value = \"filesToRemove\", required = false) String filesToRemove) throws IOException",
+    "calls": [
+      {
+        "service": "teamOnboardingService",
+        "method": "createOrUpdateOnboarding",
+        "args": " userId, started, niNumber, socialWorkerNumber, employeeNumber, role, contractType, weeklyContractedHours, contractFile, covidVaccinationStatus, idFile, drivingLicenceFile, bankStatementFile, utilityBillFile, referencesFile, dbsRecordFile, additionalDocumentId, additionalDocumentDescription, additionalDocumentCategory, additionalDocumentExpires, additionalDocumentExpiresOn, additionalDocumentFiles, additionalDocumentExpiresOn, filesToRemove, createdBy"
+      }
+    ]
+  },
+  {
+    "controller": "TeamOperationsController",
+    "method": "GET",
+    "path": "/api/team-operations/get/{userId}",
+    "signature": "public ResponseEntity<?> getTeamOperationsByUserId(@PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "service",
+        "method": "getByUserId",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamOperationsController",
+    "method": "PUT",
+    "path": "/api/team-operations/update/{userId}",
+    "signature": "public ResponseEntity<?> updateTeamOperation(\n            @PathVariable UUID userId,\n            @RequestBody TeamOperationsModel.UpdateRequest request,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "service",
+        "method": "update",
+        "args": "userId, request"
+      }
+    ]
+  },
+  {
+    "controller": "TeamSettingController",
+    "method": "POST",
+    "path": "/api/team/reset/{userId}",
+    "signature": "public ResponseEntity<?> resettoken(\n            @PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "teamSettingsService",
+        "method": "reset",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamSettingController",
+    "method": "POST",
+    "path": "/api/team/invite/{userId}",
+    "signature": "public ResponseEntity<?> inviteUser(\n            @PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "teamSettingsService",
+        "method": "sendInvitation",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamSkillsController",
+    "method": "GET",
+    "path": "/api/team/skills/get/{userId}",
+    "signature": "public ResponseEntity<?> getSkills(@PathVariable UUID userId)",
+    "calls": [
+      {
+        "service": "teamSkillsService",
+        "method": "getSkillsByUserId",
+        "args": "userId"
+      }
+    ]
+  },
+  {
+    "controller": "TeamSkillsController",
+    "method": "POST",
+    "path": "/api/team/skills/update/{userId}",
+    "signature": "public ResponseEntity<?> updateOrCreateSkills(\n            @PathVariable UUID userId,\n            @RequestParam(value = \"id\", required = false) UUID skillId,\n            @RequestParam(value = \"name\", required = false) String name,\n            @RequestParam(value = \"endsAt\", required = false) Boolean endsAt,\n            @RequestParam(value = \"endsOn\", required = false) String endsOn,\n            @RequestParam(value = \"skillsFile\", required = false) MultipartFile skillsFile,\n            @RequestParam(value = \"filesToRemove\", required = false) List<String> filesToRemove,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamSkillsService",
+        "method": "createOrUpdateSkills",
+        "args": "skillId, userId, name, endsAt, endsOn, skillsFile, filesToRemove, createdBy"
+      }
+    ]
+  },
+  {
+    "controller": "TeamSkillsController",
+    "method": "DELETE",
+    "path": "/api/team/skills/delete/{id}",
+    "signature": "public ResponseEntity<?> deleteSkill(\n            @PathVariable UUID id,\n            HttpServletRequest httpRequest)",
+    "calls": [
+      {
+        "service": "teamSkillsService",
+        "method": "deleteSkillById",
+        "args": "id, updatedBy"
+      }
+    ]
+  }
+]

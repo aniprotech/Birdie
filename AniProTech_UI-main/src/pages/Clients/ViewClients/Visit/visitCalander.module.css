@@ -1,0 +1,402 @@
+.visitCalendar {
+    height: 100vh;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.visitCalendar :global(.rbc-calendar) {
+    border: none;
+    background: white;
+}
+
+/* Header styling */
+.visitCalendar :global(.rbc-header) {
+    padding: 10px !important;
+    font-weight: normal !important;
+    border: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-bottom: 1px solid #eee !important;
+}
+
+.visitCalendar :global(.day-header) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.visitCalendar :global(.day-name) {
+    font-size: 14px;
+    color: #333;
+}
+
+.visitCalendar :global(.day-number) {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.visitCalendar :global(.day-number.today) {
+    background-color: #008080;
+    color: white;
+}
+
+/* Time gutter styling */
+.visitCalendar :global(.rbc-time-gutter) {
+    width: 150px !important;
+    border-right: 1px solid #eee;
+}
+
+.visitCalendar :global(.time-gutter-header) {
+    display: none;
+}
+
+.visitCalendar :global(.time-slot-wrapper) {
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    padding: 8px;
+}
+
+.visitCalendar :global(.time-group-label) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.visitCalendar :global(.group-name) {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.visitCalendar :global(.group-time) {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Time slots styling */
+.visitCalendar :global(.rbc-timeslot-group) {
+    min-height: 120px !important;
+    border: none !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+.visitCalendar :global(.rbc-time-content),
+.visitCalendar :global(.rbc-time-view) {
+    border: none !important;
+    background: #fff;
+}
+
+.visitCalendar :global(.rbc-time-header-content) {
+    border: none !important;
+}
+
+.visitCalendar :global(.rbc-time-content > * + * > *) {
+    border-left: 1px solid #eee !important;
+}
+
+.visitCalendar :global(.rbc-time-header.rbc-overflowing) {
+    border-right: 1px solid #eee;
+}
+
+/* Event styling */
+.visitCalendar :global(.rbc-event) {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 4px !important;
+}
+
+.visitCalendar :global(.visit-event) {
+    background: white !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    height: calc(100% - 8px);
+}
+
+.visitCalendar :global(.visit-event.completed) {
+    background: #f5fff5 !important;
+    border-color: #e0e9e0 !important;
+}
+
+.visitCalendar :global(.visit-event.scheduled) {
+    background: #f8f8ff !important;
+    border-color: #e0e0e9 !important;
+}
+
+.visitCalendar :global(.visit-time) {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.visitCalendar :global(.visit-details) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.visitCalendar :global(.visit-icons) {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #666;
+}
+
+.visitCalendar :global(.visit-status) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.visitCalendar :global(.status) {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.visitCalendar :global(.status.completed) {
+    color: #2e7d32;
+    background: #e8f5e9;
+}
+
+.visitCalendar :global(.status.scheduled) {
+    color: #5c6bc0;
+    background: #e8eaf6;
+}
+
+.visitCalendar :global(.provider) {
+    color: #666;
+}
+
+/* Hide current time indicator */
+.visitCalendar :global(.rbc-current-time-indicator) {
+    display: none;
+}
+
+/* Custom scrollbar */
+.visitCalendar :global(.rbc-time-content::-webkit-scrollbar) {
+    width: 8px;
+}
+
+.visitCalendar :global(.rbc-time-content::-webkit-scrollbar-track) {
+    background: #f1f1f1;
+}
+
+.visitCalendar :global(.rbc-time-content::-webkit-scrollbar-thumb) {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.visitCalendar :global(.rbc-time-content::-webkit-scrollbar-thumb:hover) {
+    background: #bbb;
+}
+
+.calendar {
+    background: white;
+    border-radius: 8px;
+    height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    min-width: 1200px;
+    overflow: auto;
+}
+
+/* Header Styles */
+.header {
+    display: grid;
+    grid-template-columns: 150px repeat(7, 1fr);
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.headerDay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.dayName {
+    font-size: 14px;
+    color: #333;
+}
+
+.dayNumber {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.today {
+    background-color: #008080;
+    color: white;
+}
+
+/* Grid Styles */
+.grid {
+    display: grid;
+    grid-template-columns: 150px repeat(7, 1fr);
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.timeGroups {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 5;
+    border-right: 1px solid #eee;
+}
+
+.timeGroup {
+    height: 120px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    background: #f8f9fa;
+}
+
+.groupName {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.groupTime {
+    font-size: 12px;
+    color: #666;
+}
+
+.dayColumn {
+    border-right: 1px solid #eee;
+    min-width: 200px;
+}
+
+.dayColumn:last-child {
+    border-right: none;
+}
+
+.timeSlot {
+    height: 120px;
+    border-bottom: 1px solid #eee;
+    padding: 8px;
+    position: relative;
+}
+
+/* Event Styles */
+.visitEvent {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: absolute;
+    width: calc(100% - 16px);
+    z-index: 1;
+}
+
+.visitEvent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.visitEvent.completed {
+    background: #f5fff5;
+    border-color: #e0e9e0;
+}
+
+.visitEvent.scheduled {
+    background: #f8f8ff;
+    border-color: #e0e0e9;
+}
+
+.visitTime {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.visitDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.visitIcons {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #666;
+}
+
+.visitStatus {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.statusCompleted {
+    color: #2e7d32;
+    background: #e8f5e9;
+}
+
+.statusScheduled {
+    color: #5c6bc0;
+    background: #e8eaf6;
+}
+
+.provider {
+    color: #666;
+}
+
+/* Scrollbar Styles */
+.grid::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.grid::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.grid::-webkit-scrollbar-thumb:hover {
+    background: #bbb;
+}

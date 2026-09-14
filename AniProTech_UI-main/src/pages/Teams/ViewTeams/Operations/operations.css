@@ -1,0 +1,119 @@
+.team-operations {
+    max-width: 688px;
+    margin: 32px auto;
+    padding: 0 24px;
+    color: #354052;
+    font-size: 15px;
+}
+.team-operations > section {
+    margin-bottom: 32px;
+}
+.team-operations header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+.team-operations h2 {
+    font-size: 20px;
+    font-weight: 500;
+}
+.team-operations button {
+    border: 1px solid #8b9db9;
+    border-radius: 4px;
+    background: white;
+    padding: 9px 17px;
+    color: #354052;
+}
+.team-operations button:disabled {
+    opacity: 0.5;
+}
+.team-operations dl {
+    border: 1px solid #aab8ce;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.team-operations dl > div {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    padding: 16px;
+    gap: 15px;
+    border-bottom: 1px solid #aab8ce;
+}
+.team-operations dl > div:last-child {
+    border-bottom: 0;
+}
+.team-operations dt {
+    color: #7d889a;
+}
+.team-operations dd {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.team-operations [role="alert"] {
+    padding: 12px;
+    background: #fff0ef;
+    color: #a32222;
+}
+.team-operations [role="status"] {
+    padding: 12px;
+    background: #edf8f3;
+    margin-bottom: 15px;
+}
+.op-overlay {
+    position: fixed;
+    inset: 0;
+    background: #10243e77;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+.op-overlay form {
+    background: white;
+    width: min(560px, 100%);
+    padding: 28px;
+    border-radius: 8px;
+    max-height: 90vh;
+    overflow: auto;
+}
+.op-overlay label {
+    display: block;
+    margin: 22px 0;
+}
+.op-overlay input,
+.op-overlay textarea,
+.op-overlay select {
+    display: block;
+    width: 100%;
+    border: 1px solid #aab8ce;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 8px;
+}
+.op-overlay textarea {
+    min-height: 100px;
+}
+.op-overlay footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #dce2eb;
+    padding-top: 20px;
+}
+.team-operations .op-save {
+    background: #19847f;
+    color: white;
+    border-color: #19847f;
+}
+@media (max-width: 600px) {
+    .team-operations {
+        padding: 0 16px;
+        margin: 24px auto;
+    }
+    .team-operations dl > div {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}
+@media(max-width:600px){.team-operations header{flex-wrap:wrap;gap:12px}.team-operations h2{overflow-wrap:anywhere}.team-operations dl>div{padding:12px}.team-operations dd{min-width:0}}

@@ -1,0 +1,194 @@
+[
+  {
+    "constant": "CLIENTS.UPDATE",
+    "path": "/api/client/update/:id"
+  },
+  {
+    "constant": "CLIENTS.DELETE",
+    "path": "/api/client/delete/:id"
+  },
+  {
+    "constant": "CLIENTS.MEDICATION_DELETE",
+    "path": "/api/client-medication/delete/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.CREATE_MEDICAL_ASSESSMENT",
+    "path": "/api/client-care-plan/medical/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.GET_MEDICAL_ASSESSMENT_BY_ID",
+    "path": "/api/client-care-plan/medical/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.GET_MEDICAL_ASSESSMENT_BY_CLIENT_ID",
+    "path": "/api/client-care-plan/medical/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.UPDATE_MEDICAL_ASSESSMENT",
+    "path": "/api/client-care-plan/medical/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.DELETE_MEDICAL_ASSESSMENT",
+    "path": "/api/client-care-plan/medical/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.CREATE_MEDICAL_RISK",
+    "path": "/api/client-care-plan/medical/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.GET_MEDICAL_RISK_BY_ID",
+    "path": "/api/client-care-plan/medical/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.UPDATE_MEDICAL_RISK",
+    "path": "/api/client-care-plan/medical/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.MEDICAL_ASSESSMENT.DELETE_MEDICAL_RISK",
+    "path": "/api/client-care-plan/medical/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.CREATE_MOVING_HANDLING_ASSESSMENT",
+    "path": "/api/client-care-plan/moving-handling/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.GET_MOVING_HANDLING_ASSESSMENT_BY_ID",
+    "path": "/api/client-care-plan/moving-handling/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.GET_MOVING_HANDLING_ASSESSMENT_BY_CLIENT_ID",
+    "path": "/api/client-care-plan/moving-handling/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.UPDATE_MOVING_HANDLING_ASSESSMENT",
+    "path": "/api/client-care-plan/moving-handling/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.DELETE_MOVING_HANDLING_ASSESSMENT",
+    "path": "/api/client-care-plan/moving-handling/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.CREATE_MOVING_HANDLING_RISK",
+    "path": "/api/client-care-plan/moving-handling/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.GET_MOVING_HANDLING_RISK_BY_ID",
+    "path": "/api/client-care-plan/moving-handling/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.UPDATE_MOVING_HANDLING_RISK",
+    "path": "/api/client-care-plan/moving-handling/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.MOVING_HANDLING_ASSESSMENT.DELETE_MOVING_HANDLING_RISK",
+    "path": "/api/client-care-plan/moving-handling/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.CREATE_RESTRICTIVE_PRACTICE_ASSESSMENT",
+    "path": "/api/client-care-plan/restrictive-practice/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.GET_RESTRICTIVE_PRACTICE_ASSESSMENT_BY_ID",
+    "path": "/api/client-care-plan/restrictive-practice/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.GET_RESTRICTIVE_PRACTICE_ASSESSMENT_BY_CLIENT_ID",
+    "path": "/api/client-care-plan/restrictive-practice/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.UPDATE_RESTRICTIVE_PRACTICE_ASSESSMENT",
+    "path": "/api/client-care-plan/restrictive-practice/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.DELETE_RESTRICTIVE_PRACTICE_ASSESSMENT",
+    "path": "/api/client-care-plan/restrictive-practice/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.CREATE_RESTRICTIVE_PRACTICE_RISK",
+    "path": "/api/client-care-plan/restrictive-practice/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.GET_RESTRICTIVE_PRACTICE_RISK_BY_ID",
+    "path": "/api/client-care-plan/restrictive-practice/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.UPDATE_RESTRICTIVE_PRACTICE_RISK",
+    "path": "/api/client-care-plan/restrictive-practice/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.RESTRICTIVE_PRACTICE_ASSESSMENT.DELETE_RESTRICTIVE_PRACTICE_RISK",
+    "path": "/api/client-care-plan/restrictive-practice/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.CREATE_SEIZURES_ASSESSMENT",
+    "path": "/api/client-care-plan/seizures/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.GET_SEIZURES_ASSESSMENT_BY_ID",
+    "path": "/api/client-care-plan/seizures/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.GET_SEIZURES_ASSESSMENT_BY_CLIENT_ID",
+    "path": "/api/client-care-plan/seizures/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.UPDATE_SEIZURES_ASSESSMENT",
+    "path": "/api/client-care-plan/seizures/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.DELETE_SEIZURES_ASSESSMENT",
+    "path": "/api/client-care-plan/seizures/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.CREATE_SEIZURES_RISK",
+    "path": "/api/client-care-plan/seizures/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.GET_SEIZURES_RISK_BY_ID",
+    "path": "/api/client-care-plan/seizures/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.UPDATE_SEIZURES_RISK",
+    "path": "/api/client-care-plan/seizures/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.SEIZURES_ASSESSMENT.DELETE_SEIZURES_RISK",
+    "path": "/api/client-care-plan/seizures/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.CREATE_WATERLOW_ASSESSMENT",
+    "path": "/api/client-care-plan/waterlow/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.GET_WATERLOW_ASSESSMENT_BY_ID",
+    "path": "/api/client-care-plan/waterlow/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.GET_WATERLOW_ASSESSMENT_BY_CLIENT_ID",
+    "path": "/api/client-care-plan/waterlow/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.UPDATE_WATERLOW_ASSESSMENT",
+    "path": "/api/client-care-plan/waterlow/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.DELETE_WATERLOW_ASSESSMENT",
+    "path": "/api/client-care-plan/waterlow/assessment/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.CREATE_WATERLOW_RISK",
+    "path": "/api/client-care-plan/waterlow/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.GET_WATERLOW_RISK_BY_ID",
+    "path": "/api/client-care-plan/waterlow/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.UPDATE_WATERLOW_RISK",
+    "path": "/api/client-care-plan/waterlow/risk/:id"
+  },
+  {
+    "constant": "CLIENT_CARE_PLAN.ADDITIONAL_ASSESSMENT.WATERLOW_ASSESSMENT.DELETE_WATERLOW_RISK",
+    "path": "/api/client-care-plan/waterlow/risk/:id"
+  }
+]

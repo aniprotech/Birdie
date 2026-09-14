@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {mkdirSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {randomUUID} from 'node:crypto';
+import {configuration} from '../src/config.js';
+import {openDatabase} from '../src/db.js';
+import {Repository} from '../src/repository.js';
+import {createAuth} from '../src/auth.js';
+const {chromium}=createRequire(import.meta.url)('C:/Users/DELL/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const db=await openDatabase(configuration()),repo=new Repository(db);let browser,token,page;
+mkdirSync('../finance-checks',{recursive:true});
+try{
+ let mail;const admin=await repo.one('UserEntity',{email:'info@aniprotech.com'}),client=await repo.one('UserEntity',{email:'dummy.client@example.test'}),staff=(await repo.find('UserEntity',{agencyId:admin.agencyId})).find(u=>u.role==='CAREGIVER')||{id:randomUUID()};
+ await createAuth({db,repo,config:configuration(),mail:{send:async m=>mail=m}}).requestLink(admin.email);
+ browser=await chromium.launch({channel:'chrome',headless:true});page=await browser.newPage({viewport:{width:1920,height:1080}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(mail.text.match(/http[^\s]+/)[0]);await page.waitForURL('**/admin/**');token=await page.evaluate(async()=>{const{decryptData}=await import('/src/utils/cryptoHelpers.js');return decryptData(localStorage.getItem('access_token'));});
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const live=await fetch(`http://127.0.0.1:8080/api/finance/visits?from=${today}&to=${today}`,{headers:{Authorization:'Bearer '+token}});assert.equal(live.status,200,'Live Finance endpoint');
+ const liveOverview=await fetch(`http://127.0.0.1:8080/api/finance/overview?from=${today}&to=${today}`,{headers:{Authorization:'Bearer '+token}});assert.equal(liveOverview.status,200,'Live Finance overview endpoint');
+ const visitId=randomUUID(),respond=(r,data)=>r.fulfill({json:{results:{data},message:'Saved'}}),fixture={id:visitId,revision:1,status:'COMPLETED',date:today,clientId:client.id,staffId:staff.id,client:'Example Client',carer:'Example Carer',startTime:'07:00',endTime:'08:00',planned:60,actual:70,edited:true,reviews:[],locked:[]};let saves=0;
+ await page.route('**/api/finance/options',r=>respond(r,{people:[{id:client.id,name:'Example Client',isClient:true},{id:staff.id,name:'Example Carer',isClient:false}],currency:'GBP'}));
+ await page.route('**/api/finance/visits**',r=>respond(r,{visits:[fixture],groups:[{user_id:staff.id,groups:['North team']}]}));
+ await page.route('**/api/finance/visits/review',r=>{saves++;fixture.reviews=[{kind:'PAY',state:'CONFIRMED',basis:'ACTUAL',minutes:70,visit_revision:1,revision:1}];return respond(r,{})});
+ await page.route('**/api/finance/history',r=>respond(r,[{action:'VISIT_REVIEW',actor:'Admin Fixture',created_at:new Date().toISOString(),snapshot:{reason:'Approved after attendance review',kind:'PAY',state:'CONFIRMED',basis:'ACTUAL',minutes:70}}]));
+ await page.route('**/api/finance/overview**',r=>respond(r,{clients:[{id:client.id,name:'Example Client',visits:1,confirmedMinutes:70,serviceMinutes:120}],staff:[{id:staff.id,name:'Example Carer',visits:1,confirmedMinutes:70,contractMinutes:90}]}));
+ await page.route('**/api/finance/service-hours',r=>respond(r,r.request().method()==='GET'?[{id:randomUUID(),userId:client.id,name:'Example Client',effectiveFrom:today,weeklyMinutes:600,fundingSource:'Private',reference:'DEMO-1'}]:{}));
+ await page.route('**/api/finance/travel-rates',r=>respond(r,r.request().method()==='GET'?[]:{}));
+ await page.goto('http://127.0.0.1:5173/admin/finances');await page.getByRole('link',{name:'Example Client',exact:true}).waitFor();
+ await page.getByLabel(`Select Example Client ${today} 07:00`).check();await page.getByRole('button',{name:'Review & confirm'}).click();const dialog=page.getByRole('dialog',{name:'Review finance decisions'});await dialog.getByLabel('Reason').fill('Approved after attendance review');await dialog.getByRole('button',{name:'Save review'}).click();await page.getByRole('status').waitFor();assert.equal(saves,1);await page.screenshot({path:'../finance-checks/confirm-visits.png',fullPage:true});
+ await page.getByRole('button',{name:'Travel rates'}).click();await page.getByText('Effective-dated staff travel rates.').waitFor();await page.getByRole('button',{name:'Change history'}).click();await page.getByText('Approved after attendance review').waitFor();
+ await page.getByRole('button',{name:'Finance overview'}).click();await page.getByText('Employee hours').waitFor();await page.getByRole('button',{name:'Client service hours'}).click();await page.locator('.fin-content article').filter({hasText:'Example Client'}).waitFor();
+ await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:'../finance-checks/mobile.png',fullPage:true});assert.deepEqual(errors,[]);
+ console.log('PASS: Finance live endpoint, confirmation, audit history, travel rates and mobile layout.');
+}catch(e){if(page)await page.screenshot({path:'../finance-checks/failure.png',fullPage:true});throw e;}finally{if(token)await fetch('http://127.0.0.1:8080/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}});await browser?.close();await db.close();}

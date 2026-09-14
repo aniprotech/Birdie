@@ -1,0 +1,544 @@
+.inbox-workspace {
+    display: grid;
+    grid-template-columns: 220px minmax(360px, 44%) minmax(0, 1fr);
+    height: calc(100vh - 60px);
+    color: #354052;
+    background: white;
+    font-size: 14px;
+    min-width: 0;
+}
+.inbox-workspace button,
+.inbox-workspace input,
+.inbox-workspace select,
+.inbox-workspace textarea {
+    font: inherit;
+}
+.inbox-workspace button {
+    cursor: pointer;
+}
+.inbox-workspace button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.inbox-workspace button:focus-visible {
+    outline: 3px solid #68a9ed;
+    outline-offset: 2px;
+}
+.ix-nav {
+    overflow: auto;
+    border-right: 1px solid #d8e0eb;
+    padding: 18px 14px;
+}
+.ix-nav section {
+    border-bottom: 1px solid #d8e0eb;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+}
+.ix-nav h2 {
+    font-size: 18px;
+    margin: 12px 0 24px;
+    color: #677080;
+    font-weight: 500;
+}
+.ix-nav button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    padding: 12px 10px;
+    margin: 5px 0;
+    border-left: 4px solid transparent;
+    border-radius: 3px;
+    background: transparent;
+    font-size: 13px;
+    gap: 8px;
+}
+.ix-nav button.active {
+    background: #eef2fa;
+    border-left-color: #17335d;
+    color: #17335d;
+}
+.ix-nav button span {
+    background: #e1e6ed;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+.ix-feed {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid #d8e0eb;
+    background: #f7faff;
+}
+.ix-feed > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: white;
+    gap: 12px;
+}
+.ix-feed header button,
+.ix-search button,
+.ix-pagination button,
+.ix-bulk-bar button,
+.ix-modal header button {
+    border: 1px solid #9aacc5;
+    padding: 7px 12px;
+    border-radius: 4px;
+    background: white;
+}
+.ix-search {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+}
+.ix-search input {
+    flex: 1;
+    min-width: 100px;
+}
+.ix-search input,
+.ix-search select {
+    border: 1px solid #c7d1de;
+    padding: 8px;
+    border-radius: 4px;
+    background: white;
+}
+.ix-cards {
+    overflow: auto;
+    padding: 14px;
+    flex: 1;
+    min-height: 0;
+}
+.ix-card {
+    border: 1px solid #a7b8d1;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 4px #12345616;
+    position: relative;
+    overflow: hidden;
+}
+.ix-card.selected {
+    border-color: #0879db;
+    box-shadow: 0 0 0 2px #a7d6ff;
+}
+.ix-card-main {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: white;
+    border: 0;
+}
+.ix-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+}
+.ix-card-heading strong {
+    font-weight: 500;
+    flex: 1;
+}
+.ix-card-heading time {
+    font-size: 12px;
+    white-space: nowrap;
+}
+.ix-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #e1e6ed;
+    border-radius: 50%;
+    height: 32px;
+    width: 32px;
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #41546f;
+}
+.ix-card h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0 14px 8px;
+}
+.ix-excerpt {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin: 0 14px 14px;
+    font-size: 13px;
+}
+.ix-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 14px 14px;
+    font-size: 12px;
+    align-items: center;
+}
+.ix-card footer {
+    padding: 10px 14px;
+    font-size: 13px;
+}
+.ix-OPEN {
+    background: #fff1e8;
+    color: #a84a09;
+}
+.ix-IN_PROGRESS {
+    background: #eaf2ff;
+    color: #1d4f90;
+}
+.ix-RESOLVED {
+    background: #eafaed;
+    color: #227337;
+}
+.ix-badge {
+    display: inline-block;
+    border-radius: 16px;
+    padding: 3px 9px;
+    font-size: 12px;
+    background: #e2e7ee;
+}
+.ix-select {
+    display: block;
+    padding: 10px 14px 0;
+}
+.ix-bulk-bar {
+    padding: 10px 14px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    background: #eaf0fb;
+}
+.ix-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px;
+    background: white;
+    font-size: 12px;
+}
+.ix-detail {
+    min-width: 0;
+    overflow: auto;
+}
+.ix-detail > header {
+    padding: 20px 24px 12px;
+}
+.ix-detail > header > a {
+    text-decoration: underline;
+    font-weight: 500;
+}
+.ix-detail > header > p {
+    font-size: 12px;
+    color: #687180;
+    margin: 8px 0;
+}
+.ix-detail > header h2 {
+    font-size: 16px;
+    margin: 12px 0 0;
+    font-weight: 500;
+}
+.ix-tabs {
+    display: flex;
+    gap: 20px;
+    padding: 0 24px;
+    border-bottom: 1px solid #adbed4;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 2;
+}
+.ix-tabs button {
+    background: none;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    padding: 16px 0 12px;
+    color: #244579;
+}
+.ix-tabs button.active {
+    border-bottom-color: #244579;
+}
+.ix-detail-body {
+    padding: 24px;
+}
+.ix-detail-body h2 {
+    font-size: 21px;
+    font-weight: 500;
+    margin: 0 0 18px;
+}
+.ix-incident {
+    padding: 24px;
+    background: #f3f4f6;
+    margin-bottom: 28px;
+}
+.ix-incident p,
+.ix-comment p {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    margin: 0 0 22px;
+    line-height: 1.6;
+}
+.ix-incident a {
+    display: block;
+    margin-top: 12px;
+    color: #6752b9;
+}
+.ix-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+.ix-detail label,
+.ix-modal label {
+    display: block;
+    font-size: 14px;
+}
+.ix-detail select,
+.ix-detail input[type="date"],
+.ix-detail textarea,
+.ix-modal select,
+.ix-modal input,
+.ix-modal textarea {
+    display: block;
+    border: 1px solid #bcc6d4;
+    background: white;
+    border-radius: 4px;
+    padding: 10px;
+    width: 100%;
+    margin-top: 7px;
+}
+.ix-primary {
+    background: #19847f;
+    color: white;
+    border: 1px solid #19847f;
+    padding: 9px 17px;
+    border-radius: 4px;
+    margin-top: 12px;
+}
+.ix-detail .ix-archive {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 16px 0;
+}
+.ix-comment {
+    padding: 18px;
+    background: #f4f6fa;
+    border-radius: 6px;
+    margin: 16px 0;
+}
+.ix-comment time {
+    display: block;
+    color: #758093;
+    font-size: 12px;
+    margin: 4px 0 12px;
+}
+.ix-timeline {
+    list-style: none;
+    border-left: 2px solid #c2cede;
+    padding: 0 0 0 22px;
+    margin-left: 5px;
+}
+.ix-timeline li {
+    position: relative;
+    margin-bottom: 25px;
+}
+.ix-timeline li:before {
+    content: "";
+    position: absolute;
+    left: -27px;
+    top: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #859bb9;
+}
+.ix-timeline small {
+    color: #677e9d;
+}
+.ix-error {
+    background: #fff0ed;
+    color: #a83120;
+    padding: 14px;
+    white-space: pre-wrap;
+}
+.ix-error button {
+    text-decoration: underline;
+}
+.ix-notice {
+    padding: 10px;
+    background: #eafaed;
+    color: #227337;
+}
+.ix-empty {
+    padding: 45px 20px;
+    color: #718095;
+    text-align: center;
+}
+.ix-overdue {
+    color: #a83120;
+    font-weight: 600;
+}
+.ix-messages {
+    grid-column: 2 / -1;
+    overflow: auto;
+}
+.ix-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: #102c4a66;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.ix-modal {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    width: min(750px, 100%);
+    max-height: 94vh;
+    overflow: auto;
+}
+.ix-modal header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.ix-modal h2 {
+    font-size: 22px;
+    font-weight: 600;
+}
+.ix-modal label {
+    margin-bottom: 16px;
+}
+.ix-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.ix-modal small {
+    color: #738398;
+}
+.ix-modal ul {
+    max-height: 180px;
+    overflow: auto;
+    padding: 15px;
+    background: #f6f8fb;
+    margin: 16px 0;
+}
+.ix-modal li {
+    padding: 5px;
+}
+.ix-modal fieldset {
+    min-width: 0;
+}
+@media (max-width: 1100px) {
+    .inbox-workspace {
+        grid-template-columns: 170px minmax(300px, 40%) minmax(0, 1fr);
+    }
+    .ix-controls {
+        grid-template-columns: 1fr;
+    }
+    .ix-card-heading {
+        flex-wrap: wrap;
+    }
+    .ix-card-heading time {
+        width: 100%;
+        padding-left: 42px;
+    }
+    .ix-detail-body {
+        padding: 16px;
+    }
+}
+@media (max-width: 760px) {
+    .inbox-workspace {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+    }
+    .ix-nav {
+        display: flex;
+        overflow: auto;
+        gap: 18px;
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+    }
+    .ix-nav section {
+        display: flex;
+        gap: 5px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        align-items: center;
+    }
+    .ix-nav h2 {
+        font-size: 14px;
+        margin: 0;
+        white-space: nowrap;
+    }
+    .ix-nav button {
+        white-space: nowrap;
+        width: auto;
+        margin: 0;
+        padding: 8px;
+    }
+    .ix-nav section button span {
+        display: none;
+    }
+    .ix-feed {
+        height: 60vh;
+        min-height: 420px;
+        border-bottom: 1px solid #ccd6e2;
+    }
+    .ix-detail {
+        overflow: visible;
+    }
+    .ix-detail > header {
+        padding: 20px 16px;
+    }
+    .ix-controls {
+        grid-template-columns: 1fr 1fr;
+    }
+    .ix-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .ix-overlay {
+        padding: 10px;
+    }
+    .ix-modal {
+        padding: 16px;
+    }
+    .ix-modal .ix-controls {
+        grid-template-columns: 1fr;
+    }
+    .ix-pagination {
+        font-size: 11px;
+    }
+    .ix-card-heading time {
+        width: auto;
+        padding: 0;
+    }
+    .ix-detail-body {
+        padding: 16px;
+    }
+    .ix-tabs {
+        gap: 22px;
+    }
+    .ix-messages {
+        width: 100%;
+    }
+}
+
+.ix-settings{grid-column:2/-1;overflow:auto;padding:32px max(24px,5%);background:#f4f5f7}.ix-settings header{display:flex;justify-content:space-between;gap:16px}.ix-settings h1{font-size:24px;margin-bottom:12px}.ix-settings h2{font-size:17px;margin:16px 0}.ix-settings form{background:white;border:1px solid #d9dfe7;padding:22px;margin-top:20px}.ix-settings select{display:block;border:1px solid #bcc6d4;padding:9px;margin:8px 0 18px;max-width:100%}.ix-settings button{padding:9px 15px;border:1px solid #9aacc5;border-radius:4px;margin-right:10px}.ix-settings-note{padding:12px;background:#fff1d8;margin:12px 0}.ix-notification-group{padding:8px 0 20px;border-bottom:1px solid #ddd}.ix-notification-row{display:flex;gap:18px;align-items:center;margin:14px 0}.ix-notification-row>span{flex:1}.ix-checkbox{display:flex!important;gap:8px;align-items:center;margin:10px 0!important}.ix-checkbox input{width:auto!important;display:inline!important;margin:0!important}.ix-filters{border:1px solid #bcc6d4;padding:0;width:min(900px,95vw);margin:auto}.ix-filters::backdrop{background:#102c4a66}.ix-filters header{padding:18px 24px;margin:0;border-bottom:1px solid #bcc6d4}.ix-filter-body{padding:20px 24px;max-height:70vh;overflow:auto}.ix-filter-body section,.ix-filter-body>fieldset{border-bottom:1px solid #ddd;padding-bottom:20px;margin-bottom:20px}.ix-filter-body h3{font-size:18px;margin:18px 0}.ix-filter-body legend{margin:12px 0;font-weight:500}.ix-filters footer{display:flex;justify-content:flex-end;gap:20px;align-items:center;padding:14px 24px;border-top:1px solid #bcc6d4}.ix-filters footer button{margin:0}.ix-filters p{color:#697789;margin:10px 0}.ix-filters .ix-form-grid{margin-top:15px}@media(max-width:600px){.ix-notification-row{flex-wrap:wrap}.ix-notification-row>span{flex-basis:100%}.ix-settings{padding:20px}.ix-filters .ix-form-grid{grid-template-columns:1fr}}
+
+.ix-delivery{background:white;padding:22px;margin-top:24px;border:1px solid #d9dfe7}.ix-delivery article{padding:18px 0;border-top:1px solid #ddd}.ix-delivery-title{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.ix-delivery p{margin:12px 0;color:#697789}.ix-delivery a{color:#244579;text-decoration:underline}.ix-delivery details{margin-top:15px}.ix-delivery summary{cursor:pointer}.ix-delivery li{margin:8px 0}.ix-notification-row input:disabled{cursor:not-allowed}.ix-settings form>fieldset>p{line-height:1.6}

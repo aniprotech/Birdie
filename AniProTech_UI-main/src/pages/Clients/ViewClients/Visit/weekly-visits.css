@@ -1,0 +1,541 @@
+.weekly-visits {
+    background: #fff;
+    color: #344154;
+    font-size: 14px;
+    min-width: 0;
+}
+.weekly-visits button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid #adbbcd;
+    border-radius: 3px;
+    padding: 9px 13px;
+    background: white;
+    color: #203d60;
+    cursor: pointer;
+    font: inherit;
+}
+.weekly-visits button:hover {
+    background: #f1f7f8;
+}
+.weekly-visits button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.weekly-visits button:focus-visible {
+    outline: 2px solid #008b85;
+    outline-offset: 2px;
+}
+.weekly-visits .wv-primary {
+    background: #19847f;
+    color: white;
+    border-color: #19847f;
+}
+.weekly-visits .wv-primary:hover { background: #126d69; color: white; }
+.wv-filters .wv-check { white-space: nowrap; }
+.wv-filters .wv-check input { width: 14px; height: 14px; flex-shrink: 0; }
+.wv-toolbar,
+.wv-controls,
+.wv-title,
+.wv-filters,
+.wv-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.wv-toolbar {
+    padding: 18px 22px;
+    border-bottom: 1px solid #d6dce5;
+    justify-content: space-between;
+}
+.wv-title h1 {
+    font-size: 23px;
+    font-weight: 500;
+    margin: 0;
+}
+.weekly-visits .wv-review {
+    border: 0;
+    color: #6543a1;
+    padding: 6px;
+}
+.weekly-visits .wv-review.active {
+    background: #eee8fa;
+}
+.wv-week-label {
+    font-size: 17px;
+    white-space: nowrap;
+}
+.wv-filters {
+    padding: 12px 22px;
+    border-bottom: 1px solid #e7ebef;
+    gap: 14px;
+    align-items: flex-end;
+}
+.wv-filters label {
+    font-size: 11px;
+    color: #64748b;
+}
+.weekly-visits input:not([type="checkbox"]),
+.weekly-visits select,
+.weekly-visits textarea {
+    display: block;
+    border: 1px solid #c4cfda;
+    background: white;
+    border-radius: 4px;
+    padding: 8px;
+    font: inherit;
+    color: #344154;
+    max-width: 100%;
+    margin-top: 5px;
+}
+.wv-filters input,
+.wv-filters select {
+    font-size: 12px !important;
+}
+.wv-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+}
+.wv-check input {
+    accent-color: #168680;
+}
+.wv-summary {
+    font-size: 12px;
+    color: #64748b;
+    padding: 10px 22px;
+    background: #fafbfc;
+    gap: 22px;
+}
+.wv-summary button {
+    font-size: 11px;
+    padding: 3px 7px;
+}
+.wv-demo,
+.wv-notice {
+    padding: 10px 22px;
+    margin: 0;
+    background: #fff7df;
+    border-bottom: 1px solid #eed9a5;
+    color: #785514;
+    font-size: 12px;
+}
+.wv-notice {
+    background: #eaf7f0;
+    color: #226644;
+}
+.wv-error {
+    background: #fff0ec;
+    color: #962f22;
+    padding: 12px;
+    margin: 12px;
+}
+.wv-loading {
+    padding: 35px;
+}
+.wv-scroll {
+    height: calc(100vh - 262px);
+    min-height: 440px;
+    overflow: auto;
+    position: relative;
+    border-top: 1px solid #dce1e8;
+}
+.wv-grid {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    min-width: 1915px;
+    width: 100%;
+}
+.wv-grid th,
+.wv-grid td {
+    border-bottom: 1px solid #e0e2e5;
+    border-right: 1px solid #e0e2e5;
+}
+.wv-grid thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #fafafa;
+    height: 60px;
+    font-weight: 400;
+    text-align: center;
+    width: 255px;
+    color: #263e5f;
+}
+.wv-grid thead th:first-child {
+    left: 0;
+    z-index: 4;
+    width: 130px;
+}
+.wv-grid tbody th {
+    position: sticky;
+    left: 0;
+    background: #fafafa;
+    z-index: 2;
+    font-weight: 400;
+    text-align: left;
+    vertical-align: top;
+    padding: 20px 16px;
+    width: 130px;
+}
+.wv-grid small {
+    display: block;
+    color: #8994a4;
+    margin-top: 4px;
+    font-size: 12px;
+}
+.wv-grid thead .wv-today {
+    color: #00867f;
+    font-weight: 600;
+}
+.wv-today small span {
+    display: inline-block;
+    border-radius: 50%;
+    background: #00867f;
+    color: white;
+    padding: 2px 6px;
+}
+.wv-grid td {
+    vertical-align: top;
+    padding: 20px 16px;
+    height: 165px;
+}
+.wv-grid td.wv-anytime {
+    height: 95px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+.weekly-visits .wv-card {
+    display: block;
+    text-align: left;
+    width: 100%;
+    padding: 0;
+    border: 1px solid #c8cbd0;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    transition: box-shadow 0.15s;
+}
+.weekly-visits .wv-card:hover,
+.weekly-visits .wv-card.selected {
+    border-color: #248fbc;
+    box-shadow: 0 0 0 2px #d8f0fa;
+}
+.wv-card-body {
+    padding: 13px 13px 10px;
+}
+.wv-card strong {
+    font-size: 17px;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+}
+.wv-card strong span {
+    font-weight: 400;
+}
+.wv-card-title {
+    font-size: 11px;
+    color: #82909b;
+    margin: 6px 0;
+}
+.wv-metrics {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    color: #7b8188;
+    font-size: 13px;
+}
+.wv-metrics span {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+.wv-metrics span + span {
+    border-left: 1px solid #ddd;
+    padding-left: 10px;
+}
+.wv-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+.wv-card-footer span:last-child {
+    max-width: 125px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #435063;
+}
+.wv-COMPLETED {
+    background: #eaffea;
+    color: #118125;
+}
+.wv-SCHEDULED {
+    background: #f8f4ff;
+    color: #573a95;
+}
+.wv-DRAFT {
+    background: #fff4dc;
+    color: #976710;
+}
+.wv-IN_PROGRESS {
+    background: #e8f4ff;
+    color: #13639e;
+}
+.wv-CANCELLED {
+    background: #f0f1f3;
+    color: #69727d;
+}
+.wv-card-review {
+    font-size: 10px;
+    padding: 6px 12px;
+    background: #fff7ed;
+    color: #995c24;
+}
+.wv-planned > small {
+    font-size: 10px;
+    margin: 0 0 8px;
+}
+.wv-task {
+    background: white;
+    box-shadow: 0 2px 5px #00000012;
+    padding: 10px;
+    margin: 0 0 9px;
+    border: 1px solid #f3f4f6;
+    border-radius: 3px;
+    font-size: 12px;
+}
+.wv-task summary {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+}
+.wv-task svg {
+    flex-shrink: 0;
+    color: #8c929a;
+}
+.wv-task p {
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+.wv-task summary span {
+    color: #b56029;
+}
+.wv-overlay {
+    position: fixed;
+    inset: 0;
+    background: #09203955;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+}
+.wv-detail,
+.wv-editor {
+    display: flex;
+    flex-direction: column;
+    width: min(790px, 100%);
+    background: white;
+    height: 100%;
+    box-shadow: -4px 0 20px #0002;
+}
+.wv-editor {
+    width: min(520px, 100%);
+}
+.wv-detail header,
+.wv-editor header {
+    padding: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 12px;
+    border-bottom: 1px solid #e0e5eb;
+}
+.wv-detail h2,
+.wv-editor h2 {
+    font-size: 21px;
+    font-weight: 600;
+    margin: 0;
+}
+.wv-detail header p {
+    font-size: 13px;
+    margin: 8px 0;
+}
+.wv-badge {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 3px 9px;
+    font-size: 12px;
+}
+.wv-detail nav {
+    display: flex;
+    overflow: auto;
+    padding: 0 14px;
+    border-bottom: 1px solid #b5c4d8;
+    flex-shrink: 0;
+}
+.weekly-visits .wv-detail nav button {
+    border: 0;
+    border-radius: 0;
+    white-space: nowrap;
+    font-size: 13px;
+    padding: 14px 10px;
+}
+.weekly-visits .wv-detail nav button.active {
+    border-bottom: 3px solid #294c85;
+    color: #294c85;
+}
+.wv-detail-body,
+.wv-form-body {
+    padding: 24px;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+.wv-detail-grid,
+.wv-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.wv-detail-grid article {
+    background: #f5f6f9;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 115px;
+}
+.wv-detail h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+.wv-detail p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 5px 0 12px;
+}
+.wv-detail-grid {
+    margin-bottom: 24px;
+}
+.wv-entry {
+    padding: 17px;
+    border: 1px solid #d8e0e9;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+.wv-entry small,
+.wv-muted {
+    font-size: 12px;
+    color: #8290a1;
+}
+.wv-pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.wv-timeline {
+    list-style: none;
+    border-left: 2px solid #aabacf;
+    padding-left: 22px;
+    margin: 8px;
+}
+.wv-timeline li {
+    position: relative;
+    margin-bottom: 24px;
+}
+.wv-timeline li:before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #aabacf;
+    position: absolute;
+    left: -27px;
+    top: 6px;
+}
+.wv-form-body label {
+    display: block;
+    margin-bottom: 17px;
+    font-size: 13px;
+}
+.wv-form-body input,
+.wv-form-body select,
+.wv-form-body textarea {
+    width: 100%;
+}
+.wv-detail footer,
+.wv-editor footer {
+    padding: 16px 22px;
+    border-top: 1px solid #d6e0ea;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+}
+@media (max-width: 650px) {
+    .wv-toolbar,
+    .wv-filters {
+        padding: 13px;
+    }
+    .wv-title h1 {
+        font-size: 20px;
+    }
+    .wv-controls {
+        gap: 7px;
+    }
+    .wv-filters > label:not(.wv-check) {
+        width: calc(50% - 7px);
+    }
+    .wv-filters input,
+    .wv-filters select {
+        width: 100%;
+    }
+    .wv-controls button {
+        font-size: 12px;
+        padding: 7px;
+    }
+    .wv-summary {
+        padding: 10px 13px;
+        gap: 12px;
+    }
+    .wv-scroll {
+        height: 65vh;
+        min-height: 400px;
+    }
+    .wv-grid {
+        min-width: 1810px;
+    }
+    .wv-grid thead th:first-child,
+    .wv-grid tbody th {
+        width: 94px;
+    }
+    .wv-grid tbody th {
+        padding: 15px 9px;
+        font-size: 12px;
+    }
+    .wv-grid td {
+        padding: 14px 12px;
+    }
+    .wv-detail-grid {
+        grid-template-columns: 1fr;
+    }
+    .wv-detail-body,
+    .wv-form-body {
+        padding: 16px;
+    }
+    .wv-detail header {
+        padding: 16px;
+    }
+    .wv-detail nav {
+        padding: 0 6px;
+    }
+}

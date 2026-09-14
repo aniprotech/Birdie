@@ -1,0 +1,10 @@
+node_modules
+.env
+.git
+data
+uploads
+outbox
+*.log
+coverage
+test
+*.zip

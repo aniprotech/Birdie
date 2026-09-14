@@ -1,0 +1,51 @@
+import "dotenv/config";
+import path from "node:path";
+import fs from "node:fs";
+import { randomBytes } from "node:crypto";
+
+export function configuration(overrides = {}) {
+  const production = process.env.NODE_ENV === "production";
+  const config = {
+    production,
+    host: process.env.HOST || "127.0.0.1",
+    port: Number(process.env.PORT || 8080),
+    driver: process.env.DB_DRIVER || "pglite",
+    databaseUrl: process.env.DATABASE_URL,
+    dataDir: path.resolve(process.env.PGLITE_DATA_DIR || "./data/postgres"),
+    frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    corsOrigins: (
+      process.env.CORS_ORIGINS || "http://localhost:5173,http://127.0.0.1:5173"
+    ).split(","),
+    uploadDir: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
+    outboxDir: path.resolve(process.env.OUTBOX_DIR || "./outbox"),
+    mailMode: process.env.MAIL_MODE || "outbox",
+    inboxNotificationsEnabled: process.env.INBOX_NOTIFICATIONS_ENABLED !== 'false',
+    trustProxy: process.env.TRUST_PROXY === "true",
+    jwtSecret: process.env.JWT_SECRET,
+    shareAccessUrl: process.env.SHARE_ACCESS_URL,
+    ...overrides,
+  };
+  if (
+    config.production &&
+    (!config.jwtSecret ||
+      config.jwtSecret.length < 32 ||
+      config.driver !== "postgres")
+  ) {
+    throw new Error(
+      "Production requires PostgreSQL and a JWT_SECRET of at least 32 characters.",
+    );
+  }
+  if (config.production && !config.frontendUrl.startsWith("https://"))
+    throw new Error("Production requires an HTTPS FRONTEND_URL.");
+  if (!config.jwtSecret) {
+    fs.mkdirSync(path.dirname(config.dataDir), { recursive: true });
+    const keyFile = path.join(path.dirname(config.dataDir), "local-jwt-secret");
+    if (!fs.existsSync(keyFile))
+      fs.writeFileSync(keyFile, randomBytes(48).toString("hex"), {
+        mode: 0o600,
+        flag: "wx",
+      });
+    config.jwtSecret = fs.readFileSync(keyFile, "utf8");
+  }
+  return config;
+}

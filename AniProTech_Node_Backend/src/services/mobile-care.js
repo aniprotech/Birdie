@@ -1,0 +1,97 @@
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import { fail, reply } from "../http.js";
+import { visitEvent } from "../client-feed-schema.js";
+import { occursOn } from "./roster.js";
+
+const entryInput = z.object({
+  kind: z.enum(["NOTE", "ALERT", "ACTIVITY", "OBSERVATION"]),
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().max(10000).default(""),
+  category: z.string().trim().max(100).default(""),
+  status: z.enum(["OPEN", "PENDING", "COMPLETED", "NOT_COMPLETED", "RECORDED"]),
+});
+
+export function registerMobileCare({ db, repo, auth, files, mail }, route) {
+  async function visit(req, locking = false) {
+    const row = (await db.query(`SELECT v.*,v.visit_date::text AS date,to_char(v.start_time,'HH24:MI') AS "startTime",
+      to_char(v.end_time,'HH24:MI') AS "endTime",c.first_name||' '||c.last_name AS "clientName",
+      c.primary_phone AS "clientPhone",c.email AS "clientEmail" FROM node_roster_visits v JOIN users c ON c.id=v.client_id
+      WHERE v.id=$1 AND v.agency_id=$2${locking ? " FOR UPDATE OF v" : ""}`, [req.params.id, req.user.agencyId])).rows[0];
+    if (!row || (req.user.role === "CAREGIVER" && row.staff_id !== req.user.id)) fail(404, "Visit not found");
+    return row;
+  }
+
+  route("GET", "/api/mobile/visits/:id", async (req, res) => {
+    const v = await visit(req);
+    const [entries, attendance, attachments, addresses] = await Promise.all([
+      db.query("SELECT id,kind,title,body,category,status,revision,created_at FROM node_client_entries WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
+      db.query("SELECT id,event,latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",source,created_at FROM node_visit_attendance WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
+      db.query("SELECT id,file_url AS url,file_name AS name,mime_type AS mime,caption,created_at FROM node_visit_attachments WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
+      repo.find("UserPrimaryAddressEntity", { user: v.client_id }),
+    ]);
+    const plans = await repo.find("ClientTaskPlanEntity", { user: v.client_id });
+    const tasks = [];
+    for (const p of plans) if (!p.deletedAt && occursOn({ ...p, isEnds: !!p.endDate }, v.date)) {
+      const task = await repo.get("ClientTaskEntity", p.task);
+      const name = p.taskNameSnapshot || task?.name || "Care task";
+      const recorded = entries.rows.find((e) => e.kind === "ACTIVITY" && e.category === p.id);
+      tasks.push({ id: p.id, name, details: p.details || "", essential: !!p.isEssential, sessions: p.isAnyTime ? ["ANYTIME"] : p.sessions || [], status: recorded?.status || "PENDING", recordId: recorded?.id || null });
+    }
+    const medication = await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id });
+    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "" })), entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
+  });
+
+  route("POST", "/api/mobile/visits/:id/attendance", async (req, res) => {
+    const v = await visit(req, true);
+    const parsed = z.object({ event:z.enum(["CHECK_IN","CHECK_OUT"]), latitude:z.number().min(-90).max(90).nullable().default(null), longitude:z.number().min(-180).max(180).nullable().default(null), accuracy:z.number().nonnegative().max(10000).nullable().default(null) }).safeParse(req.body);
+    if (!parsed.success) fail(400, "Provide a valid attendance event and location");
+    const b = parsed.data;
+    if (b.event === "CHECK_IN" && v.status !== "SCHEDULED") fail(409, "Only a scheduled visit can be checked in");
+    if (b.event === "CHECK_OUT" && v.status !== "IN_PROGRESS") fail(409, "Check in before checking out");
+    const address=(await repo.find("UserPrimaryAddressEntity",{user:v.client_id})).find((a)=>a.isPrimary);
+    if(address?.latitude!=null&&address?.longitude!=null&&(b.latitude==null||b.longitude==null)) fail(400,"Location is required for this client's attendance record");
+    let distance=null,within=null;
+    if(address?.latitude!=null&&address?.longitude!=null&&b.latitude!=null&&b.longitude!=null){const rad=(x)=>x*Math.PI/180,dLat=rad(b.latitude-address.latitude),dLon=rad(b.longitude-address.longitude),a=Math.sin(dLat/2)**2+Math.cos(rad(address.latitude))*Math.cos(rad(b.latitude))*Math.sin(dLon/2)**2;distance=Math.round(6371000*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));within=distance<=Math.max(25,address.checkinRadius||150);}
+    await db.query("INSERT INTO node_visit_attendance(id,visit_id,actor_id,event,latitude,longitude,accuracy,distance_metres,within_radius) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)", [randomUUID(),v.id,req.user.id,b.event,b.latitude,b.longitude,b.accuracy,distance,within]);
+    if (b.event === "CHECK_IN") await db.query("UPDATE node_roster_visits SET status='IN_PROGRESS',actual_start=COALESCE(actual_start,CURRENT_TIMESTAMP),revision=revision+1,updated_by=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[v.id,req.user.id]);
+    else await db.query("UPDATE node_roster_visits SET status='COMPLETED',actual_end=COALESCE(actual_end,CURRENT_TIMESTAMP),revision=revision+1,updated_by=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[v.id,req.user.id]);
+    await visitEvent(db,v.id,req.user.id,b.event === "CHECK_IN" ? "Checked in using the mobile app" : "Checked out using the mobile app");
+    if(b.event==="CHECK_IN"){
+      const id=randomUUID(),location=within===true?"Location verified":within===false?`Outside configured radius (${distance} m)`:"Location could not be verified";
+      await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by) VALUES($1,$2,$3,$4,'ALERT','Caregiver arrived',$5,'Other alerts','OPEN',$6,$6)",[id,req.user.agencyId,v.client_id,v.id,location,req.user.id]);
+      if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.clientEmail||"")) req.afterCommit?.push(()=>mail.send({to:v.clientEmail,subject:"Your caregiver has arrived",text:`Your scheduled caregiver checked in at ${new Date().toLocaleString("en-GB",{timeZone:"Europe/London"})}. Contact your care provider if this was unexpected.`}));
+    }
+    return reply(res,{ status:b.event === "CHECK_IN" ? "IN_PROGRESS" : "COMPLETED",distanceMetres:distance,withinRadius:within },b.event === "CHECK_IN" ? "Checked in" : "Checked out");
+  });
+
+  route("POST", "/api/mobile/visits/:id/entries", async (req,res) => {
+    const v=await visit(req);
+    const parsed=entryInput.safeParse(req.body); if(!parsed.success) fail(400,"Enter valid care record details");
+    const b=parsed.data;
+    const allowed={NOTE:["RECORDED"],OBSERVATION:["RECORDED"],ALERT:["OPEN"],ACTIVITY:["COMPLETED","NOT_COMPLETED"]};
+    if(!allowed[b.kind].includes(b.status)) fail(400,"Invalid record status");
+    const id=randomUUID();
+    await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10)",[id,req.user.agencyId,v.client_id,v.id,b.kind,b.title,b.body,b.category,b.status,req.user.id]);
+    await visitEvent(db,v.id,req.user.id,`${b.kind.toLowerCase()} recorded in the mobile app`);
+    return reply(res,{id},"Care record saved",201);
+  });
+
+  route("POST", "/api/mobile/visits/:id/photos", async (req,res) => {
+    const v=await visit(req);
+    const file=req.files?.[0]; if(!file) fail(400,"Choose a photo");
+    const saved=await files.save(file); if(!saved.mime.startsWith("image/")) fail(400,"Only PNG and JPEG photos are allowed");
+    const caption=String(req.body.caption||"").trim(); if(caption.length>500) fail(400,"Caption is too long");
+    const id=randomUUID();
+    await db.query("INSERT INTO node_visit_attachments(id,agency_id,visit_id,client_id,file_url,file_name,mime_type,caption,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",[id,req.user.agencyId,v.id,v.client_id,saved.url,saved.filename,saved.mime,caption,req.user.id]);
+    await visitEvent(db,v.id,req.user.id,"Photo added from the mobile app");
+    return reply(res,{id,url:saved.url,name:saved.filename,caption},"Photo uploaded",201);
+  },{multipart:true});
+
+  route("POST", "/api/mobile/note-assist", async (req,res) => {
+    const text=String(req.body.text||"").trim(); if(text.length<10||text.length>10000) fail(400,"Enter 10 to 10,000 characters");
+    const sentences=text.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const attention=/fall|injur|bleed|missed|refus|pain|breath|confus|unwell|emergency|medication/i;
+    return reply(res,{ summary:sentences.slice(0,3).join(" "), attention:sentences.filter((s)=>attention.test(s)).slice(0,5), requiresReview:true, method:"rules" });
+  });
+}

@@ -1,0 +1,35 @@
+{
+  "name": "aniprotech-express-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --test-concurrency=1",
+    "db:init": "node scripts/init-db.js",
+    "db:check": "node scripts/check-schema.js",
+    "seed:demo": "node scripts/seed-demo.js",
+    "check": "node scripts/check-routes.js"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "file-type": "^21.1.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "nodemailer": "^10.0.1",
+    "pg": "^8.16.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}

@@ -1,0 +1,463 @@
+.task-planner {
+    padding: 28px;
+    color: #27384c;
+    max-width: 1800px;
+    margin: auto;
+    font-size: 14px;
+}
+.task-planner h1 {
+    font-size: 25px;
+    font-weight: 600;
+}
+.task-planner h2 {
+    font-size: 21px;
+    font-weight: 600;
+}
+.task-planner h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+.task-planner p {
+    margin: 10px 0;
+}
+.task-planner button {
+    border: 1px solid #bccbd8;
+    border-radius: 5px;
+    padding: 8px 13px;
+    background: #fff;
+    color: #173958;
+    cursor: pointer;
+}
+.task-planner button:hover {
+    background: #eef5f7;
+}
+.task-planner button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.task-planner .tp-primary {
+    background: #168681;
+    border-color: #168681;
+    color: white;
+}
+.task-planner input:not([type="checkbox"]),
+.task-planner select,
+.task-planner textarea {
+    display: block;
+    width: 100%;
+    border: 1px solid #bbc8d5;
+    border-radius: 5px;
+    padding: 11px;
+    margin-top: 6px;
+    background: #fff;
+    font: inherit;
+}
+.task-planner label {
+    display: block;
+}
+.task-planner input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.tp-header,
+.task-planner header,
+.tp-toolbar,
+.task-planner footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.tp-header {
+    margin-bottom: 28px;
+}
+.tp-toolbar {
+    margin: 20px 0;
+}
+.tp-toolbar > label:not(.tp-check) {
+    min-width: 220px;
+}
+.task-planner footer {
+    margin-top: 18px;
+}
+.tp-table-wrap {
+    overflow: auto;
+    border: 1px solid #d7e0ea;
+    border-radius: 7px;
+}
+.task-planner table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 800px;
+}
+.task-planner th {
+    text-align: left;
+    background: #e5ebf2;
+    padding: 12px;
+    font-weight: 500;
+}
+.task-planner td {
+    padding: 16px 12px;
+    border-top: 1px solid #d7e0ea;
+    vertical-align: top;
+}
+.task-planner td:first-child {
+    min-width: 220px;
+    max-width: 420px;
+}
+.task-planner small {
+    display: block;
+    color: #64748b;
+    margin: 5px 0;
+    line-height: 1.6;
+}
+.tp-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.tp-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.65;
+}
+.tp-tag {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #fff0d5;
+    color: #764915;
+    font-size: 11px;
+}
+.tp-error {
+    padding: 13px;
+    color: #96232a;
+    background: #fff0f0;
+    border: 1px solid #f3c4c4;
+}
+.tp-notice {
+    padding: 13px;
+    background: #e8f7ef;
+    color: #17603c;
+}
+.tp-muted {
+    font-size: 13px;
+    color: #63758a;
+    line-height: 1.5;
+}
+.tp-overlay {
+    position: fixed;
+    inset: 0;
+    background: #051a304d;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.tp-front {
+    z-index: 110;
+}
+.tp-modal {
+    width: min(650px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 10px;
+    padding: 26px;
+    background: white;
+    box-shadow: 0 8px 50px #0003;
+}
+.tp-modal label,
+.tp-modal fieldset {
+    margin-top: 16px;
+}
+.tp-modal header {
+    margin-bottom: 15px;
+}
+.tp-modal details {
+    margin-top: 15px;
+}
+.task-planner .tp-check {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+}
+.tp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.tp-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+}
+.tp-chips button {
+    font-size: 12px;
+    padding: 5px 9px;
+}
+.tp-chips button.selected,
+.tp-chips button[aria-pressed="true"] {
+    background: #d6eeeb;
+    border-color: #168681;
+}
+.tp-chips button span {
+    margin-left: 4px;
+    color: #687e89;
+}
+.tp-chips .tp-check {
+    font-size: 13px;
+    margin-top: 4px;
+}
+.tp-drawer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(690px, 100%);
+    background: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -4px 0 20px #0002;
+}
+.tp-drawer > header {
+    padding: 20px;
+    border-bottom: 1px solid #d7e0ea;
+}
+.tp-library-controls {
+    padding: 0 20px 12px;
+    border-bottom: 1px solid #d7e0ea;
+}
+.tp-library-list {
+    padding: 16px 20px;
+    overflow: auto;
+    flex: 1;
+}
+.tp-library-list article {
+    border: 1px solid #bbc8d5;
+    border-radius: 5px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 15px;
+}
+.tp-library-list article > div:first-child {
+    min-width: 0;
+}
+.tp-library-list .tp-actions {
+    flex-shrink: 0;
+    max-width: 145px;
+}
+.tp-drawer > footer {
+    border-top: 1px solid #d7e0ea;
+    margin: 0;
+    padding: 16px 20px;
+}
+.task-planner summary {
+    cursor: pointer;
+    color: #245578;
+    margin: 8px 0;
+}
+.tp-schedule-drawer {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(520px, 100%);
+    background: white;
+    display: flex;
+    flex-direction: column;
+    border-top: 6px solid #071e3d;
+    box-shadow: -4px 0 20px #0002;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    outline: none;
+}
+.task-planner .tp-schedule-drawer > header {
+    padding: 9px 16px 9px 12px;
+    flex-wrap: nowrap;
+}
+.task-planner .tp-schedule-drawer h2 {
+    font-size: 15px;
+    font-weight: 400;
+}
+.task-planner .tp-schedule-drawer header button {
+    border: 0;
+    padding: 3px 6px;
+    font-size: 20px;
+}
+.tp-schedule-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 12px 24px;
+}
+.task-planner .tp-schedule-body h3 {
+    font-size: 18px;
+    margin: 0 0 15px;
+}
+.task-planner .tp-schedule-body small {
+    color: #6780a3;
+    font-size: 11px;
+    line-height: 1.4;
+    margin: 4px 0;
+}
+.tp-optional {
+    color: #92a0b4;
+    font-size: 11px;
+}
+.tp-required {
+    color: #a43d32;
+}
+.task-planner .tp-schedule-drawer textarea {
+    margin-top: 4px;
+    padding: 8px;
+    min-height: 96px;
+    height: 96px;
+    border-radius: 2px;
+    resize: vertical;
+}
+.task-planner .tp-schedule-drawer input[type="radio"],
+.task-planner .tp-schedule-drawer input[type="checkbox"] {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    padding: 0;
+    margin: 0;
+    accent-color: #168681;
+}
+.task-planner .tp-schedule-drawer .tp-check {
+    gap: 6px;
+    margin: 6px 0;
+}
+.task-planner .tp-schedule-drawer .tp-essential {
+    margin: 20px 0;
+}
+.task-planner .tp-essential small {
+    color: #33465e;
+    margin: 2px 0;
+}
+.tp-schedule-drawer fieldset {
+    border: 0;
+    padding: 0;
+    margin: 14px 0 0;
+    min-width: 0;
+}
+.tp-schedule-drawer legend {
+    margin-bottom: 6px;
+}
+.tp-segments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+}
+.task-planner .tp-segments button {
+    border: 1px solid #7186a7;
+    border-radius: 0;
+    margin-left: -1px;
+    padding: 7px 12px;
+    font-size: 12px;
+}
+.task-planner .tp-segments button:first-child {
+    margin-left: 0;
+    border-radius: 2px 0 0 2px;
+}
+.task-planner .tp-segments button:last-child {
+    border-radius: 0 2px 2px 0;
+}
+.task-planner .tp-segments button[aria-pressed="true"] {
+    position: relative;
+    background: #e6faf7;
+    color: #008a84;
+    border-color: #008a84;
+}
+.task-planner .tp-schedule-drawer input[type="date"] {
+    padding: 6px 10px;
+    margin-top: 6px;
+    height: 33px;
+    color: #41536c;
+    border-radius: 2px;
+}
+.task-planner .tp-schedule-drawer input:disabled {
+    background: #f4f6f9;
+    color: #9aabc1;
+}
+.tp-starts {
+    margin-top: 16px;
+}
+.task-planner .tp-schedule-help {
+    margin: 2px 0 6px;
+    font-size: 11px;
+    color: #6780a3;
+}
+.tp-end-date {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.tp-end-date > input {
+    flex: 1;
+    min-width: 0;
+}
+.task-planner .tp-occurrences {
+    margin-top: 12px;
+    max-width: 135px;
+}
+.task-planner .tp-occurrences input {
+    padding: 6px 10px;
+}
+.task-planner .tp-schedule-drawer > footer {
+    flex-shrink: 0;
+    justify-content: flex-end;
+    border-top: 1px solid #9dacc4;
+    margin: 0;
+    padding: 15px 16px;
+    gap: 9px;
+}
+.tp-schedule-drawer button:focus-visible {
+    outline: 2px solid #168681;
+    outline-offset: 2px;
+}
+@media (max-width: 650px) {
+    .task-planner {
+        padding: 16px;
+    }
+    .task-planner h1 {
+        font-size: 21px;
+    }
+    .tp-overlay {
+        padding: 10px;
+    }
+    .tp-modal {
+        padding: 20px;
+    }
+    .tp-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .tp-library-list article {
+        flex-direction: column;
+    }
+    .tp-library-list .tp-actions {
+        max-width: none;
+    }
+    .tp-library-controls .tp-chips {
+        max-height: 145px;
+        overflow: auto;
+    }
+    .tp-drawer > header {
+        padding: 14px;
+    }
+    .tp-library-controls {
+        padding: 0 14px 8px;
+    }
+    .tp-toolbar {
+        margin: 12px 0;
+    }
+    .tp-library-list {
+        padding: 12px 14px;
+    }
+}

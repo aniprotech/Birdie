@@ -1,0 +1,35 @@
+export const emptyFilters = {
+    clientId: "",
+    carerId: "",
+    group: "",
+    assignedTo: "",
+    from: "",
+    to: "",
+    dueFrom: "",
+    dueTo: "",
+    states: "",
+    levels: "",
+    types: "",
+    overdue: "false",
+};
+export const alertTypes = {
+    "Medication alerts": [
+        "Medication maybe taken",
+        "Medication not taken",
+        "Medication partially taken",
+        "No medication report received",
+        "Additional medication taken",
+    ],
+    "Visit alerts": [
+        "Visit not started in time",
+        "Care professional did not check in to visit on time",
+        "Visit plan not completed",
+        "Essential task not done",
+        "Covid-19 symptoms reported",
+        "NHS Covid-19 assessment completed",
+        "NEWS2 score recorded",
+        "Forced check in",
+        "Forced check out",
+    ],
+    Concern: ["Accident", "Incident", "Skin integrity", "Medication", "Other"],
+};

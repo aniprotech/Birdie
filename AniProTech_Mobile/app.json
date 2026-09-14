@@ -27,6 +27,12 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [],
-    "scheme": "aniprotech"
+    "scheme": "aniprotech",
+    "extra": {
+      "eas": {
+        "projectId": "7864644b-aa5d-4aca-9a81-76ed6501a669"
+      }
+    },
+    "owner": "aniprotech.com"
   }
 }

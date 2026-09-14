@@ -8,7 +8,7 @@
 **/.env
 **/.env.*.local
 **/.env.txt
-**/data/
+AniProTech_Node_Backend/data/
 **/uploads/
 **/outbox/
 **/*.log

@@ -21,7 +21,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.aniprotech.care"
+      "package": "com.aniprotech.care",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"

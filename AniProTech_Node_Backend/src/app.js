@@ -104,6 +104,44 @@ export function createApp({ db, config, mail = createMail(config) }) {
       "Login successful",
     ),
   );
+  app.get("/api/auth/microsoft", (req, res) => {
+    if (!config.microsoftTenantId || !config.microsoftClientId || !config.microsoftClientSecret)
+      return res.redirect(`${config.frontendUrl}/login?authError=microsoft_not_configured`);
+    const state = randomUUID();
+    const authorize = new URL(`https://login.microsoftonline.com/${encodeURIComponent(config.microsoftTenantId)}/oauth2/v2.0/authorize`);
+    authorize.searchParams.set("client_id", config.microsoftClientId);
+    authorize.searchParams.set("response_type", "code");
+    authorize.searchParams.set("redirect_uri", config.microsoftRedirectUri);
+    authorize.searchParams.set("response_mode", "query");
+    authorize.searchParams.set("scope", "openid profile email User.Read");
+    authorize.searchParams.set("state", state);
+    res.cookie("microsoft_oauth_state", state, { httpOnly: true, secure: config.production, sameSite: "lax", maxAge: 600000 });
+    return res.redirect(authorize.toString());
+  });
+  app.get("/api/auth/microsoft/callback", async (req, res, next) => {
+    try {
+      const cookieState = req.headers.cookie?.match(/(?:^|; )microsoft_oauth_state=([^;]+)/)?.[1];
+      if (!req.query.code || !req.query.state || req.query.state !== cookieState)
+        return res.redirect(`${config.frontendUrl}/login?authError=microsoft_state`);
+      const tokenResponse = await fetch(`https://login.microsoftonline.com/${encodeURIComponent(config.microsoftTenantId)}/oauth2/v2.0/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ client_id: config.microsoftClientId, client_secret: config.microsoftClientSecret, code: String(req.query.code), redirect_uri: config.microsoftRedirectUri, grant_type: "authorization_code" }),
+      });
+      if (!tokenResponse.ok) throw new Error("Microsoft token exchange failed");
+      const tokens = await tokenResponse.json();
+      const profileResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName", { headers: { Authorization: `Bearer ${tokens.access_token}` } });
+      if (!profileResponse.ok) throw new Error("Microsoft profile lookup failed");
+      const profile = await profileResponse.json();
+      const email = profile.mail || profile.userPrincipalName;
+      const login = await auth.createLoginLink(email);
+      if (!login) return res.redirect(`${config.frontendUrl}/login?authError=account_not_allowed`);
+      return res.redirect(login.link.toString());
+    } catch (error) {
+      console.error("Microsoft sign-in failed", error);
+      return res.redirect(`${config.frontendUrl}/login?authError=microsoft_failed`);
+    }
+  });
   app.get("/uploads/{*file}", files.download);
   app.use("/api/portal", createPortal(ctx));
   app.use("/api", auth.authenticate);

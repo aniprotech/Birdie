@@ -1,5 +1,5 @@
 import { Mail } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Formik, Form, Field } from "formik";
 import { loginValidationSchema } from "../../utils/validationSchema";
 import InnerLoader from "../../components/Loader/InnerLoader";
@@ -8,6 +8,12 @@ import { showError } from "../../utils/toaster";
 
 const Login = ({ setActiveComponent, setEmail }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const apiOrigin = (import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "");
+
+    useEffect(() => {
+        const reason = new URLSearchParams(window.location.search).get("authError");
+        if (reason) showError(reason === "microsoft_not_configured" ? "Microsoft sign-in is not configured yet." : "Microsoft sign-in could not be completed.");
+    }, []);
 
     const handleFormSubmit = async (values, { resetForm }) => {
         setIsSubmitting(true);
@@ -107,7 +113,7 @@ const Login = ({ setActiveComponent, setEmail }) => {
 
                     <div>
                         <p className="mb-2 text-sm font-semibold text-gray-600">Sign in using SSO (Single Sign-on)</p>
-                        <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 py-2.5 text-sm font-medium transition hover:bg-gray-100">
+                        <button type="button" onClick={() => window.location.assign(`${apiOrigin}/api/auth/microsoft`)} className="mt-5 flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 py-2.5 text-sm font-medium transition hover:bg-gray-100">
                             <img
                                 src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg"
                                 alt="Microsoft Logo"

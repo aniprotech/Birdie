@@ -14,7 +14,7 @@ export function createAuth({ db, repo, config, mail }) {
     role: user.role,
     isActive: user.isActive,
   });
-  async function requestLink(email, { mobile = false } = {}) {
+  async function createLoginLink(email, { mobile = false } = {}) {
     if (!z.email().safeParse(email).success)
       fail(400, "A valid email address is required");
     email = email.toLowerCase().trim();
@@ -28,7 +28,7 @@ export function createAuth({ db, repo, config, mail }) {
       !user.isActive ||
       !["ADMIN", "SUPERADMIN", "CAREGIVER"].includes(user.role)
     )
-      return;
+      return null;
     const secret = randomBytes(32).toString("hex"),
       id = randomUUID();
     await db.query(
@@ -43,10 +43,15 @@ export function createAuth({ db, repo, config, mail }) {
     const token = Buffer.from(`${email}:${secret}`).toString("base64url");
     const link = mobile ? new URL("aniprotech://login") : new URL("/login", config.frontendUrl);
     link.searchParams.set("token", token);
+    return { link, user };
+  }
+  async function requestLink(email, { mobile = false } = {}) {
+    const login = await createLoginLink(email, { mobile });
+    if (!login) return;
     await mail.send({
-      to: user.email,
+      to: login.user.email,
       subject: "Your AniProTech login link",
-      text: `Use this one-time link within 15 minutes:\n${link}`,
+      text: `Use this one-time link within 15 minutes:\n${login.link}`,
     });
   }
   async function exchange(email, password) {
@@ -173,6 +178,7 @@ export function createAuth({ db, repo, config, mail }) {
   }
   return {
     requestLink,
+    createLoginLink,
     exchange,
     authenticate,
     userAccess,

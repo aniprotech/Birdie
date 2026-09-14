@@ -29,6 +29,12 @@ export function configuration(overrides = {}) {
     inboxNotificationsEnabled: process.env.INBOX_NOTIFICATIONS_ENABLED !== 'false',
     trustProxy: process.env.TRUST_PROXY === "true",
     jwtSecret: process.env.JWT_SECRET,
+    microsoftTenantId: process.env.MICROSOFT_TENANT_ID,
+    microsoftClientId: process.env.MICROSOFT_CLIENT_ID,
+    microsoftClientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+    microsoftRedirectUri:
+      process.env.MICROSOFT_REDIRECT_URI ||
+      "https://backend.aniprotech.com/api/auth/microsoft/callback",
     shareAccessUrl:
       process.env.SHARE_ACCESS_URL ||
       (production

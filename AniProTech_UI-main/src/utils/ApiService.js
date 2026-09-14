@@ -3,7 +3,9 @@ import axios from "axios";
 import { decryptData } from "./cryptoHelpers";
 import { showError } from "./toaster";
 
-const BASE_URL = import.meta.env.VITE_APP_BASE_LIVE_URL;
+const BASE_URL = (
+    import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com"
+).replace(/\/$/, "");
 
 const apiClient = axios.create({
     baseURL: BASE_URL,

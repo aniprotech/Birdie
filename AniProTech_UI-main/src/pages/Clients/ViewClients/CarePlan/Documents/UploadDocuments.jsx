@@ -16,7 +16,7 @@ const UploadDocuments = () => {
   const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, docId: null });
   const fileInputRef = useRef();
   const { id: clientId } = useParams();
-  const BASE_URL = import.meta.env.VITE_APP_BASE_LIVE_URL;
+  const BASE_URL = (import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "");
 
   const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
 

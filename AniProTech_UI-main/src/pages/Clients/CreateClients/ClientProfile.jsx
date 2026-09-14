@@ -13,7 +13,7 @@ const ClientProfile = ({ id, mode }) => {
         values?.profileImage ? values?.profileImage : values?.profileImagePath ? values?.profileImagePath : null,
     );
 
-    const BASE_URL = import.meta.env.VITE_APP_BASE_LIVE_URL;
+    const BASE_URL = (import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "");
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];

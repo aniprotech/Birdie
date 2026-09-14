@@ -71,6 +71,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     return res.json({ status: "UP", service: "aniprotech-express" });
   };
   app.get("/api/health", health);
+  app.get("/health", health);
   app.get("/actuator/health", health);
   const authLimit = rateLimit({
     windowMs: 15 * 60 * 1000,

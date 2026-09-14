@@ -177,7 +177,7 @@ export default function ClientForm({ editing = false }) {
                             src={
                                 /^https?:/.test(values.profileImagePath)
                                     ? values.profileImagePath
-                                    : `${import.meta.env.VITE_APP_BASE_LIVE_URL}/${values.profileImagePath.replace(/^\//, "")}`
+                                    : `${(import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "")}/${values.profileImagePath.replace(/^\//, "")}`
                             }
                         />
                         <button

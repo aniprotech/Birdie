@@ -12,7 +12,8 @@ export default function BaseInfoSection({ data = {}, sectionId }) {
     const a = data.addresses?.find((a) => a.isPrimary) || data.addresses?.[0];
     const address = a ? [a.addressLine1, a.addressLine2, a.city, a.county, a.postalCode, a.country].filter(Boolean).join(", ") : "";
     const photo = data.profileImagePath;
-    const image = photo ? (/^https?:/.test(photo) ? photo : `${import.meta.env.VITE_APP_BASE_LIVE_URL}/${photo.replace(/^\//, "")}`) : null;
+    const apiOrigin = (import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "");
+    const image = photo ? (/^https?:/.test(photo) ? photo : `${apiOrigin}/${photo.replace(/^\//, "")}`) : null;
     let dob = data.dateOfBirth || "Not recorded";
     try {
         if (data.dateOfBirth)

@@ -12,9 +12,16 @@ export function configuration(overrides = {}) {
     driver: process.env.DB_DRIVER || "pglite",
     databaseUrl: process.env.DATABASE_URL,
     dataDir: path.resolve(process.env.PGLITE_DATA_DIR || "./data/postgres"),
-    frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    frontendUrl:
+      process.env.FRONTEND_URL ||
+      (production
+        ? "https://caremonitor.aniprotech.com"
+        : "http://localhost:5173"),
     corsOrigins: (
-      process.env.CORS_ORIGINS || "http://localhost:5173,http://127.0.0.1:5173"
+      process.env.CORS_ORIGINS ||
+      (production
+        ? "https://caremonitor.aniprotech.com"
+        : "http://localhost:5173,http://127.0.0.1:5173")
     ).split(","),
     uploadDir: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
     outboxDir: path.resolve(process.env.OUTBOX_DIR || "./outbox"),
@@ -22,7 +29,11 @@ export function configuration(overrides = {}) {
     inboxNotificationsEnabled: process.env.INBOX_NOTIFICATIONS_ENABLED !== 'false',
     trustProxy: process.env.TRUST_PROXY === "true",
     jwtSecret: process.env.JWT_SECRET,
-    shareAccessUrl: process.env.SHARE_ACCESS_URL,
+    shareAccessUrl:
+      process.env.SHARE_ACCESS_URL ||
+      (production
+        ? "https://caremonitor.aniprotech.com/shared-access"
+        : undefined),
     ...overrides,
   };
   if (

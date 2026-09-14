@@ -1,7 +1,9 @@
 export const downloadFileFromRelativePath = async (filePath, fileName) => {
     if (!filePath) return;
 
-    const baseUrl = import.meta.env.VITE_APP_BASE_LIVE_URL;
+    const baseUrl = (
+        import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com"
+    ).replace(/\/$/, "");
 
     const fullUrl = `${baseUrl}/${filePath}`;
 

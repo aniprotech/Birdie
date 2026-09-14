@@ -1,4 +1,6 @@
-const BASE_URL = `${import.meta.env.VITE_APP_BASE_LIVE_URL}/api`;
+const BASE_URL = `${(
+    import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com"
+).replace(/\/$/, "")}/api`;
 
 const APIConfig = {
     USERS: {

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import "./client-portal.css";
-const base = (import.meta.env.VITE_APP_BASE_LIVE_URL || "").replace(/\/$/, "");
+const base = (
+    import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com"
+).replace(/\/$/, "");
 const storage = "aniprotech_portal_session";
 const date = (v) =>
     v ? new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", dateStyle: "medium", timeStyle: "short" }).format(new Date(v)) : "Not recorded";

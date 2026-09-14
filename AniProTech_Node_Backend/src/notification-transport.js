@@ -1,5 +1,5 @@
 export function createNotificationTransport(config, mail) {
-  const ready = { email: config.mailMode === "smtp", sms: false };
+  const ready = { email: ["smtp", "resend"].includes(config.mailMode), sms: false };
   const error = (code, retryable = false) =>
     Object.assign(new Error(code), { code, retryable });
   return {

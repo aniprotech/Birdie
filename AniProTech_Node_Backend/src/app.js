@@ -280,6 +280,9 @@ export function createApp({ db, config, mail = createMail(config) }) {
     } else if (error.code === "LIMIT_FILE_SIZE") {
       status = 413;
       message = "Each file must be 12 MB or smaller";
+    } else if (error.code === "EMAIL_DELIVERY_FAILED") {
+      status = 503;
+      message = "Email delivery is temporarily unavailable";
     } else if (!error.status && error.code) {
       status = 500;
       message = "Database or file operation failed";

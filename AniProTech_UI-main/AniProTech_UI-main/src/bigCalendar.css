@@ -1,0 +1,83 @@
+/* Outer container */
+.react-big-calendar-container {
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600;   /* font-semibold */
+    padding: 10px !important;
+    background-color: white !important;
+    border: none !important;
+  }
+  
+  /* Main calendar wrapper */
+  .react-big-calendar {
+    background-color: white !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Header row for days (Mon, Tue, etc.) */
+  .rbc-time-header {
+    background-color: white !important;
+    border-bottom: none !important;
+  }
+  
+  .rbc-header {
+    background-color: white !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.5rem 0 !important;
+    color: black;
+    text-align: center;
+    border: none !important;
+  }
+  
+  /* Time labels (00:00, 01:00, ...) */
+  .rbc-time-gutter {
+    background-color: white !important;
+    border: none !important;
+    font-size: 0.75rem;
+    padding: 0 0.5rem ;
+    color: black;
+  }
+  
+  /* Remove all horizontal lines between time slots */
+  .rbc-time-slot {
+    border-top: none !important;
+  }
+  
+  /* Main time grid background */
+  .rbc-time-content {
+    background-color: white !important;
+    border: none !important;
+  }
+  
+  /* Hide the all-day row */
+  .rbc-allday-cell {
+    display: none !important;
+  }
+  
+  /* Each day column */
+  .rbc-day-slot {
+    background-color: #bcc6d2 !important;
+    padding: 0;
+    position: relative;
+    border-left: none !important;
+    border-right: none !important;
+  }
+  
+  /* Dashed vertical line between day slots */
+  .rbc-day-slot::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    border-right: 1px dashed #1a1a40;
+    pointer-events: none;
+  }
+  
+  /* OPTIONAL: Hide the border after the last column (Sunday) */
+  .rbc-time-content > .rbc-day-slot:last-child::after {
+    display: none;
+  }
+  

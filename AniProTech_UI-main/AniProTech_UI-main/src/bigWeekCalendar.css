@@ -1,0 +1,48 @@
+/* calendarStyles.css */
+
+.calendar-container {
+  padding: 20px;
+  background-color: white;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Apply background to time grid */
+.rbc-time-view {
+  background-color: rgba(10, 37, 64, 0.15);
+}
+
+/* Header day name (e.g., Monday, Tuesday) */
+.rbc-time-header {
+  background-color: white;
+  border-bottom: 1px solid #ccc;
+}
+
+/* Time gutter (00:00, 01:00...) */
+.rbc-time-gutter {
+  background-color: white;
+  border-right: 1px solid #ccc;
+}
+
+/* Date column cell borders */
+.rbc-day-slot {
+  border-left: 1px solid #ccc;
+}
+
+/* Weekday names */
+.rbc-header {
+  background: white;
+  color: #0A2540;
+  font-weight: 600;
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Grid cell styling */
+.rbc-time-slot {
+  border-top: 1px solid #ccc;
+}
+
+/* Selected/Current day highlight */
+.rbc-today {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}

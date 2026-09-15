@@ -127,6 +127,12 @@ const Login = ({ setActiveComponent, setEmail }) => {
                         Not sure if your company uses SSO? <br />
                         Contact your administrator for help.
                     </p>
+                    <div className="border-t pt-5 text-sm text-gray-600">
+                        Don&apos;t have an account?{" "}
+                        <button type="button" onClick={() => setActiveComponent("RegisterBusiness")} className="font-semibold text-customBlue hover:underline">
+                            Create your business
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

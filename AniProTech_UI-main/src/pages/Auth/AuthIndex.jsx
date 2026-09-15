@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SwitchComponents from "../../components/SwitchComponent/SwitchComponent";
 import Login from "./Login";
+import RegisterBusiness from "./RegisterBusiness";
 import AuthNotification from "./AuthNotification";
 import { _post } from "../../utils/ApiService";
 import { showError, showSuccess } from "../../utils/toaster";
@@ -110,6 +111,11 @@ const AuthIndex = () => {
                     setActiveComponent={setActiveComponent}
                     setEmail={setEmail}
                     email={email}
+                />
+                <RegisterBusiness
+                    name="RegisterBusiness"
+                    setActiveComponent={setActiveComponent}
+                    setEmail={setEmail}
                 />
                 <AuthNotification
                     name="AuthNotification"

@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { randomUUID } from "node:crypto";
+import { z } from "zod";
 import { Repository } from "./repository.js";
 import { createAuth } from "./auth.js";
 import { createMail } from "./mail.js";
@@ -117,6 +118,41 @@ export function createApp({ db, config, mail = createMail(config) }) {
     authorize.searchParams.set("state", state);
     res.cookie("microsoft_oauth_state", state, { httpOnly: true, secure: config.production, sameSite: "lax", maxAge: 600000 });
     return res.redirect(authorize.toString());
+  });
+  app.post("/api/auth/register-business", authLimit, async (req, res) => {
+    const schema = z.object({
+      firstName: z.string().trim().min(2).max(80),
+      lastName: z.string().trim().min(2).max(80),
+      email: z.email(),
+      phone: z.string().trim().min(7).max(30),
+      businessName: z.string().trim().min(2).max(160),
+      legalName: z.string().trim().max(160).optional(),
+      businessType: z.enum(["HOME_CARE", "LIVE_IN_CARE", "SUPPORTED_LIVING", "CARE_HOME", "OTHER"]),
+      registrationNumber: z.string().trim().max(80).optional(),
+      website: z.union([z.url(), z.literal("")]).optional(),
+      addressLine1: z.string().trim().min(3).max(200),
+      addressLine2: z.string().trim().max(200).optional(),
+      city: z.string().trim().min(2).max(100),
+      postcode: z.string().trim().min(2).max(20),
+      country: z.string().trim().min(2).max(80),
+      timezone: z.string().trim().min(3).max(80),
+      acceptTerms: z.literal(true),
+    });
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) fail(400, parsed.error.issues[0]?.message || "Registration details are invalid");
+    const data = parsed.data, email = data.email.toLowerCase().trim();
+    const created = await db.transaction(async () => {
+      if ((await db.query("SELECT 1 FROM users WHERE lower(email)=$1", [email])).rows[0]) fail(409, "An account with this email already exists");
+      const agencyId = randomUUID(), userId = randomUUID();
+      await db.query(`INSERT INTO node_agencies(id,name,legal_name,business_type,registration_number,phone,website,address_line1,address_line2,city,postcode,country,timezone,terms_accepted_at)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,CURRENT_TIMESTAMP)`,
+        [agencyId,data.businessName,data.legalName||null,data.businessType,data.registrationNumber||null,data.phone,data.website||null,data.addressLine1,data.addressLine2||null,data.city,data.postcode,data.country,data.timezone]);
+      await repo.save("UserEntity", { id:userId, agencyId, firstName:data.firstName, lastName:data.lastName, email, primaryPhone:data.phone, role:"SUPERADMIN", isActive:true, createdBy:userId, updatedBy:userId });
+      const login = await auth.createLoginLink(email);
+      await mail.send({ to:email, subject:"Welcome to AniProTech Care Monitor", text:`Your business account has been created. Verify your email and sign in using this one-time link within 15 minutes:\n${login.link}` });
+      return { email, businessName:data.businessName };
+    });
+    return reply(res, created, "Business account created. Check your email to verify and sign in.", 201);
   });
   app.get("/api/auth/microsoft/callback", async (req, res, next) => {
     try {

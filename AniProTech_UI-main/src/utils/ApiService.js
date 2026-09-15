@@ -15,7 +15,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("access_token");
-        if (token && !["/api/auth/get-token", "/api/auth/request-link"].includes(config.url)) {
+        if (token && !["/api/auth/get-token", "/api/auth/request-link", "/api/auth/register-business"].includes(config.url)) {
             try {
                 const eData = decryptData(token);
                 config.headers.Authorization = `Bearer ${eData}`;

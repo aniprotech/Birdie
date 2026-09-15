@@ -7,10 +7,11 @@ const encodeHeader = (value) =>
     ? `=?UTF-8?B?${Buffer.from(value).toString("base64")}?=`
     : value;
 
-const gmailError = (message, status) => {
+const gmailError = (message, status, providerStage) => {
   const error = new Error(message);
   error.code = "EMAIL_DELIVERY_FAILED";
   error.status = status;
+  error.providerStage = providerStage;
   error.retryable = status === 429 || status >= 500;
   return error;
 };
@@ -56,10 +57,14 @@ export function createMail(config) {
       }),
     });
     if (!response.ok)
-      throw gmailError("Gmail authorization failed", response.status);
+      throw gmailError("Gmail authorization failed", response.status, "gmail_oauth");
     const result = await response.json();
     if (!result.access_token)
-      throw gmailError("Gmail authorization returned no access token", 502);
+      throw gmailError(
+        "Gmail authorization returned no access token",
+        502,
+        "gmail_oauth",
+      );
     return result.access_token;
   }
 
@@ -82,7 +87,11 @@ export function createMail(config) {
           },
         );
         if (!response.ok)
-          throw gmailError("Gmail API rejected the email", response.status);
+          throw gmailError(
+            "Gmail API rejected the email",
+            response.status,
+            "gmail_send",
+          );
         const result = await response.json();
         return {
           id: result.id,

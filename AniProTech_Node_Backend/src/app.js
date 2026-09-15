@@ -291,6 +291,8 @@ export function createApp({ db, config, mail = createMail(config) }) {
       console.error(
         "Request failed:",
         error.code || error.name,
+        error.providerStage || "",
+        error.code === "EMAIL_DELIVERY_FAILED" ? error.status || "" : "",
         config.production ? "" : error.message,
       );
     return res

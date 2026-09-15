@@ -8,7 +8,7 @@ import {createInboxNotifications,classifyNotification} from '../src/inbox-notifi
 import {createNotificationTransport} from '../src/notification-transport.js';
 test('Durable email notifications',async t=>{
  const db=await openDatabase({driver:'pglite',dataDir:':memory:'});await initializeSchema(db);
- const mail=[],config={production:false,inboxNotificationsEnabled:true,mailMode:'smtp',jwtSecret:'notification-tests-only-secret-32-characters',frontendUrl:'https://app.example.test',corsOrigins:[],uploadDir:'./test-uploads'};
+ const mail=[],config={production:false,inboxNotificationsEnabled:true,mailMode:'gmail',jwtSecret:'notification-tests-only-secret-32-characters',frontendUrl:'https://app.example.test',corsOrigins:[],uploadDir:'./test-uploads'};
  const app=createApp({db,config,mail:{send:async m=>{mail.push(m);return {accepted:[m.to],messageId:'accepted'};}}}),ctx=app.locals.ctx,agency=randomUUID();
  const person=(name,role,agencyId=agency)=>ctx.repo.save('UserEntity',{firstName:name,lastName:'Fixture',email:name+'@notifications.test',role,agencyId,isActive:true});
  const admin=await person('admin','ADMIN'),other=await person('other','ADMIN',randomUUID()),client=await person('client','USER'),carer=await person('carer','CAREGIVER');
@@ -25,15 +25,15 @@ test('Durable email notifications',async t=>{
    const id=randomUUID();await assert.rejects(db.transaction(async()=>{await db.query(`INSERT INTO node_client_entries(id,agency_id,client_id,kind,title,body,status,created_by,updated_by) VALUES($1,$2,$3,'ALERT','Medication not taken','','OPEN',$4,$4)`,[id,agency,client.id,admin.id]);throw Error('rollback');}));assert.equal((await db.query('SELECT * FROM node_notification_events WHERE entry_id=$1',[id])).rows.length,0);
   });
   await t.test('Known temporary rejection retries with backoff and survives worker recreation',async()=>{
-   failure=Object.assign(Error('not accepted'),{code:'SMTP_REJECTED',retryable:true});await create();await worker.tick();let j=(await jobs()).find(x=>x.status==='PENDING');assert.equal(j.attempts,1);const count=sends.length;await worker.tick();assert.equal(sends.length,count);
+   failure=Object.assign(Error('not accepted'),{code:'EMAIL_REJECTED',retryable:true});await create();await worker.tick();let j=(await jobs()).find(x=>x.status==='PENDING');assert.equal(j.attempts,1);const count=sends.length;await worker.tick();assert.equal(sends.length,count);
    failure=null;await db.query(`UPDATE node_notification_deliveries SET next_attempt_at=CURRENT_TIMESTAMP-INTERVAL '1 minute' WHERE id=$1`,[j.id]);await createInboxNotifications(ctx,transport).tick();j=(await jobs()).find(x=>x.id===j.id);assert.equal(j.status,'ACCEPTED');assert.equal(j.attempts,2);
   });
   await t.test('Unknown acknowledgement and interrupted sending cannot be retried blindly',async()=>{
-   failure=Object.assign(Error('unknown'),{code:'SMTP_OUTCOME_UNKNOWN',retryable:false});await create();await worker.tick();const j=(await jobs()).find(x=>x.status==='UNKNOWN');assert.ok(j);const count=sends.length;await worker.tick();assert.equal(sends.length,count);assert.equal((await call('post','/api/inbox/notifications/'+j.id+'/retry',{})).status,409);
+   failure=Object.assign(Error('unknown'),{code:'EMAIL_OUTCOME_UNKNOWN',retryable:false});await create();await worker.tick();const j=(await jobs()).find(x=>x.status==='UNKNOWN');assert.ok(j);const count=sends.length;await worker.tick();assert.equal(sends.length,count);assert.equal((await call('post','/api/inbox/notifications/'+j.id+'/retry',{})).status,409);
    await db.query(`UPDATE node_notification_deliveries SET status='PROCESSING',lease_until=CURRENT_TIMESTAMP-INTERVAL '1 minute' WHERE id=$1`,[j.id]);await worker.tick();assert.equal((await jobs()).find(x=>x.id===j.id).status,'UNKNOWN');assert.equal(sends.length,count);failure=null;
   });
   await t.test('Resolution and withdrawal cancel queued retries',async()=>{
-   failure=Object.assign(Error('temporary'),{code:'SMTP_REJECTED',retryable:true});const e=await create();await worker.tick();const j=(await jobs()).find(x=>x.status==='PENDING');await call('put','/api/inbox/items/'+e.id,{revision:e.revision,state:'RESOLVED'});await db.query('UPDATE node_notification_deliveries SET next_attempt_at=CURRENT_TIMESTAMP WHERE id=$1',[j.id]);const count=sends.length;await worker.tick();assert.equal(sends.length,count);assert.equal((await jobs()).find(x=>x.id===j.id).status,'CANCELLED');
+   failure=Object.assign(Error('temporary'),{code:'EMAIL_REJECTED',retryable:true});const e=await create();await worker.tick();const j=(await jobs()).find(x=>x.status==='PENDING');await call('put','/api/inbox/items/'+e.id,{revision:e.revision,state:'RESOLVED'});await db.query('UPDATE node_notification_deliveries SET next_attempt_at=CURRENT_TIMESTAMP WHERE id=$1',[j.id]);const count=sends.length;await worker.tick();assert.equal(sends.length,count);assert.equal((await jobs()).find(x=>x.id===j.id).status,'CANCELLED');
    await create();await worker.tick();const pending=(await jobs()).find(x=>x.status==='PENDING');await db.query(`UPDATE node_inbox_preferences SET preferences=jsonb_set(preferences,'{deliveryEnabled}','false') WHERE user_id=$1`,[admin.id]);await db.query('UPDATE node_notification_deliveries SET next_attempt_at=CURRENT_TIMESTAMP WHERE id=$1',[pending.id]);const count2=sends.length;await worker.tick();assert.equal(sends.length,count2);assert.equal((await jobs()).find(x=>x.id===pending.id).status,'CANCELLED');failure=null;
   });
   await t.test('Historical alerts are not delivered on new opt-in; history is private',async()=>{
@@ -46,8 +46,8 @@ test('Durable email notifications',async t=>{
   });
  }finally{await db.close();}
 });
-test('SMTP adapter records acceptance and conservatively classifies failures',async()=>{
- const config={mailMode:'smtp'};let result=await createNotificationTransport(config,{send:async()=>({accepted:['person@example.test'],messageId:'message'})}).send('email','person@example.test','Generic link','id');assert.equal(result.status,'ACCEPTED');
- for(const [error,code,retryable] of [[{code:'EAUTH'},'SMTP_REJECTED',false],[{responseCode:451},'SMTP_REJECTED',true],[{code:'ETIMEDOUT',command:'DATA'},'SMTP_OUTCOME_UNKNOWN',false]])await assert.rejects(createNotificationTransport(config,{send:async()=>{throw error;}}).send('email','person@example.test','Generic link','id'),e=>e.code===code&&e.retryable===retryable);
+test('Gmail adapter records acceptance and conservatively classifies failures',async()=>{
+ const config={mailMode:'gmail'};let result=await createNotificationTransport(config,{send:async()=>({accepted:['person@example.test'],messageId:'message'})}).send('email','person@example.test','Generic link','id');assert.equal(result.status,'ACCEPTED');
+ for(const [providerError,code,retryable] of [[{code:'EMAIL_DELIVERY_FAILED',retryable:false},'EMAIL_REJECTED',false],[{code:'EMAIL_DELIVERY_FAILED',retryable:true},'EMAIL_REJECTED',true],[{code:'UNEXPECTED'},'EMAIL_OUTCOME_UNKNOWN',false]])await assert.rejects(createNotificationTransport(config,{send:async()=>{throw providerError;}}).send('email','person@example.test','Generic link','id'),e=>e.code===code&&e.retryable===retryable);
  await assert.rejects(createNotificationTransport(config,{}).send('sms','+441234567890','test','id'),/CHANNEL_NOT_CONFIGURED/);
 });

@@ -720,12 +720,13 @@ function App() {
                 dismissible
             />
             {showSplash ? (
-                <div className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-customNavy to-customNavy1">
-                    <img
-                        src="/brand-logo.png"
-                        alt="AniProTech"
-                        className="w-[min(78vw,620px)] animate-pulse rounded-2xl"
-                    />
+                <div className="brand-loader" role="status" aria-label="Caremonitor is loading">
+                    <div className="brand-loader__halo" aria-hidden="true" />
+                    <div className="brand-loader__ring brand-loader__ring--one" aria-hidden="true" />
+                    <div className="brand-loader__ring brand-loader__ring--two" aria-hidden="true" />
+                    <img src="/brand-mark.png" alt="Caremonitor" className="brand-loader__mark" />
+                    <span className="brand-loader__text">Caremonitor</span>
+                    <span className="sr-only">Loading</span>
                 </div>
             ) : (
                 <RouterProvider router={router} />

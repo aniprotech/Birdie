@@ -9,6 +9,7 @@ import LogIndex from "./pages/Log/LogIndex";
 import RosterIndex from "./pages/Roster/RosterIndex";
 import InboxIndex from "./pages/Inbox/InboxIndex";
 import FinanceIndex from "./pages/Finance/FinanceIndex";
+import AccountSettings from "./pages/Account/AccountSettings";
 import Settings from "./components/Settings/Settings";
 import AuthIndex from "./pages/Auth/AuthIndex";
 import AddClients from "./pages/Clients/AddClients";
@@ -687,6 +688,10 @@ const router = createBrowserRouter([
             {
                 path: "finances",
                 element: <FinanceIndex />,
+            },
+            {
+                path: "account",
+                element: <AccountSettings />,
             },
             {
                 path: "settings",

@@ -18,6 +18,7 @@ import { registerMedication } from "./services/medication.js";
 import { registerTeam } from "./services/team.js";
 import { registerAssignments } from "./services/assignments.js";
 import { registerSettings } from "./services/settings.js";
+import { registerAccount } from "./services/account.js";
 import { registerShareAccess, createPortal } from "./services/share-access.js";
 import { registerDocuments } from "./services/documents.js";
 import { registerRoster } from "./services/roster.js";
@@ -209,6 +210,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
   const route = (method, path, handler, options = {}) =>
     routes.push({ method, path, handler, options });
   for (const register of [
+    registerAccount,
     registerUsers,
     registerClientFeed,
     registerCarePlans,

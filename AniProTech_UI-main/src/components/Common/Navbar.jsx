@@ -1,13 +1,13 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { accountLinks, navLinks } from "../../constants";
 import { useClickOutside } from "../../hooks/use-click-outside";
 import useAuthStore from "../../stores/authStore";
-import { _post } from "../../utils/ApiService";
+import { _get, _post } from "../../utils/ApiService";
 
 const Navbar = () => {
-    const { userData } = useAuthStore();
+    const { userData, setUserData } = useAuthStore();
 
     const [toggleMenu, setToggleMenu] = useState(false);
     const [isSticky, setIsSticky] = useState(true);
@@ -17,6 +17,14 @@ const Navbar = () => {
     const profileRef = useRef(null);
     const profileBtnRef = useRef(null);
     useClickOutside([profileRef, profileBtnRef], () => setShowProfileDropdown(false));
+    useEffect(() => {
+        if (!["ADMIN", "SUPERADMIN"].includes(userData?.user?.role) || userData?.organisation) return;
+        _get("/api/account").then(({ data }) => {
+            const account = data?.results?.data;
+            if (account?.organisation) setUserData({ ...userData, organisation: { name: account.organisation.name, logoPath: account.organisation.logo_path || "" } });
+        }).catch(() => {});
+    }, [userData?.user?.role]);
+    const organisationName = userData?.organisation?.name || "Ani-Tech Elderly Care";
 
     return (
         <nav
@@ -46,7 +54,7 @@ const Navbar = () => {
                     {/* Logo */}
                     <Link to="/">
                         <img
-                            src="https://cdn-icons-png.flaticon.com/512/295/295128.png"
+                            src={userData?.organisation?.logoPath ? `${(import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "")}/${userData.organisation.logoPath.replace(/^\//, "")}` : "https://cdn-icons-png.flaticon.com/512/295/295128.png"}
                             alt="Logo"
                             className="h-10"
                         />
@@ -85,7 +93,7 @@ const Navbar = () => {
 
                 {/* Right Side Info (Visible on all screen sizes) */}
                 <div className="flex items-center space-x-4">
-                    <div className="hidden text-sm text-white lg:flex">Ani-Tech Elderly Care</div>
+                    <div className="hidden text-sm text-white lg:flex">{organisationName}</div>
                     <div className="relative">
                         <button
                             ref={profileBtnRef}
@@ -125,6 +133,7 @@ const Navbar = () => {
                                     {accountLinks?.map((item) => (
                                         <div
                                             key={item}
+                                            onClick={() => { const section = item === "Upload logo" ? "branding" : item.startsWith("Carer app") ? "carer-app" : item === "Help and support" ? "support" : "organisation"; setShowProfileDropdown(false); navigate(`/admin/account?section=${section}`); }}
                                             className="cursor-pointer rounded px-2 py-2 hover:bg-customHoverGrey"
                                         >
                                             {item}
@@ -163,7 +172,7 @@ const Navbar = () => {
             >
                 {/* Org Info */}
                 <div className="mb-3 border-b border-white/20 pb-3 text-sm">
-                    <div className="text-white">Ani-Tech Elderly Care</div>
+                    <div className="text-white">{organisationName}</div>
                 </div>
 
                 {/* Mobile Nav Links */}

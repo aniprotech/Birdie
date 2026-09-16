@@ -18,4 +18,12 @@ export async function initializeRegistration(db) {
     created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
   await db.query("CREATE INDEX IF NOT EXISTS node_agencies_name ON node_agencies(lower(name))");
+  await db.query(`ALTER TABLE node_agencies
+    ADD COLUMN IF NOT EXISTS logo_path text,
+    ADD COLUMN IF NOT EXISTS support_email text,
+    ADD COLUMN IF NOT EXISTS support_phone text,
+    ADD COLUMN IF NOT EXISTS carer_app_message text,
+    ADD COLUMN IF NOT EXISTS carer_app_settings jsonb NOT NULL DEFAULT '{}'::jsonb,
+    ADD COLUMN IF NOT EXISTS updated_at timestamptz,
+    ADD COLUMN IF NOT EXISTS updated_by uuid`);
 }

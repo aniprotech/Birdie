@@ -54,9 +54,9 @@ const Navbar = () => {
                     {/* Logo */}
                     <Link to="/">
                         <img
-                            src={userData?.organisation?.logoPath ? `${(import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "")}/${userData.organisation.logoPath.replace(/^\//, "")}` : "https://cdn-icons-png.flaticon.com/512/295/295128.png"}
-                            alt="Logo"
-                            className="h-10"
+                            src={userData?.organisation?.logoPath ? `${(import.meta.env.VITE_APP_BASE_LIVE_URL || "https://backend.aniprotech.com").replace(/\/$/, "")}/${userData.organisation.logoPath.replace(/^\//, "")}` : "/brand-logo.png"}
+                            alt={userData?.organisation?.logoPath ? `${organisationName} logo` : "AniProTech"}
+                            className="h-10 w-auto max-w-36 object-contain"
                         />
                     </Link>
 

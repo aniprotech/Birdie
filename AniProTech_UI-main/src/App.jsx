@@ -720,11 +720,11 @@ function App() {
                 dismissible
             />
             {showSplash ? (
-                <div className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-customNavy to-blue-900">
+                <div className="flex h-screen w-screen items-center justify-center bg-gradient-to-br from-customNavy to-customNavy1">
                     <img
-                        src="https://cdn-icons-png.flaticon.com/512/295/295128.png"
-                        alt="Logo"
-                        className="h-24 w-24 animate-pulse"
+                        src="/brand-logo.png"
+                        alt="AniProTech"
+                        className="w-[min(78vw,620px)] animate-pulse rounded-2xl"
                     />
                 </div>
             ) : (

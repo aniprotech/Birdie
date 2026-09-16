@@ -3,8 +3,27 @@
 @tailwind utilities;
 
 @layer base {
+    :root {
+        color-scheme: light;
+        --brand-navy: #071a33;
+        --brand-cyan: #00c8f4;
+        --brand-surface: #f4fbff;
+    }
+
+    html {
+        background: var(--brand-surface);
+    }
+
     body {
         @apply [scrollbar-color:_#cbd5e1_transparent];
+        margin: 0;
+        background: var(--brand-surface);
+        color: var(--brand-navy);
+        accent-color: var(--brand-cyan);
+    }
+
+    ::selection {
+        background: rgba(0, 200, 244, 0.24);
     }
 }
 

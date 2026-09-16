@@ -13,13 +13,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     );
   return {
     ...config,
-    name: "AniProTech",
+    name: "Caremonitor by Aniprotech",
     slug: "aniprotech-mobile",
     plugins: [
       "expo-secure-store",
-      ["expo-image-picker", { "photosPermission": "Allow AniProTech Care to attach care evidence to an assigned visit.", "cameraPermission": "Allow AniProTech Care to take a photo for an assigned visit." }],
-      ["expo-location", { "locationWhenInUsePermission": "Allow AniProTech Care to record location when you check in or out of an assigned visit." }],
-      ["expo-speech-recognition", { microphonePermission: "Allow AniProTech Care to convert caregiver speech into editable visit text.", speechRecognitionPermission: "Allow AniProTech Care to convert caregiver speech into editable visit text." }],
+      ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 320, resizeMode: "contain", backgroundColor: "#071A33" }],
+      ["expo-image-picker", { "photosPermission": "Allow Caremonitor to attach care evidence to an assigned visit.", "cameraPermission": "Allow Caremonitor to take a photo for an assigned visit." }],
+      ["expo-location", { "locationWhenInUsePermission": "Allow Caremonitor to record location when you check in or out of an assigned visit." }],
+      ["expo-speech-recognition", { microphonePermission: "Allow Caremonitor to convert caregiver speech into editable visit text.", speechRecognitionPermission: "Allow Caremonitor to convert caregiver speech into editable visit text." }],
       [
         "expo-build-properties",
         { android: { usesCleartextTraffic: !production && local } },
@@ -32,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ...(!production
           ? {
               NSLocalNetworkUsageDescription:
-                "Connect to your AniProTech development server on this Wi-Fi network.",
+                "Connect to your Caremonitor development server on this Wi-Fi network.",
               NSAppTransportSecurity: { NSAllowsLocalNetworking: true },
             }
           : {}),

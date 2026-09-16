@@ -3,9 +3,6 @@ import { NavLink } from "react-router-dom";
 
 import { navLinks } from "@/constants";
 
-import logoLight from "@/assets/logo-light.svg";
-import logoDark from "@/assets/logo-dark.svg";
-
 import { cn } from "@/utils/cn";
 
 import PropTypes from "prop-types";
@@ -19,17 +16,14 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
                 collapsed ? "md:w-[70px] md:items-center" : "md:w-[240px]",
                 collapsed ? "max-md:-left-full" : "max-md:left-0",
             )}
-        >
+            >
             <div className="flex gap-x-3 p-3">
                 <img
-                    src={logoLight}
-                    alt="Logoipsum"
+                    src="/brand-mark.png"
+                    alt="Caremonitor"
+                    className="h-10 w-10 rounded-xl object-contain"
                 />
-                <img
-                    src={logoDark}
-                    alt="Logoipsum"
-                />
-                {!collapsed && <p className="text-lg font-medium text-slate-900 transition-colors">Logoipsum</p>}
+                {!collapsed && <p className="self-center text-lg font-semibold text-customNavy transition-colors">Caremonitor</p>}
             </div>
             <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:_thin]">
                 {navLinks.map((navbarLink) => (

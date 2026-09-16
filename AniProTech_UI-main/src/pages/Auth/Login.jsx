@@ -47,6 +47,7 @@ const Login = ({ setActiveComponent, setEmail }) => {
             <div className="flex flex-col items-center">
                 {/* Login Card */}
                 <div className="z-0 m-5 w-full space-y-6 rounded-2xl bg-white p-10 text-center shadow-xl md:w-[420px]">
+                    <img src="/brand-logo.png" alt="AniProTech" className="mx-auto h-auto w-56 rounded-lg" />
                     <div>
                         <h1 className="text-2xl font-bold text-customTextGrey1">Welcome Back!</h1>
                         <p className="mt-1 text-sm text-customGrey">We're excited to have you here</p>

@@ -8,11 +8,12 @@ import {
   TextInputProps,
 } from "react-native";
 export const colours = {
-  navy: "#192943",
-  cyan: "#087e94",
-  background: "#f3f6fa",
-  text: "#192943",
-  muted: "#607087",
+  navy: "#071A33",
+  cyan: "#00AEEB",
+  cyanBright: "#00C8F4",
+  background: "#F4FBFF",
+  text: "#0B2447",
+  muted: "#52677F",
 };
 export const styles = StyleSheet.create({
   page: { padding: 20, gap: 14, paddingBottom: 40 },
@@ -26,7 +27,7 @@ export const styles = StyleSheet.create({
     padding: 16,
     gap: 8,
     borderWidth: 1,
-    borderColor: "#e1e7ef",
+    borderColor: "#D8EAF3",
   },
   row: {
     flexDirection: "row",
@@ -36,7 +37,7 @@ export const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#c9d3df",
+    borderColor: "#B9D5E3",
     padding: 13,
     borderRadius: 10,
     backgroundColor: "white",
@@ -44,7 +45,7 @@ export const styles = StyleSheet.create({
     color: colours.text,
   },
   button: {
-    backgroundColor: colours.navy,
+    backgroundColor: colours.cyan,
     paddingHorizontal: 16,
     paddingVertical: 13,
     borderRadius: 10,
@@ -61,7 +62,7 @@ export const styles = StyleSheet.create({
   tabs: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: "#dce4ee",
+    borderTopColor: "#D8EAF3",
     backgroundColor: "white",
   },
   tab: { flex: 1, alignItems: "center", paddingVertical: 16 },

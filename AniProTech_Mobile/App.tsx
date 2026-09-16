@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
   AppState,
+  Image,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -149,15 +150,17 @@ export default function App() {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           {!ready ? (
-            <ActivityIndicator style={{ flex: 1 }} />
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colours.navy, gap: 24 }}>
+              <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: "82%", height: 150 }} accessibilityLabel="AniProTech" />
+              <ActivityIndicator color={colours.cyanBright} />
+            </View>
           ) : !user ? (
             <ScrollView
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={[styles.page, { paddingTop: 60 }]}
             >
-              <Text style={[styles.badge, { letterSpacing: 3 }]}>
-                ANIPRO TECH
-              </Text>
+              <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: "100%", height: 120, borderRadius: 16 }} accessibilityLabel="AniProTech" />
+              <Text style={[styles.badge, { letterSpacing: 2 }]}>CAREMONITOR</Text>
               <Text style={styles.title}>Care, connected.</Text>
               <Text style={styles.muted}>
                 Sign in to view your visits and stay in touch with your team.
@@ -207,7 +210,7 @@ export default function App() {
                   backgroundColor: "white",
                 }}
               >
-                <Text style={styles.badge}>ANIPRO TECH</Text>
+                <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: 150, height: 44 }} accessibilityLabel="AniProTech" />
                 <Text style={styles.muted}>
                   {user.firstName} {user.lastName}
                 </Text>

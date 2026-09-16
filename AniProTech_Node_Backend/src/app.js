@@ -77,6 +77,14 @@ export function createApp({ db, config, mail = createMail(config) }) {
   app.get("/api/health", health);
   app.get("/health", health);
   app.get("/actuator/health", health);
+  app.get("/api/ready", async (req, res, next) => {
+    try {
+      await db.query("SELECT 1");
+      if (typeof mail.verify === "function" && !(await mail.verify()))
+        return res.status(503).json({ status: "DOWN", service: "caremonitor-api", checks: { database: "UP", email: "DOWN" } });
+      return res.json({ status: "UP", service: "caremonitor-api", checks: { database: "UP", email: "UP" } });
+    } catch (error) { next(error); }
+  });
   const authLimit = rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 30,

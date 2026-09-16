@@ -29,6 +29,8 @@ migration-inventory.cjs
 .claude/
 AniProTech_Backend-main/
 frontend-lint.json
+/output/
+/tmp/
 
 # Editor and OS files
 .DS_Store

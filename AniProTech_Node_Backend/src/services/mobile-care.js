@@ -12,6 +12,42 @@ const entryInput = z.object({
   status: z.enum(["OPEN", "PENDING", "COMPLETED", "NOT_COMPLETED", "RECORDED"]),
 });
 
+const medicationAdministrationInput = z.object({
+  clientEventId: z.uuid(),
+  medicationId: z.uuid(),
+  outcome: z.enum(["ADMINISTERED", "PRN_ADMINISTERED", "REFUSED", "NOT_AVAILABLE", "OMITTED"]),
+  slot: z.string().trim().min(1).max(80),
+  doseGiven: z.string().trim().max(160).default(""),
+  reason: z.string().trim().max(500).default(""),
+  note: z.string().trim().max(2000).default(""),
+  prnEffect: z.string().trim().max(1000).default(""),
+  witnessedBy: z.uuid().nullable().default(null),
+  occurredAt: z.iso.datetime({ offset: true }),
+}).superRefine((value, issue) => {
+  if (!["ADMINISTERED", "PRN_ADMINISTERED"].includes(value.outcome) && value.reason.length < 3)
+    issue.addIssue({ code: "custom", path: ["reason"], message: "A reason is required when medication is not administered" });
+  if (value.outcome === "PRN_ADMINISTERED" && value.note.length < 3)
+    issue.addIssue({ code: "custom", path: ["note"], message: "Record why PRN medication was required" });
+});
+
+const minutes = (value) => {
+  const match = String(value || "").match(/^(\d{2}):(\d{2})/);
+  return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+};
+const periods = { Morning: [300, 720], Lunch: [660, 840], Afternoon: [780, 1080], Evening: [1020, 1440] };
+function medicationDueSlots(medication, visit) {
+  if (String(medication.type || "").toUpperCase() === "PRN" || medication.frequencyType !== "DAILY") return [];
+  if (medication.firstDoseDate && visit.date < medication.firstDoseDate) return [];
+  if (medication.lastDoseDate && visit.date > medication.lastDoseDate) return [];
+  const start = minutes(visit.startTime), end = minutes(visit.endTime);
+  if (start == null || end == null) return [];
+  if (medication.timingPreference === "EXACT_TIME")
+    return Object.values(medication.exactTimes || {}).map(String).filter((slot) => { const value = minutes(slot); return value != null && value >= start && value <= end; });
+  if (medication.timingPreference === "TIME_PERIOD")
+    return (medication.selectedTimeSlots || []).filter((slot) => { const range = periods[slot]; return range && start < range[1] && end > range[0]; });
+  return [];
+}
+
 export function registerMobileCare({ db, repo, auth, files, mail }, route) {
   async function visit(req, locking = false) {
     const row = (await db.query(`SELECT v.*,v.visit_date::text AS date,to_char(v.start_time,'HH24:MI') AS "startTime",
@@ -24,10 +60,15 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
 
   route("GET", "/api/mobile/visits/:id", async (req, res) => {
     const v = await visit(req);
-    const [entries, attendance, attachments, addresses] = await Promise.all([
+    const [entries, attendance, attachments, administrations, addresses] = await Promise.all([
       db.query("SELECT id,kind,title,body,category,status,revision,created_at FROM node_client_entries WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query("SELECT id,event,latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",source,created_at FROM node_visit_attendance WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query("SELECT id,file_url AS url,file_name AS name,mime_type AS mime,caption,created_at FROM node_visit_attachments WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
+      db.query(`SELECT a.id,a.client_event_id AS "clientEventId",a.medication_id AS "medicationId",a.outcome,a.slot,
+        a.dose_given AS "doseGiven",a.reason,a.note,a.prn_effect AS "prnEffect",a.witnessed_by AS "witnessedBy",
+        a.occurred_at AS "occurredAt",a.created_at AS "createdAt",u.first_name||' '||u.last_name AS "recordedBy"
+        FROM node_medication_administrations a JOIN users u ON u.id=a.actor_id
+        WHERE a.visit_id=$1 ORDER BY a.occurred_at,a.id`, [v.id]),
       repo.find("UserPrimaryAddressEntity", { user: v.client_id }),
     ]);
     const plans = await repo.find("ClientTaskPlanEntity", { user: v.client_id });
@@ -39,7 +80,56 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
       tasks.push({ id: p.id, name, details: p.details || "", essential: !!p.isEssential, sessions: p.isAnyTime ? ["ANYTIME"] : p.sessions || [], status: recorded?.status || "PENDING", recordId: recorded?.id || null });
     }
     const medication = await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id });
-    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "" })), entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
+    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
+  });
+
+  route("POST", "/api/mobile/visits/:id/medication-administrations", async (req, res) => {
+    const parsed = medicationAdministrationInput.safeParse(req.body);
+    if (!parsed.success) fail(400, parsed.error.issues[0]?.message || "Medication administration details are invalid");
+    const body = parsed.data;
+    const result = await db.transaction(async () => {
+      const v = await visit(req, true);
+      if (v.status !== "IN_PROGRESS") fail(409, "Check in before recording medication");
+      const duplicate = (await db.query("SELECT * FROM node_medication_administrations WHERE agency_id=$1 AND client_event_id=$2", [req.user.agencyId, body.clientEventId])).rows[0];
+      if (duplicate) {
+        if (duplicate.visit_id !== v.id || duplicate.medication_id !== body.medicationId) fail(409, "This offline event identifier was already used");
+        return { row: duplicate, created: false };
+      }
+      const medication = await repo.get("ClientMedicationSchedulingEntity", body.medicationId);
+      if (!medication || medication.user !== v.client_id || medication.deletedAt || medication.isStopped)
+        fail(404, "Active medication schedule not found for this client");
+      if (body.outcome === "PRN_ADMINISTERED" && String(medication.type || "").toUpperCase() !== "PRN")
+        fail(400, "PRN administration can only be recorded for a PRN medication");
+      if (body.witnessedBy) {
+        const witness = await repo.get("UserEntity", body.witnessedBy, { collections: false });
+        if (!witness || witness.agencyId !== req.user.agencyId || witness.role === "USER" || !witness.isActive || witness.deletedAt || witness.id === req.user.id)
+          fail(400, "Choose another active team member as witness");
+      }
+      const occurred = new Date(body.occurredAt);
+      if (Math.abs(Date.now() - occurred.valueOf()) > 36 * 60 * 60 * 1000)
+        fail(400, "Administration time must be within 36 hours of submission");
+      const id = randomUUID();
+      let inserted;
+      try {
+        inserted = (await db.query(`INSERT INTO node_medication_administrations
+          (id,agency_id,client_event_id,visit_id,client_id,medication_id,actor_id,outcome,slot,dose_given,reason,note,prn_effect,witnessed_by,occurred_at)
+          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+          [id,req.user.agencyId,body.clientEventId,v.id,v.client_id,body.medicationId,req.user.id,body.outcome,body.slot,body.doseGiven,body.reason,body.note,body.prnEffect,body.witnessedBy,body.occurredAt])).rows[0];
+      } catch (error) {
+        if (error?.code === "23505") fail(409, "This medication and time slot have already been recorded for the visit");
+        throw error;
+      }
+      const exception = !["ADMINISTERED", "PRN_ADMINISTERED"].includes(body.outcome);
+      if (exception) {
+        const title = `Medication ${body.outcome.toLowerCase().replaceAll("_", " ")}: ${medication.medicationName}`;
+        await db.query(`INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,revision,created_by,updated_by)
+          VALUES($1,$2,$3,$4,'ALERT',$5,$6,'MEDICATION','OPEN',1,$7,$7)`,
+          [randomUUID(),req.user.agencyId,v.client_id,v.id,title,[body.reason,body.note].filter(Boolean).join(" - "),req.user.id]);
+      }
+      await visitEvent(db, v.id, req.user.id, `Medication ${body.outcome.toLowerCase().replaceAll("_", " ")}: ${medication.medicationName} (${body.slot})`);
+      return { row: inserted, created: true };
+    });
+    return reply(res, result.row, result.created ? "Medication administration recorded" : "Medication administration already recorded", result.created ? 201 : 200);
   });
 
   route("POST", "/api/mobile/visits/:id/attendance", async (req, res) => {
@@ -49,6 +139,12 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     const b = parsed.data;
     if (b.event === "CHECK_IN" && v.status !== "SCHEDULED") fail(409, "Only a scheduled visit can be checked in");
     if (b.event === "CHECK_OUT" && v.status !== "IN_PROGRESS") fail(409, "Check in before checking out");
+    if (b.event === "CHECK_OUT") {
+      const scheduled = (await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id })).filter((m) => !m.deletedAt && !m.isStopped);
+      const recorded = (await db.query("SELECT medication_id,slot FROM node_medication_administrations WHERE visit_id=$1", [v.id])).rows;
+      const missing = scheduled.flatMap((m) => medicationDueSlots(m, v).filter((slot) => !recorded.some((r) => r.medication_id === m.id && r.slot === slot)).map((slot) => `${m.medicationName} (${slot})`));
+      if (missing.length) fail(409, `Record an outcome for due medication before checkout: ${missing.join(", ")}`);
+    }
     const address=(await repo.find("UserPrimaryAddressEntity",{user:v.client_id})).find((a)=>a.isPrimary);
     if(address?.latitude!=null&&address?.longitude!=null&&(b.latitude==null||b.longitude==null)) fail(400,"Location is required for this client's attendance record");
     let distance=null,within=null;

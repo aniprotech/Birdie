@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
-import { api, upload, User } from "./api";
+import { api, apiOrQueue, clientEventId, flushPendingMutations, upload, User } from "./api";
 import {
   Button,
   Input,
@@ -76,7 +76,12 @@ export function Visits({user}:{user:User}) {
     [startTime,setStartTime]=useState("09:00"),
     [endTime,setEndTime]=useState("10:00"),
     [visitTitle,setVisitTitle]=useState("Care visit"),
-    [visitNotes,setVisitNotes]=useState("");
+    [visitNotes,setVisitNotes]=useState(""),
+    [selectedMedication,setSelectedMedication]=useState<Row|null>(null),
+    [medicationOutcome,setMedicationOutcome]=useState("ADMINISTERED"),
+    [medicationSlot,setMedicationSlot]=useState(""),
+    [medicationReason,setMedicationReason]=useState(""),
+    [medicationNote,setMedicationNote]=useState("");
   const { data, error, loading, refresh } = useData<{ visits: Row[] }>(
     `/api/roster/visits?from=${date}&to=${date}`,
   );
@@ -91,9 +96,25 @@ export function Visits({user}:{user:User}) {
   }
   async function openVisit(v: Row) {
     setSelected(v); setBusy(true);
-    try { setDetail(await api(`/api/mobile/visits/${v.id}`)); }
+    try { const sync=await flushPendingMutations(user.id); if(sync.pending) Alert.alert("Offline records need attention",`${sync.pending} medication record${sync.pending===1?"":"s"} could not be synchronised. Keep this device secure, reconnect and retry. If the problem remains, contact an administrator before completing the visit.`); setDetail(await api(`/api/mobile/visits/${v.id}`)); }
     catch(e) { Alert.alert("Visit could not be opened",(e as Error).message); setSelected(null); }
     finally { setBusy(false); }
+  }
+  async function recordMedication() {
+    if(!selected||!selectedMedication)return;
+    setBusy(true);
+    try {
+      const outcome=medicationOutcome;
+      const result=await apiOrQueue(`/api/mobile/visits/${selected.id}/medication-administrations`,{
+        clientEventId:clientEventId(),medicationId:selectedMedication.id,outcome,
+        slot:medicationSlot.trim()||selectedMedication.slots?.[0]||selectedMedication.exactTimes&&Object.values(selectedMedication.exactTimes)[0]||"During visit",
+        doseGiven:["ADMINISTERED","PRN_ADMINISTERED"].includes(outcome)?selectedMedication.dose||"As prescribed":"",
+        reason:medicationReason.trim(),note:medicationNote.trim(),prnEffect:"",witnessedBy:null,occurredAt:new Date().toISOString()
+      },user.id);
+      if(result.queued) Alert.alert("Saved securely for synchronisation","The phone is offline. This medication record is encrypted on this device and will be sent when you next open a visit online. Please follow your organisation's offline escalation procedure.");
+      else { Alert.alert("Medication recorded","The eMAR record has been saved and added to the visit audit history."); setDetail(await api(`/api/mobile/visits/${selected.id}`)); }
+      setSelectedMedication(null);setMedicationReason("");setMedicationNote("");setMedicationOutcome("ADMINISTERED");setMedicationSlot("");
+    } catch(e){Alert.alert("Medication could not be recorded",(e as Error).message)} finally{setBusy(false)}
   }
   async function attendance(event: "CHECK_IN" | "CHECK_OUT") {
     if (!selected) return;
@@ -221,8 +242,17 @@ export function Visits({user}:{user:User}) {
           {detail?.tasks?.map((t:Row)=><Card key={t.id}><Text style={styles.heading}>{t.essential?"Essential · ":""}{t.name}</Text><Text style={styles.muted}>{t.details||"No additional instructions"}</Text><Text style={styles.badge}>{t.status.replaceAll("_"," ")}</Text>{t.status==="PENDING"&&<View style={styles.row}><Button disabled={busy} title="Done" onPress={()=>void record("ACTIVITY",t.name,"Completed during visit","COMPLETED",t.id)}/><Button disabled={busy} title="Not done" onPress={()=>void record("ACTIVITY",t.name,"Not completed during visit","NOT_COMPLETED",t.id)}/></View>}</Card>)}
           {!detail?.tasks?.length&&<Empty text="No care tasks are due for this visit."/>}
           <Text style={styles.heading}>Medication checklist</Text>
-          {detail?.medication?.map((m:Row)=><Card key={m.id}><Text style={styles.heading}>{m.name}</Text>{m.dose&&<Text style={styles.text}>Dose: {m.dose}</Text>}{m.route&&<Text style={styles.text}>Route: {m.route}</Text>}<Text style={styles.muted}>{m.instructions||"Follow the medication record instructions."}</Text><Text style={styles.muted}>Use an observation or incident below to document an exception. Medication administration remains governed by the MAR record.</Text></Card>)}
+          {detail?.medication?.map((m:Row)=>{const records=(detail.medicationAdministrations||[]).filter((a:Row)=>a.medicationId===m.id),pending=(m.dueSlots||[]).filter((slot:string)=>!records.some((a:Row)=>a.slot===slot)),complete=m.dueSlots?.length?pending.length===0:records.length>0;return <Card key={m.id}><Text style={styles.heading}>{m.name}</Text>{m.dose&&<Text style={styles.text}>Dose: {m.dose}</Text>}{m.route&&<Text style={styles.text}>Route: {m.route}</Text>}<Text style={styles.muted}>{m.instructions||"Follow the medication record instructions."}</Text>{m.type==="PRN"&&<Text style={styles.badge}>PRN · Minimum interval {m.timeBetweenDoses||"as prescribed"} {m.timeBetweenUnit||""}</Text>}{m.dueSlots?.length>0&&<Text style={styles.badge}>Due during visit: {m.dueSlots.join(", ")}</Text>}{records.map((record:Row)=><Text key={record.id} style={styles.badge}>Recorded: {record.outcome.replaceAll("_"," ")} · {record.slot}</Text>)}{!complete&&detail?.visit?.status==="IN_PROGRESS"?<Button disabled={busy} title="Record medication" onPress={()=>{setSelectedMedication(m);setMedicationOutcome(m.type==="PRN"?"PRN_ADMINISTERED":"ADMINISTERED");setMedicationSlot(pending[0]||m.slots?.[0]||"")}}/>:!complete?<Text style={styles.muted}>Check in before recording administration.</Text>:null}</Card>})}
           {!detail?.medication?.length&&<Empty text="No active medication schedule is listed."/>}
+          {selectedMedication&&<Card>
+            <Text style={styles.heading}>Record {selectedMedication.name}</Text>
+            <Text style={styles.muted}>Select one outcome. Exceptions automatically create an alert for review.</Text>
+            <View style={styles.row}>{(selectedMedication.type==="PRN"?["PRN_ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]:["ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]).map(outcome=><Button key={outcome} title={`${medicationOutcome===outcome?"✓ ":""}${outcome.replaceAll("_"," ")}`} onPress={()=>setMedicationOutcome(outcome)}/>)}</View>
+            <Input label="MAR time slot" value={medicationSlot} onChangeText={setMedicationSlot} maxLength={80}/>
+            {!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<Input label="Reason (required)" value={medicationReason} onChangeText={setMedicationReason} maxLength={500}/>}
+            <Input label={medicationOutcome==="PRN_ADMINISTERED"?"Why was PRN medication needed?":"Medication note (optional)"} value={medicationNote} onChangeText={setMedicationNote} multiline maxLength={2000}/>
+            <View style={styles.row}><Button title="Cancel" onPress={()=>setSelectedMedication(null)}/><Button disabled={busy||(!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&medicationReason.trim().length<3)||(medicationOutcome==="PRN_ADMINISTERED"&&medicationNote.trim().length<3)} title={busy?"Saving…":"Confirm eMAR record"} onPress={()=>void recordMedication()}/></View>
+          </Card>}
           <Text style={styles.heading}>Visit notes</Text>
           <Input label="What happened during the visit?" multiline maxLength={10000} value={note} onChangeText={setNote}/>
           <Button disabled={!!listening} title={listening==="note"?"Listening…":"Dictate visit note"} onPress={()=>void dictate("note")}/>

@@ -21,6 +21,7 @@ import {
   User,
   API_URL,
   onUnauthorized,
+  clearPendingMutations,
 } from "./src/api";
 import { Button, Input, styles, colours } from "./src/ui";
 import { Visits, People, Inbox, More } from "./src/screens";
@@ -114,6 +115,7 @@ export default function App() {
     } catch {
     } finally {
       await saveToken(null);
+      await clearPendingMutations();
       setUser(null);
       setTab("Visits");
       setError("");

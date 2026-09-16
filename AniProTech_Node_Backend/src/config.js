@@ -26,6 +26,10 @@ export function configuration(overrides = {}) {
     uploadDir: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
     outboxDir: path.resolve(process.env.OUTBOX_DIR || "./outbox"),
     mailMode: process.env.MAIL_MODE || "outbox",
+    platformAdminEmails: (process.env.PLATFORM_ADMIN_EMAILS || "info@aniprotech.com")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
     inboxNotificationsEnabled: process.env.INBOX_NOTIFICATIONS_ENABLED !== 'false',
     trustProxy: process.env.TRUST_PROXY === "true",
     jwtSecret: process.env.JWT_SECRET,

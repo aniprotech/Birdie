@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { _get, _post, _delete } from "../../utils/ApiService";
 import "./roster-board.css";
 const add = (d, n) => new Date(Date.parse(d) + n * 86400000).toISOString().slice(0, 10);
@@ -11,6 +11,7 @@ const monday = (d) => add(d, -((new Date(d).getUTCDay() + 6) % 7));
 const hours = (rows) => (rows.filter((v) => v.status !== "CANCELLED").reduce((n, v) => n + mins(v.endTime) - mins(v.startTime), 0) / 60).toFixed(1);
 export default function RosterBoard({ week, setWeek, visits, options, loading, error, reload, onReload, onEdit, onCreate }) {
     const scrollRef = useRef(null);
+    const [searchParams, setSearchParams] = useSearchParams();
     const [board, setBoard] = useState({ staff: [], assets: [] }),
         [boardError, setBoardError] = useState(""),
         [day, setDay] = useState(today()),
@@ -135,6 +136,13 @@ export default function RosterBoard({ week, setWeek, visits, options, loading, e
         setPlanError("");
         setMenu(null);
     };
+    useEffect(() => {
+        if (searchParams.get("planning") !== "runs" || !options.canManage) return;
+        openPlan("RUN");
+        const next = new URLSearchParams(searchParams);
+        next.delete("planning");
+        setSearchParams(next, { replace: true });
+    }, [searchParams, options.canManage, setSearchParams]);
     const previewPlan = () =>
         invoke(async () => {
             const r = await _post("/api/roster/planning/preview", { mode: plan, assetId: template, from: week, buffer: Number(buffer) });

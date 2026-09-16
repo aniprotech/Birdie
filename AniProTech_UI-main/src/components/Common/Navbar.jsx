@@ -88,6 +88,7 @@ const Navbar = () => {
                                 </Link>
                             ),
                         )}
+                        {userData?.user?.isPlatformAdmin && <Link to="/admin/platform" className={`rounded px-2.5 py-2 transition ${location.pathname.startsWith("/admin/platform")?"bg-customActiveBg":"hover:bg-customActiveBg/40"}`}>Platform admin</Link>}
                     </div>
                 </div>
 
@@ -132,11 +133,14 @@ const Navbar = () => {
                                 <div className="mt-2 max-h-[30vh] space-y-2 overflow-y-auto px-4">
                                     {accountLinks?.map((item) => (
                                         <div
-                                            key={item}
-                                            onClick={() => { const section = item === "Upload logo" ? "branding" : item.startsWith("Carer app") ? "carer-app" : item === "Help and support" ? "support" : "organisation"; setShowProfileDropdown(false); navigate(`/admin/account?section=${section}`); }}
+                                            key={item.label}
+                                            onClick={() => {
+                                                setShowProfileDropdown(false);
+                                                navigate(item.to);
+                                            }}
                                             className="cursor-pointer rounded px-2 py-2 hover:bg-customHoverGrey"
                                         >
-                                            {item}
+                                            {item.label}
                                         </div>
                                     ))}
                                 </div>
@@ -177,6 +181,7 @@ const Navbar = () => {
 
                 {/* Mobile Nav Links */}
                 <div className="flex flex-col space-y-2">
+                    {userData?.user?.isPlatformAdmin && <Link to="/admin/platform" onClick={()=>setToggleMenu(false)} className="rounded px-2 py-2 text-white transition hover:bg-customBlue/60">Platform admin</Link>}
                     {navLinks.map(({ path, label, external, url }) =>
                         external ? (
                             <a

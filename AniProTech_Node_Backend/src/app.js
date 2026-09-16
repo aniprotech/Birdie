@@ -35,6 +35,7 @@ import { registerReporting } from "./services/reporting.js";
 import {createInboxNotifications} from './inbox-notifications.js';
 import {registerNotificationDelivery} from './services/notification-delivery.js';
 import { registerMobileCare } from "./services/mobile-care.js";
+import { registerPlatformAdmin } from "./services/platform-admin.js";
 import { postcodeValid } from "./location.js";
 
 export function createApp({ db, config, mail = createMail(config) }) {
@@ -149,15 +150,17 @@ export function createApp({ db, config, mail = createMail(config) }) {
     const created = await db.transaction(async () => {
       if ((await db.query("SELECT 1 FROM users WHERE lower(email)=$1", [email])).rows[0]) fail(409, "An account with this email already exists");
       const agencyId = randomUUID(), userId = randomUUID();
-      await db.query(`INSERT INTO node_agencies(id,name,legal_name,business_type,registration_number,phone,website,address_line1,address_line2,state,city,postcode,country,timezone,terms_accepted_at)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,CURRENT_TIMESTAMP)`,
+      await db.query(`INSERT INTO node_agencies(id,name,legal_name,business_type,registration_number,phone,website,address_line1,address_line2,state,city,postcode,country,timezone,status,terms_accepted_at,submitted_at)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'PENDING',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)`,
         [agencyId,data.businessName,data.legalName||null,data.businessType,data.registrationNumber||null,data.phone,data.website||null,data.addressLine1,data.addressLine2||null,data.state,data.city,data.postcode,data.country,data.timezone]);
-      await repo.save("UserEntity", { id:userId, agencyId, firstName:data.firstName, lastName:data.lastName, email, primaryPhone:data.phone, role:"SUPERADMIN", isActive:true, createdBy:userId, updatedBy:userId });
-      const login = await auth.createLoginLink(email);
-      await mail.send({ to:email, subject:"Welcome to AniProTech Care Monitor", text:`Your business account has been created. Verify your email and sign in using this one-time link within 15 minutes:\n${login.link}` });
+      await repo.save("UserEntity", { id:userId, agencyId, firstName:data.firstName, lastName:data.lastName, email, primaryPhone:data.phone, role:"SUPERADMIN", isActive:false, createdBy:userId, updatedBy:userId });
       return { email, businessName:data.businessName };
     });
-    return reply(res, created, "Business account created. Check your email to verify and sign in.", 201);
+    await Promise.allSettled([
+      mail.send({ to:email, subject:"Business application received", text:`Hello ${data.firstName},\n\nWe received the application for ${data.businessName}. A Caremonitor platform administrator will review it. We will email you when the organisation is approved and ready to access.` }),
+      ...(config.platformAdminEmails || []).map((to) => mail.send({ to, subject:"New business awaiting approval", text:`${data.businessName} was submitted by ${data.firstName} ${data.lastName} (${email}). Review the application in the Caremonitor platform administration dashboard.`, actionUrl:`${config.frontendUrl}/admin/platform`, actionLabel:"Review business application" })),
+    ]);
+    return reply(res, created, "Business application submitted for approval.", 201);
   });
   app.get("/api/auth/microsoft/callback", async (req, res, next) => {
     try {
@@ -215,6 +218,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     routes.push({ method, path, handler, options });
   for (const register of [
     registerAccount,
+    registerPlatformAdmin,
     registerUsers,
     registerClientFeed,
     registerCarePlans,

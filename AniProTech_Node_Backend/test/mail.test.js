@@ -42,7 +42,8 @@ test("Gmail API exchanges a refresh token and sends an RFC 2822 message", async 
     const decoded = Buffer.from(request.raw, "base64url").toString();
     assert.match(decoded, /From: info@example\.test/);
     assert.match(decoded, /To: person@example\.test/);
-    assert.match(decoded, /Subject: Login link/);
+    assert.match(decoded, /Subject: Caremonitor \| Login link/);
+    assert.match(decoded, /Content-Type: multipart\/alternative/);
   } finally {
     global.fetch = originalFetch;
     for (const [key, value] of Object.entries(previous)) {

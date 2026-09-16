@@ -1,6 +1,7 @@
 import { configuration } from "../src/config.js";
 import { openDatabase, initializeSchema } from "../src/db.js";
 import { Repository } from "../src/repository.js";
+import { initializeRegistration } from "../src/registration-schema.js";
 const config = configuration();
 if (config.production || config.driver !== "pglite")
   throw new Error(
@@ -10,8 +11,12 @@ const db = await openDatabase(config),
   repo = new Repository(db);
 try {
   await initializeSchema(db);
+  await initializeRegistration(db);
   await db.transaction(async () => {
     const agencyId = "10000000-0000-4000-8000-000000000001";
+    await db.query(`INSERT INTO node_agencies(id,name,legal_name,business_type,registration_number,phone,address_line1,state,city,postcode,country,timezone,status,terms_accepted_at,submitted_at,reviewed_at)
+      VALUES($1,'Caremonitor Demonstration Care','Caremonitor Demonstration Care Ltd','HOME_CARE','DEMO-REG-001','020 7946 0000','10 Training Avenue','England','Birmingham','B1 1AA','United Kingdom','Europe/London','ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET status='ACTIVE'`, [agencyId]);
     for (const [id, firstName, lastName, email, role] of [
       [
         "10000000-0000-4000-8000-000000000002",
@@ -117,6 +122,19 @@ try {
         VALUES($1,$2,$3,$4,$5,'09:00','10:00','Morning wellbeing visit','Review wellbeing, hydration and the care task checklist.','SCHEDULED',1,$4,$4)`,
         [visitId, agencyId, "10000000-0000-4000-8000-000000000004", "10000000-0000-4000-8000-000000000003", date]);
     }
+    const completedVisit = "10000000-0000-4000-8000-000000000011";
+    if (!(await db.query("SELECT id FROM node_roster_visits WHERE id=$1", [completedVisit])).rows.length) {
+      const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(Date.now()-86400000));
+      await db.query(`INSERT INTO node_roster_visits(id,agency_id,client_id,staff_id,visit_date,start_time,end_time,actual_start,actual_end,title,notes,status,revision,created_by,updated_by)
+        VALUES($1,$2,$3,$4,$5,'17:00','18:00',$5::date+time '17:03',$5::date+time '18:06','Evening support visit','Synthetic completed visit for log, payroll and invoicing tests.','COMPLETED',1,$4,$4)`,
+        [completedVisit,agencyId,"10000000-0000-4000-8000-000000000004","10000000-0000-4000-8000-000000000003",date]);
+    }
+    for (const [id,kind,title,body,status] of [
+      ["10000000-0000-4000-8000-000000000012","ALERT","Visit follow-up required","Synthetic alert for inbox workflow training.","OPEN"],
+      ["10000000-0000-4000-8000-000000000013","ACTION","Review care-plan notes","Synthetic action assigned for administrator training.","OPEN"],
+    ]) if (!(await db.query("SELECT id FROM node_client_entries WHERE id=$1",[id])).rows.length)
+      await db.query(`INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,status,created_by,updated_by)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$9)`,[id,agencyId,"10000000-0000-4000-8000-000000000004",completedVisit,kind,title,body,status,"10000000-0000-4000-8000-000000000002"]);
   });
   console.log(
     "Local demo records ready. Login email: admin@example.test. Emails are saved in the local outbox.",

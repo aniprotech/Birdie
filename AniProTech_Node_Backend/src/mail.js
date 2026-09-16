@@ -7,6 +7,26 @@ const encodeHeader = (value) =>
     ? `=?UTF-8?B?${Buffer.from(value).toString("base64")}?=`
     : value;
 
+const escapeHtml = (value) => String(value || "")
+  .replaceAll("&", "&amp;")
+  .replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;")
+  .replaceAll("'", "&#039;");
+
+const linkify = (text) => escapeHtml(text).replace(
+  /(https:\/\/[^\s<]+)/g,
+  '<a href="$1" style="color:#00bfea;font-weight:600">Open Caremonitor</a>',
+).replaceAll("\n", "<br>");
+
+export function brandedEmail({ title, preheader, text, actionUrl, actionLabel = "Open Caremonitor" }) {
+  const body = linkify(text);
+  const action = actionUrl
+    ? `<p style="margin:28px 0"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;background:#08bde8;color:#06223f;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:8px">${escapeHtml(actionLabel)}</a></p>`
+    : "";
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escapeHtml(title)}</title></head><body style="margin:0;background:#f3f7fa;font-family:Arial,sans-serif;color:#17324d"><span style="display:none;max-height:0;overflow:hidden">${escapeHtml(preheader || title)}</span><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 8px 28px rgba(6,34,63,.10)"><tr><td style="background:#061b34;padding:24px 30px;color:#fff"><div style="font-size:26px;font-weight:800;letter-spacing:.2px"><span style="color:#08c8ef">C</span>aremonitor</div><div style="font-size:12px;color:#b8d4e8;margin-top:4px">by AniProTech</div></td></tr><tr><td style="padding:34px 30px"><h1 style="font-size:24px;line-height:1.3;margin:0 0 18px;color:#061b34">${escapeHtml(title)}</h1><div style="font-size:16px;line-height:1.65;color:#40566b">${body}</div>${action}<p style="font-size:13px;line-height:1.5;color:#718395;margin:30px 0 0;border-top:1px solid #e5edf3;padding-top:20px">This automated message was sent securely by Caremonitor. If you were not expecting it, contact your care provider or Caremonitor administrator.</p></td></tr><tr><td style="background:#eef7fb;padding:18px 30px;font-size:12px;color:#60788c">Caremonitor by AniProTech · Secure care operations</td></tr></table></td></tr></table></body></html>`;
+}
+
 const gmailError = (message, status, providerStage) => {
   const error = new Error(message);
   error.code = "EMAIL_DELIVERY_FAILED";
@@ -16,20 +36,24 @@ const gmailError = (message, status, providerStage) => {
   return error;
 };
 
-function gmailMessage({ from, to, subject, text, messageId }) {
+function gmailMessage({ from, to, subject, text, html, messageId }) {
   const recipients = Array.isArray(to) ? to.join(", ") : to;
+  const boundary = `caremonitor-${randomUUID()}`;
   const headers = [
     `From: ${from}`,
     `To: ${recipients}`,
     `Subject: ${encodeHeader(subject)}`,
     "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ];
   if (messageId) headers.push(`Message-ID: ${messageId}`);
-  return Buffer.from(
-    `${headers.join("\r\n")}\r\n\r\n${Buffer.from(text).toString("base64")}`,
-  ).toString("base64url");
+  const content = [
+    headers.join("\r\n"), "",
+    `--${boundary}`, "Content-Type: text/plain; charset=UTF-8", "Content-Transfer-Encoding: base64", "", Buffer.from(text).toString("base64"),
+    `--${boundary}`, "Content-Type: text/html; charset=UTF-8", "Content-Transfer-Encoding: base64", "", Buffer.from(html).toString("base64"),
+    `--${boundary}--`, "",
+  ].join("\r\n");
+  return Buffer.from(content).toString("base64url");
 }
 
 export function createMail(config) {
@@ -71,6 +95,11 @@ export function createMail(config) {
   return {
     verify: async () => !usesGmail || configured,
     async send(message) {
+      const branded = {
+        ...message,
+        subject: message.subject.startsWith("Caremonitor") ? message.subject : `Caremonitor | ${message.subject}`,
+        html: message.html || brandedEmail({ title: message.subject, text: message.text, actionUrl: message.actionUrl, actionLabel: message.actionLabel }),
+      };
       if (usesGmail) {
         const token = await accessToken();
         const response = await fetch(
@@ -82,7 +111,7 @@ export function createMail(config) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              raw: gmailMessage({ from: gmail.sender, ...message }),
+              raw: gmailMessage({ from: gmail.sender, ...branded }),
             }),
           },
         );
@@ -96,14 +125,14 @@ export function createMail(config) {
         return {
           id: result.id,
           messageId: result.id,
-          accepted: Array.isArray(message.to) ? message.to : [message.to],
+          accepted: Array.isArray(branded.to) ? branded.to : [branded.to],
           rejected: [],
         };
       }
       await fs.mkdir(config.outboxDir, { recursive: true, mode: 0o700 });
       await fs.writeFile(
         path.join(config.outboxDir, `${Date.now()}-${randomUUID()}.json`),
-        JSON.stringify(message, null, 2),
+        JSON.stringify(branded, null, 2),
         { mode: 0o600 },
       );
     },

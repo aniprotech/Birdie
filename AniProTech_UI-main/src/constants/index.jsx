@@ -27,14 +27,13 @@ export const navLinks = [
 ];
 
 export const accountLinks = [
-    "Help and support",
-    "Carer app settings",
-    "Carer app message",
-    "Upload logo",
-    "Upload documents",
-    "Manage groups",
-    "Manage runs",
-    "Make a referral",
+    { label: "Help and support", to: "/admin/account?section=support" },
+    { label: "Carer app settings", to: "/admin/account?section=carer-app" },
+    { label: "Carer app message", to: "/admin/account?section=carer-app" },
+    { label: "Upload logo", to: "/admin/account?section=branding" },
+    { label: "Upload client documents", to: "/admin/clients" },
+    { label: "Manage groups", to: "/admin/teams" },
+    { label: "Manage runs", to: "/admin/rosters?planning=runs" },
 ];
 
 export const statusOptions = ["active", "inactive"];

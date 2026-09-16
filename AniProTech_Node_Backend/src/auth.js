@@ -5,6 +5,8 @@ import { fail, requireValue, uuid, reply } from "./http.js";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 export function createAuth({ db, repo, config, mail }) {
+  const isPlatformAdmin = (user) =>
+    !!user && (config.platformAdminEmails || []).includes(String(user.email || "").toLowerCase());
   const publicUser = (user) => ({
     id: user.id,
     firstName: user.firstName,
@@ -13,6 +15,7 @@ export function createAuth({ db, repo, config, mail }) {
     primaryPhone: user.primaryPhone,
     role: user.role,
     isActive: user.isActive,
+    isPlatformAdmin: isPlatformAdmin(user),
   });
   async function createLoginLink(email, { mobile = false } = {}) {
     if (!z.email().safeParse(email).success)
@@ -29,6 +32,10 @@ export function createAuth({ db, repo, config, mail }) {
       !["ADMIN", "SUPERADMIN", "CAREGIVER"].includes(user.role)
     )
       return null;
+    if (user.agencyId && !isPlatformAdmin(user)) {
+      const agency = (await db.query("SELECT status FROM node_agencies WHERE id=$1", [user.agencyId])).rows[0];
+      if (agency && agency.status !== "ACTIVE") return null;
+    }
     const secret = randomBytes(32).toString("hex"),
       id = randomUUID();
     await db.query(
@@ -50,8 +57,10 @@ export function createAuth({ db, repo, config, mail }) {
     if (!login) return;
     await mail.send({
       to: login.user.email,
-      subject: "Your AniProTech login link",
-      text: `Use this one-time link within 15 minutes:\n${login.link}`,
+      subject: "Your secure sign-in link",
+      text: `Use this one-time link within 15 minutes. For your security, the link can only be used once.\n${login.link}`,
+      actionUrl: login.link.toString(),
+      actionLabel: "Sign in to Caremonitor",
     });
   }
   async function exchange(email, password) {
@@ -74,6 +83,10 @@ export function createAuth({ db, repo, config, mail }) {
         !["ADMIN", "SUPERADMIN", "CAREGIVER"].includes(user.role)
       )
         fail(401, "Account cannot sign in");
+      if (user.agencyId && !isPlatformAdmin(user)) {
+        const agency = (await db.query("SELECT status FROM node_agencies WHERE id=$1", [user.agencyId])).rows[0];
+        if (agency && agency.status !== "ACTIVE") fail(403, "Organisation approval is required before sign in");
+      }
       await db.query(
         "UPDATE node_login_links SET used_at=CURRENT_TIMESTAMP WHERE id=$1",
         [rows[0].id],
@@ -124,6 +137,10 @@ export function createAuth({ db, repo, config, mail }) {
       if (!user?.isActive) fail(401, "Account is inactive");
       if (!["ADMIN", "SUPERADMIN", "CAREGIVER"].includes(user.role))
         fail(403, "Access denied");
+      if (user.agencyId && !isPlatformAdmin(user)) {
+        const agency = (await db.query("SELECT status FROM node_agencies WHERE id=$1", [user.agencyId])).rows[0];
+        if (agency && agency.status !== "ACTIVE") fail(403, "Organisation access is not active");
+      }
       req.user = user;
       req.sessionId = claims.jti;
       req.accessToken = token;
@@ -164,6 +181,9 @@ export function createAuth({ db, repo, config, mail }) {
     if (!["ADMIN", "SUPERADMIN"].includes(req.user.role))
       fail(403, "Administrator access required");
   }
+  function platformAdmin(req) {
+    if (!isPlatformAdmin(req.user)) fail(403, "Caremonitor platform administrator access required");
+  }
   async function reset(id) {
     await db.transaction(async () => {
       await db.query(
@@ -183,6 +203,8 @@ export function createAuth({ db, repo, config, mail }) {
     authenticate,
     userAccess,
     admin,
+    platformAdmin,
+    isPlatformAdmin,
     reset,
     publicUser,
   };

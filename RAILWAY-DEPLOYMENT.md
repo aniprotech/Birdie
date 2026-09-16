@@ -9,7 +9,7 @@ Create one Railway project with two services connected to the Git repository.
 - Custom domain: `backend.aniprotech.com`
 - Health check: `/api/health`
 - Add Railway PostgreSQL and use its `DATABASE_URL`.
-- Set `NODE_ENV=production`, `DB_DRIVER=postgres`, `HOST=0.0.0.0`, `FRONTEND_URL=https://caremonitor.aniprotech.com`, `CORS_ORIGINS=https://caremonitor.aniprotech.com`, `TRUST_PROXY=true`, a random `JWT_SECRET` of at least 32 characters, and the SMTP variables.
+- Set `NODE_ENV=production`, `DB_DRIVER=postgres`, `HOST=0.0.0.0`, `FRONTEND_URL=https://caremonitor.aniprotech.com`, `CORS_ORIGINS=https://caremonitor.aniprotech.com`, `TRUST_PROXY=true`, a random `JWT_SECRET` of at least 32 characters, `PLATFORM_ADMIN_EMAILS=info@aniprotech.com`, and the Gmail API variables (`MAIL_MODE=gmail`, `GMAIL_SENDER`, `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`).
 - Mount a persistent volume at `UPLOAD_DIR`, or configure durable object storage before live file uploads.
 
 ## Dashboard service

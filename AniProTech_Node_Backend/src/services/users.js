@@ -243,8 +243,10 @@ export function registerUsers(ctx, route) {
     const user = await auth.userAccess(req, req.params.userId);
     await ctx.mail.send({
       to: user.email,
-      subject: "AniProTech invitation",
-      text: `You are invited to AniProTech. Sign in at ${ctx.config.frontendUrl}`,
+      subject: "You have been invited",
+      text: "Your organisation has invited you to use Caremonitor. Use the button below to request your secure sign-in link.",
+      actionUrl: `${ctx.config.frontendUrl}/login`,
+      actionLabel: "Open Caremonitor",
     });
     return reply(res, {}, "Invitation queued");
   });

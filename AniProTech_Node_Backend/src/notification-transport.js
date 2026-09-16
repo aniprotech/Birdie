@@ -10,7 +10,7 @@ export function createNotificationTransport(config, mail) {
         try {
           const result = await mail.send({
             to,
-            subject: "AniProTech: an alert needs your attention",
+            subject: "A care alert needs your attention",
             text: message,
             messageId: `<${id}@notifications.aniprotech>`,
           });

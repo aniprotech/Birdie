@@ -220,8 +220,10 @@ export function registerShareAccess(ctx, route) {
       );
       await mail.send({
         to: c.email,
-        subject: "Your AniProTech care record access",
-        text: `Open your read-only care record using this one-time link within 15 minutes:\n${portalUrl(config, g.id, secret)}\nIf you were not expecting this link, contact your care provider.`,
+        subject: "Your secure care-record access",
+        text: `Your care provider has shared read-only access to your care record. This one-time link expires in 15 minutes.\n${portalUrl(config, g.id, secret)}`,
+        actionUrl: portalUrl(config, g.id, secret),
+        actionLabel: "Open my care record",
       });
       await db.query(
         "UPDATE node_share_grants SET last_email_at=CURRENT_TIMESTAMP WHERE id=$1",

@@ -14,7 +14,7 @@ export async function initializeRegistration(db) {
     postcode text NOT NULL,
     country text NOT NULL,
     timezone text NOT NULL,
-    status text NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE','SUSPENDED')),
+    status text NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('PENDING','ACTIVE','SUSPENDED','REJECTED')),
     terms_accepted_at timestamptz NOT NULL,
     created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
@@ -27,5 +27,12 @@ export async function initializeRegistration(db) {
     ADD COLUMN IF NOT EXISTS carer_app_message text,
     ADD COLUMN IF NOT EXISTS carer_app_settings jsonb NOT NULL DEFAULT '{}'::jsonb,
     ADD COLUMN IF NOT EXISTS updated_at timestamptz,
-    ADD COLUMN IF NOT EXISTS updated_by uuid`);
+    ADD COLUMN IF NOT EXISTS updated_by uuid,
+    ADD COLUMN IF NOT EXISTS submitted_at timestamptz,
+    ADD COLUMN IF NOT EXISTS reviewed_at timestamptz,
+    ADD COLUMN IF NOT EXISTS reviewed_by uuid,
+    ADD COLUMN IF NOT EXISTS review_notes text`);
+  await db.query(`ALTER TABLE node_agencies DROP CONSTRAINT IF EXISTS node_agencies_status_check`);
+  await db.query(`ALTER TABLE node_agencies ADD CONSTRAINT node_agencies_status_check
+    CHECK(status IN ('PENDING','ACTIVE','SUSPENDED','REJECTED'))`);
 }

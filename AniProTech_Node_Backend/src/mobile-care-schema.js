@@ -13,7 +13,10 @@ export async function initializeMobileCare(db) {
     source text NOT NULL DEFAULT 'MOBILE', created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
   await db.query("CREATE INDEX IF NOT EXISTS node_visit_attendance_visit ON node_visit_attendance(visit_id,created_at)");
-  await db.query("ALTER TABLE node_visit_attendance ADD COLUMN IF NOT EXISTS distance_metres integer, ADD COLUMN IF NOT EXISTS within_radius boolean");
+  await db.query("ALTER TABLE node_visit_attendance ADD COLUMN IF NOT EXISTS distance_metres integer, ADD COLUMN IF NOT EXISTS within_radius boolean, ADD COLUMN IF NOT EXISTS client_event_id uuid");
+  await db.query("CREATE UNIQUE INDEX IF NOT EXISTS node_visit_attendance_event ON node_visit_attendance(client_event_id) WHERE client_event_id IS NOT NULL");
+  await db.query("ALTER TABLE node_client_entries ADD COLUMN IF NOT EXISTS client_event_id uuid");
+  await db.query("CREATE UNIQUE INDEX IF NOT EXISTS node_client_entries_event ON node_client_entries(agency_id,client_event_id) WHERE client_event_id IS NOT NULL");
   await db.query(`CREATE TABLE IF NOT EXISTS node_visit_attachments (
     id uuid PRIMARY KEY, agency_id uuid NOT NULL, visit_id uuid NOT NULL REFERENCES node_roster_visits(id) ON DELETE CASCADE,
     client_id uuid NOT NULL REFERENCES users(id), file_url text NOT NULL, file_name text NOT NULL, mime_type text NOT NULL,

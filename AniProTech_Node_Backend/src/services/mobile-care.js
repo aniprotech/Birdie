@@ -5,6 +5,7 @@ import { visitEvent } from "../client-feed-schema.js";
 import { occursOn } from "./roster.js";
 
 const entryInput = z.object({
+  clientEventId: z.uuid(),
   kind: z.enum(["NOTE", "ALERT", "ACTIVITY", "OBSERVATION"]),
   title: z.string().trim().min(1).max(200),
   body: z.string().trim().max(10000).default(""),
@@ -169,22 +170,33 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
 
   route("POST", "/api/mobile/visits/:id/attendance", async (req, res) => {
     const v = await visit(req, true);
-    const parsed = z.object({ event:z.enum(["CHECK_IN","CHECK_OUT"]), latitude:z.number().min(-90).max(90).nullable().default(null), longitude:z.number().min(-180).max(180).nullable().default(null), accuracy:z.number().nonnegative().max(10000).nullable().default(null) }).safeParse(req.body);
+    const parsed = z.object({ clientEventId:z.uuid(), event:z.enum(["CHECK_IN","CHECK_OUT"]), latitude:z.number().min(-90).max(90).nullable().default(null), longitude:z.number().min(-180).max(180).nullable().default(null), accuracy:z.number().nonnegative().max(10000).nullable().default(null), completionOverrideReason:z.string().trim().max(1000).default("") }).safeParse(req.body);
     if (!parsed.success) fail(400, "Provide a valid attendance event and location");
     const b = parsed.data;
+    const duplicate=(await db.query("SELECT event,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\" FROM node_visit_attendance WHERE client_event_id=$1 AND actor_id=$2",[b.clientEventId,req.user.id])).rows[0];
+    if(duplicate){if(duplicate.event!==b.event)fail(409,"This offline event identifier was already used");return reply(res,{status:duplicate.event==="CHECK_IN"?"IN_PROGRESS":"COMPLETED",distanceMetres:duplicate.distanceMetres,withinRadius:duplicate.withinRadius},"Attendance already recorded");}
     if (b.event === "CHECK_IN" && v.status !== "SCHEDULED") fail(409, "Only a scheduled visit can be checked in");
     if (b.event === "CHECK_OUT" && v.status !== "IN_PROGRESS") fail(409, "Check in before checking out");
     if (b.event === "CHECK_OUT") {
       const scheduled = (await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id })).filter((m) => !m.deletedAt && !m.isStopped);
       const recorded = (await db.query("SELECT medication_id,slot FROM node_medication_administrations WHERE visit_id=$1", [v.id])).rows;
-      const missing = scheduled.flatMap((m) => medicationDueSlots(m, v).filter((slot) => !recorded.some((r) => r.medication_id === m.id && r.slot === slot)).map((slot) => `${m.medicationName} (${slot})`));
-      if (missing.length) fail(409, `Record an outcome for due medication before checkout: ${missing.join(", ")}`);
+      const missingMedication = scheduled.flatMap((m) => medicationDueSlots(m, v).filter((slot) => !recorded.some((r) => r.medication_id === m.id && r.slot === slot)).map((slot) => `${m.medicationName} (${slot})`));
+      const plans=(await repo.find("ClientTaskPlanEntity",{user:v.client_id})).filter((plan)=>!plan.deletedAt&&plan.isEssential&&occursOn({...plan,isEnds:!!plan.endDate},v.date));
+      const completedTasks=(await db.query("SELECT category FROM node_client_entries WHERE visit_id=$1 AND kind='ACTIVITY' AND status IN ('COMPLETED','NOT_COMPLETED')",[v.id])).rows.map((row)=>row.category);
+      const missingTasks=plans.filter((plan)=>!completedTasks.includes(plan.id)).map((plan)=>plan.taskNameSnapshot||"Essential care task");
+      const missing=[...missingMedication.map((item)=>`medication: ${item}`),...missingTasks.map((item)=>`task: ${item}`)];
+      if(missing.length){
+        if(!["ADMIN","SUPERADMIN"].includes(req.user.role)||b.completionOverrideReason.length<10)fail(409,`Record an outcome before checkout: ${missing.join(", ")}`);
+        const id=randomUUID();
+        await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by) VALUES($1,$2,$3,$4,'ALERT','Visit completion override',$5,'COMPLIANCE','OPEN',$6,$6)",[id,req.user.agencyId,v.client_id,v.id,`${b.completionOverrideReason} | Missing: ${missing.join(", ")}`,req.user.id]);
+        await visitEvent(db,v.id,req.user.id,`Administrator overrode incomplete visit records: ${b.completionOverrideReason}`);
+      }
     }
     const address=(await repo.find("UserPrimaryAddressEntity",{user:v.client_id})).find((a)=>a.isPrimary);
     if(address?.latitude!=null&&address?.longitude!=null&&(b.latitude==null||b.longitude==null)) fail(400,"Location is required for this client's attendance record");
     let distance=null,within=null;
     if(address?.latitude!=null&&address?.longitude!=null&&b.latitude!=null&&b.longitude!=null){const rad=(x)=>x*Math.PI/180,dLat=rad(b.latitude-address.latitude),dLon=rad(b.longitude-address.longitude),a=Math.sin(dLat/2)**2+Math.cos(rad(address.latitude))*Math.cos(rad(b.latitude))*Math.sin(dLon/2)**2;distance=Math.round(6371000*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));within=distance<=Math.max(25,address.checkinRadius||150);}
-    await db.query("INSERT INTO node_visit_attendance(id,visit_id,actor_id,event,latitude,longitude,accuracy,distance_metres,within_radius) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)", [randomUUID(),v.id,req.user.id,b.event,b.latitude,b.longitude,b.accuracy,distance,within]);
+    await db.query("INSERT INTO node_visit_attendance(id,visit_id,actor_id,event,latitude,longitude,accuracy,distance_metres,within_radius,client_event_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)", [randomUUID(),v.id,req.user.id,b.event,b.latitude,b.longitude,b.accuracy,distance,within,b.clientEventId]);
     if (b.event === "CHECK_IN") await db.query("UPDATE node_roster_visits SET status='IN_PROGRESS',actual_start=COALESCE(actual_start,CURRENT_TIMESTAMP),revision=revision+1,updated_by=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[v.id,req.user.id]);
     else await db.query("UPDATE node_roster_visits SET status='COMPLETED',actual_end=COALESCE(actual_end,CURRENT_TIMESTAMP),revision=revision+1,updated_by=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[v.id,req.user.id]);
     await visitEvent(db,v.id,req.user.id,b.event === "CHECK_IN" ? "Checked in using the mobile app" : "Checked out using the mobile app");
@@ -200,10 +212,12 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     const v=await visit(req);
     const parsed=entryInput.safeParse(req.body); if(!parsed.success) fail(400,"Enter valid care record details");
     const b=parsed.data;
+    const duplicate=(await db.query("SELECT id,visit_id FROM node_client_entries WHERE agency_id=$1 AND client_event_id=$2",[req.user.agencyId,b.clientEventId])).rows[0];
+    if(duplicate){if(duplicate.visit_id!==v.id)fail(409,"This offline event identifier was already used");return reply(res,{id:duplicate.id},"Care record already saved");}
     const allowed={NOTE:["RECORDED"],OBSERVATION:["RECORDED"],ALERT:["OPEN"],ACTIVITY:["COMPLETED","NOT_COMPLETED"]};
     if(!allowed[b.kind].includes(b.status)) fail(400,"Invalid record status");
     const id=randomUUID();
-    await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10)",[id,req.user.agencyId,v.client_id,v.id,b.kind,b.title,b.body,b.category,b.status,req.user.id]);
+    await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by,client_event_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,$11)",[id,req.user.agencyId,v.client_id,v.id,b.kind,b.title,b.body,b.category,b.status,req.user.id,b.clientEventId]);
     await visitEvent(db,v.id,req.user.id,`${b.kind.toLowerCase()} recorded in the mobile app`);
     return reply(res,{id},"Care record saved",201);
   });

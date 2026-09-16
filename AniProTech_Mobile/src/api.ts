@@ -90,8 +90,10 @@ export const api: Api = async (path, method = "GET", body) => {
   }
 };
 
-type PendingMutation = { id: string; ownerId: string; path: string; body: unknown; queuedAt: string };
+export type PendingMutation = { id: string; ownerId: string; path: string; body: unknown; label: string; queuedAt: string; attempts: number; lastError: string };
+export type SyncSummary = { pending: number; blocked: number; sent: number; lastSyncAt: string | null; items: Pick<PendingMutation,"id"|"label"|"queuedAt"|"attempts"|"lastError">[] };
 const queueKey = "caremonitor.pending-mutations";
+const syncKey = "caremonitor.sync-summary";
 export function clientEventId() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
     const value = Math.floor(Math.random() * 16);
@@ -112,32 +114,43 @@ async function writeQueue(items: PendingMutation[]) {
 export async function clearPendingMutations() {
   if (Platform.OS !== "web") await SecureStore.deleteItemAsync(queueKey);
 }
-export async function apiOrQueue(path: string, body: unknown, ownerId: string) {
+export async function pendingMutationSummary(ownerId: string): Promise<SyncSummary> {
+  const items=(await readQueue()).filter((item)=>item.ownerId===ownerId);
+  let lastSyncAt:string|null=null,sent=0;
+  if(Platform.OS!=="web")try{const stored=await SecureStore.getItemAsync(syncKey);if(stored){const parsed=JSON.parse(stored);lastSyncAt=parsed.lastSyncAt||null;sent=Number(parsed.sent||0);}}catch{}
+  return {pending:items.length,blocked:items.filter((item)=>!!item.lastError).length,sent,lastSyncAt,items:items.map(({id,label,queuedAt,attempts,lastError})=>({id,label,queuedAt,attempts,lastError}))};
+}
+export async function apiOrQueue(path: string, body: unknown, ownerId: string, label = "Visit record") {
   try { return { data: await api(path, "POST", body), queued: false }; }
   catch (error) {
     if (Platform.OS === "web" || (error instanceof ApiRequestError && error.status !== null && error.status < 500)) throw error;
     const items = await readQueue();
-    if (items.length >= 50) throw new Error("The secure offline queue is full. Reconnect before recording more medication.");
+    if (items.length >= 100) throw new Error("The secure offline queue is full. Reconnect before recording more visit information.");
     const id = (body as any)?.clientEventId;
     if (!id) throw error;
-    if (!items.some((item) => item.id === id)) items.push({ id, ownerId, path, body, queuedAt: new Date().toISOString() });
+    if (!items.some((item) => item.id === id)) items.push({ id, ownerId, path, body, label, queuedAt: new Date().toISOString(), attempts:0, lastError:"" });
     await writeQueue(items);
     return { data: null, queued: true };
   }
 }
 export async function flushPendingMutations(ownerId: string) {
   const items = await readQueue(), remaining: PendingMutation[] = [];
-  let sent = 0, blocked = 0;
-  for (const item of items) {
-    if (item.ownerId !== ownerId) { remaining.push(item); blocked += 1; continue; }
+  let sent = 0;
+  for (let index=0;index<items.length;index+=1) {
+    const item=items[index];
+    if (item.ownerId !== ownerId) { remaining.push(item); continue; }
     try { await api(item.path, "POST", item.body); sent += 1; }
     catch (error) {
-      if (error instanceof ApiRequestError && error.status !== null && error.status < 500) blocked += 1;
-      remaining.push(item);
+      const terminal=error instanceof ApiRequestError && error.status !== null && error.status < 500;
+      remaining.push({...item,attempts:(item.attempts||0)+1,lastError:terminal?(error as Error).message:"Waiting for a network connection"});
+      remaining.push(...items.slice(index+1));
+      break;
     }
   }
   await writeQueue(remaining);
-  return { sent, pending: remaining.length, blocked };
+  const owned=remaining.filter((item)=>item.ownerId===ownerId),summary={sent,pending:owned.length,blocked:owned.filter((item)=>!!item.lastError).length,lastSyncAt:new Date().toISOString()};
+  if(Platform.OS!=="web")await SecureStore.setItemAsync(syncKey,JSON.stringify(summary));
+  return summary;
 }
 
 export async function upload(path: string, uri: string, caption = "") {

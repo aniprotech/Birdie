@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
-import { api, apiOrQueue, clientEventId, flushPendingMutations, upload, User } from "./api";
+import { api, apiOrQueue, clientEventId, flushPendingMutations, pendingMutationSummary, upload, User, SyncSummary } from "./api";
 import {
   Button,
   Input,
@@ -83,11 +83,14 @@ export function Visits({user}:{user:User}) {
     [medicationReason,setMedicationReason]=useState(""),
     [medicationNote,setMedicationNote]=useState(""),
     [medicationQuantity,setMedicationQuantity]=useState("1"),
-    [medicationWitness,setMedicationWitness]=useState("");
+    [medicationWitness,setMedicationWitness]=useState(""),
+    [syncSummary,setSyncSummary]=useState<SyncSummary>({pending:0,blocked:0,sent:0,lastSyncAt:null,items:[]});
   const { data, error, loading, refresh } = useData<{ visits: Row[] }>(
     `/api/roster/visits?from=${date}&to=${date}`,
   );
   const options=useData<{canManage:boolean;clients:Row[];staff:Row[]}>("/api/roster/options");
+  useEffect(()=>{void pendingMutationSummary(user.id).then(setSyncSummary)},[user.id]);
+  async function synchroniseNow(){setBusy(true);try{const result=await flushPendingMutations(user.id);setSyncSummary(await pendingMutationSummary(user.id));if(!result.pending)Alert.alert("Synchronisation complete",`${result.sent} pending visit record${result.sent===1?"":"s"} sent successfully.`);else Alert.alert("Synchronisation needs attention",`${result.pending} record${result.pending===1?"":"s"} remain on this device. Review the reason below and resolve it before completing care records.`);}catch(e){Alert.alert("Synchronisation unavailable",(e as Error).message)}finally{setBusy(false)}}
   async function createVisit(){
     setBusy(true);
     try{
@@ -98,7 +101,7 @@ export function Visits({user}:{user:User}) {
   }
   async function openVisit(v: Row) {
     setSelected(v); setBusy(true);
-    try { const sync=await flushPendingMutations(user.id); if(sync.pending) Alert.alert("Offline records need attention",`${sync.pending} medication record${sync.pending===1?"":"s"} could not be synchronised. Keep this device secure, reconnect and retry. If the problem remains, contact an administrator before completing the visit.`); setDetail(await api(`/api/mobile/visits/${v.id}`)); }
+    try { const sync=await flushPendingMutations(user.id); setSyncSummary(await pendingMutationSummary(user.id)); if(sync.pending) Alert.alert("Offline records need attention",`${sync.pending} visit record${sync.pending===1?"":"s"} could not be synchronised. Review the sync status before completing the visit.`); setDetail(await api(`/api/mobile/visits/${v.id}`)); }
     catch(e) { Alert.alert("Visit could not be opened",(e as Error).message); setSelected(null); }
     finally { setBusy(false); }
   }
@@ -112,8 +115,8 @@ export function Visits({user}:{user:User}) {
         slot:medicationSlot.trim()||selectedMedication.slots?.[0]||selectedMedication.exactTimes&&Object.values(selectedMedication.exactTimes)[0]||"During visit",
         doseGiven:["ADMINISTERED","PRN_ADMINISTERED"].includes(outcome)?selectedMedication.dose||"As prescribed":"",
         reason:medicationReason.trim(),note:medicationNote.trim(),prnEffect:"",witnessedBy:medicationWitness||null,quantityGiven:selectedMedication.stockTrackingEnabled?Number(medicationQuantity):null,occurredAt:new Date().toISOString()
-      },user.id);
-      if(result.queued) Alert.alert("Saved securely for synchronisation","The phone is offline. This medication record is encrypted on this device and will be sent when you next open a visit online. Please follow your organisation's offline escalation procedure.");
+      },user.id,`Medication: ${selectedMedication.name}`);
+      if(result.queued) {setSyncSummary(await pendingMutationSummary(user.id));Alert.alert("Saved securely for synchronisation","The phone is offline. This medication record is encrypted on this device and will be sent in order when a connection is available. Please follow your organisation's offline escalation procedure.");}
       else { Alert.alert("Medication recorded","The eMAR record has been saved and added to the visit audit history."); setDetail(await api(`/api/mobile/visits/${selected.id}`)); }
       setSelectedMedication(null);setMedicationReason("");setMedicationNote("");setMedicationOutcome("ADMINISTERED");setMedicationSlot("");setMedicationQuantity("1");setMedicationWitness("");
     } catch(e){Alert.alert("Medication could not be recorded",(e as Error).message)} finally{setBusy(false)}
@@ -129,9 +132,9 @@ export function Visits({user}:{user:User}) {
       if(permission.status !== "granted") throw new Error("Location permission is required to verify visit attendance.");
       const p=await Location.getCurrentPositionAsync({accuracy:Location.Accuracy.High});
       coordinates={latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy};
-      const attendanceResult=await api<Row>(`/api/mobile/visits/${selected.id}/attendance`, "POST", { event, ...coordinates });
-      if(event==="CHECK_IN") Alert.alert("Check-in recorded",attendanceResult.withinRadius===true?`Client location verified${attendanceResult.distanceMetres!=null?` (${attendanceResult.distanceMetres} m)`:""}. The arrival notification has been created.`:attendanceResult.withinRadius===false?`You appear to be ${attendanceResult.distanceMetres} m from the configured client location. The admin has been notified for review.`:"The client location is not configured, so proximity could not be verified. The admin has been notified.");
-      const updated=await api<Row>(`/api/mobile/visits/${selected.id}`); setDetail(updated); setSelected({...selected,status:updated.visit.status});
+      const result=await apiOrQueue(`/api/mobile/visits/${selected.id}/attendance`,{clientEventId:clientEventId(),event,...coordinates},user.id,event==="CHECK_IN"?"Visit check-in":"Visit check-out");
+      if(result.queued){setSyncSummary(await pendingMutationSummary(user.id));const status=event==="CHECK_IN"?"IN_PROGRESS":"COMPLETED";setDetail((current)=>current?{...current,visit:{...current.visit,status}}:current);setSelected({...selected,status});Alert.alert("Attendance saved securely",`${event==="CHECK_IN"?"Check-in":"Check-out"} is pending synchronisation. Keep the app installed and review sync status when connectivity returns.`);}
+      else {const attendanceResult=result.data as Row;if(event==="CHECK_IN") Alert.alert("Check-in recorded",attendanceResult.withinRadius===true?`Client location verified${attendanceResult.distanceMetres!=null?` (${attendanceResult.distanceMetres} m)`:""}. The arrival notification has been created.`:attendanceResult.withinRadius===false?`You appear to be ${attendanceResult.distanceMetres} m from the configured client location. The admin has been notified for review.`:"The client location is not configured, so proximity could not be verified. The admin has been notified.");const updated=await api<Row>(`/api/mobile/visits/${selected.id}`);setDetail(updated);setSelected({...selected,status:updated.visit.status});}
       refresh();
     } catch (e) {
       Alert.alert("Attendance could not be recorded", (e as Error).message);
@@ -141,7 +144,7 @@ export function Visits({user}:{user:User}) {
   }
   async function record(kind:string,title:string,body:string,status:string,category="") {
     if(!selected) return; setBusy(true);
-    try { await api(`/api/mobile/visits/${selected.id}/entries`,"POST",{kind,title,body,category,status}); setDetail(await api(`/api/mobile/visits/${selected.id}`)); setNote(""); setIncident(""); }
+    try { const result=await apiOrQueue(`/api/mobile/visits/${selected.id}/entries`,{clientEventId:clientEventId(),kind,title,body,category,status},user.id,kind==="ACTIVITY"?`Care task: ${title}`:kind==="ALERT"?"Incident alert":"Visit note"); if(result.queued){setSyncSummary(await pendingMutationSummary(user.id));Alert.alert("Saved securely for synchronisation",`${title} is pending and will be sent in order when connectivity returns.`);}else setDetail(await api(`/api/mobile/visits/${selected.id}`)); setNote(""); setIncident(""); }
     catch(e){Alert.alert("Record could not be saved",(e as Error).message)} finally{setBusy(false)}
   }
   async function addPhoto() {
@@ -212,6 +215,7 @@ export function Visits({user}:{user:User}) {
       {selected ? (
         <>
           <Button title="Back to visits" onPress={() => {setSelected(null);setDetail(null)}} />
+          {(syncSummary.pending>0||syncSummary.lastSyncAt)&&<Card><Text style={styles.heading}>Offline sync status</Text><Text style={syncSummary.blocked?styles.error:styles.badge}>{syncSummary.pending?`${syncSummary.pending} pending · ${syncSummary.blocked} need attention`:`Up to date${syncSummary.lastSyncAt?` · ${timestamp(syncSummary.lastSyncAt)}`:""}`}</Text>{syncSummary.items.slice(0,5).map(item=><Text key={item.id} style={item.lastError?styles.error:styles.muted}>{item.label||"Visit record"} · {item.lastError||"Waiting to send"}</Text>)}<Button disabled={busy} title={busy?"Synchronising…":"Synchronise now"} onPress={()=>void synchroniseNow()}/></Card>}
           <Card>
           <Text style={styles.heading}>{selected.clientName}</Text>
           <Text style={styles.text}>{selected.title}</Text>

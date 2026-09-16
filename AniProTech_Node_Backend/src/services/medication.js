@@ -96,6 +96,19 @@ export function registerMedication(ctx, route) {
       fail(400, "Medication name is required");
     dates(req.body);
     const data = { ...repo.input(name, req.body), id: old?.id, user: userId };
+    data.isControlledDrug = !!data.isControlledDrug;
+    data.requiresWitness = data.isControlledDrug || !!data.requiresWitness;
+    data.stockTrackingEnabled = !!data.stockTrackingEnabled;
+    if (data.stockTrackingEnabled) {
+      const quantity = Number(data.stockQuantity), threshold = Number(data.lowStockThreshold);
+      if (!Number.isFinite(quantity) || quantity < 0 || !Number.isFinite(threshold) || threshold < 0)
+        fail(400, "Stock quantity and low-stock threshold must be zero or greater");
+      if (!String(data.stockUnit || "").trim()) fail(400, "Stock unit is required when stock tracking is enabled");
+    } else {
+      data.stockQuantity = 0;
+      data.stockUnit = "";
+      data.lowStockThreshold = 0;
+    }
     if (!old) data.isStopped = false;
     if (
       data.firstDoseDate &&

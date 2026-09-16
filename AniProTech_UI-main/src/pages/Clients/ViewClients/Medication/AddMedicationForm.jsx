@@ -21,6 +21,7 @@ import { isNotEmpty } from "../../../../utils/common";
 import { isEmpty } from "lodash";
 import { ChevronsLeft } from "lucide-react";
 import StopScheduleDialog from "./StopScheduleDialog";
+import MedicationSafetySection from "./MedicationSafetySection";
 
 const AddMedicationForm = () => {
     const location = useLocation();
@@ -216,6 +217,12 @@ const AddMedicationForm = () => {
 
         // Additional instructions
         additionalInstructions: medication?.additionalInstructions || "",
+        isControlledDrug: medication?.isControlledDrug || false,
+        requiresWitness: medication?.requiresWitness || false,
+        stockTrackingEnabled: medication?.stockTrackingEnabled || false,
+        stockQuantity: Number(medication?.stockQuantity || 0),
+        stockUnit: medication?.stockUnit || "",
+        lowStockThreshold: Number(medication?.lowStockThreshold || 0),
     };
 
     const handleSubmit = async (values, { setSubmitting }) => {
@@ -278,6 +285,12 @@ const AddMedicationForm = () => {
                 gpLiaison: values.gpLiaison,
                 prnStartDate: values.prnStartDate,
                 prnEndDate: values.prnEndDate,
+                isControlledDrug: values.isControlledDrug,
+                requiresWitness: values.requiresWitness,
+                stockTrackingEnabled: values.stockTrackingEnabled,
+                stockQuantity: values.stockQuantity,
+                stockUnit: values.stockUnit,
+                lowStockThreshold: values.lowStockThreshold,
             };
 
 
@@ -818,6 +831,7 @@ const AddMedicationForm = () => {
                                     </div>
                                 )}
 
+                                {values.type && <MedicationSafetySection values={values} setFieldValue={setFieldValue} />}
                                 {/* Render PRN Sections or Regular Medication Sections */}
                                 {values.type === "PRN" ? (
                                     <PRNSections

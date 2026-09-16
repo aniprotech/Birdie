@@ -22,6 +22,7 @@ const medicationAdministrationInput = z.object({
   note: z.string().trim().max(2000).default(""),
   prnEffect: z.string().trim().max(1000).default(""),
   witnessedBy: z.uuid().nullable().default(null),
+  quantityGiven: z.number().positive().max(100000).nullable().default(null),
   occurredAt: z.iso.datetime({ offset: true }),
 }).superRefine((value, issue) => {
   if (!["ADMINISTERED", "PRN_ADMINISTERED"].includes(value.outcome) && value.reason.length < 3)
@@ -60,16 +61,19 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
 
   route("GET", "/api/mobile/visits/:id", async (req, res) => {
     const v = await visit(req);
-    const [entries, attendance, attachments, administrations, addresses] = await Promise.all([
+    const [entries, attendance, attachments, administrations, addresses, witnesses] = await Promise.all([
       db.query("SELECT id,kind,title,body,category,status,revision,created_at FROM node_client_entries WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query("SELECT id,event,latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",source,created_at FROM node_visit_attendance WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query("SELECT id,file_url AS url,file_name AS name,mime_type AS mime,caption,created_at FROM node_visit_attachments WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query(`SELECT a.id,a.client_event_id AS "clientEventId",a.medication_id AS "medicationId",a.outcome,a.slot,
         a.dose_given AS "doseGiven",a.reason,a.note,a.prn_effect AS "prnEffect",a.witnessed_by AS "witnessedBy",
-        a.occurred_at AS "occurredAt",a.created_at AS "createdAt",u.first_name||' '||u.last_name AS "recordedBy"
+        a.quantity_given AS "quantityGiven",a.stock_before AS "stockBefore",a.stock_after AS "stockAfter",
+        a.occurred_at AS "occurredAt",a.created_at AS "createdAt",u.first_name||' '||u.last_name AS "recordedBy",
+        COALESCE((SELECT jsonb_agg(jsonb_build_object('id',c.id,'reason',c.reason,'replacement',c.replacement,'createdAt',c.created_at,'actorId',c.actor_id) ORDER BY c.created_at,c.id) FROM node_medication_administration_corrections c WHERE c.administration_id=a.id),'[]') AS corrections
         FROM node_medication_administrations a JOIN users u ON u.id=a.actor_id
         WHERE a.visit_id=$1 ORDER BY a.occurred_at,a.id`, [v.id]),
       repo.find("UserPrimaryAddressEntity", { user: v.client_id }),
+      db.query("SELECT id,first_name||' '||last_name AS name FROM users WHERE agency_id=$1 AND role IN ('ADMIN','SUPERADMIN','CAREGIVER') AND is_active=true AND deleted_at IS NULL AND id<>$2 ORDER BY first_name,last_name", [req.user.agencyId,req.user.id]),
     ]);
     const plans = await repo.find("ClientTaskPlanEntity", { user: v.client_id });
     const tasks = [];
@@ -80,7 +84,7 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
       tasks.push({ id: p.id, name, details: p.details || "", essential: !!p.isEssential, sessions: p.isAnyTime ? ["ANYTIME"] : p.sessions || [], status: recorded?.status || "PENDING", recordId: recorded?.id || null });
     }
     const medication = await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id });
-    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
+    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), isControlledDrug:!!m.isControlledDrug, requiresWitness:!!m.requiresWitness, stockTrackingEnabled:!!m.stockTrackingEnabled, stockQuantity:Number(m.stockQuantity||0), stockUnit:m.stockUnit||"", lowStockThreshold:Number(m.lowStockThreshold||0), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, witnesses:witnesses.rows, entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
   });
 
   route("POST", "/api/mobile/visits/:id/medication-administrations", async (req, res) => {
@@ -95,11 +99,14 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
         if (duplicate.visit_id !== v.id || duplicate.medication_id !== body.medicationId) fail(409, "This offline event identifier was already used");
         return { row: duplicate, created: false };
       }
+      await db.query("SELECT id FROM client_medications_scheduling WHERE id=$1 FOR UPDATE", [body.medicationId]);
       const medication = await repo.get("ClientMedicationSchedulingEntity", body.medicationId);
       if (!medication || medication.user !== v.client_id || medication.deletedAt || medication.isStopped)
         fail(404, "Active medication schedule not found for this client");
       if (body.outcome === "PRN_ADMINISTERED" && String(medication.type || "").toUpperCase() !== "PRN")
         fail(400, "PRN administration can only be recorded for a PRN medication");
+      if ((medication.isControlledDrug || medication.requiresWitness) && !body.witnessedBy)
+        fail(400, "A second active team member must witness this administration");
       if (body.witnessedBy) {
         const witness = await repo.get("UserEntity", body.witnessedBy, { collections: false });
         if (!witness || witness.agencyId !== req.user.agencyId || witness.role === "USER" || !witness.isActive || witness.deletedAt || witness.id === req.user.id)
@@ -109,15 +116,31 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
       if (Math.abs(Date.now() - occurred.valueOf()) > 36 * 60 * 60 * 1000)
         fail(400, "Administration time must be within 36 hours of submission");
       const id = randomUUID();
+      const administered = ["ADMINISTERED", "PRN_ADMINISTERED"].includes(body.outcome);
+      if (administered && medication.stockTrackingEnabled && body.quantityGiven == null)
+        fail(400, "Quantity given is required for stock-tracked medication");
+      const stockBefore = medication.stockTrackingEnabled ? Number(medication.stockQuantity || 0) : null;
+      const stockAfter = medication.stockTrackingEnabled && administered ? stockBefore - Number(body.quantityGiven) : stockBefore;
+      if (stockAfter != null && stockAfter < 0) fail(409, "Recorded stock is insufficient for this administration");
       let inserted;
       try {
         inserted = (await db.query(`INSERT INTO node_medication_administrations
-          (id,agency_id,client_event_id,visit_id,client_id,medication_id,actor_id,outcome,slot,dose_given,reason,note,prn_effect,witnessed_by,occurred_at)
-          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
-          [id,req.user.agencyId,body.clientEventId,v.id,v.client_id,body.medicationId,req.user.id,body.outcome,body.slot,body.doseGiven,body.reason,body.note,body.prnEffect,body.witnessedBy,body.occurredAt])).rows[0];
+          (id,agency_id,client_event_id,visit_id,client_id,medication_id,actor_id,outcome,slot,dose_given,reason,note,prn_effect,witnessed_by,quantity_given,stock_before,stock_after,occurred_at)
+          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
+          [id,req.user.agencyId,body.clientEventId,v.id,v.client_id,body.medicationId,req.user.id,body.outcome,body.slot,body.doseGiven,body.reason,body.note,body.prnEffect,body.witnessedBy,body.quantityGiven,stockBefore,stockAfter,body.occurredAt])).rows[0];
       } catch (error) {
         if (error?.code === "23505") fail(409, "This medication and time slot have already been recorded for the visit");
         throw error;
+      }
+      if (medication.stockTrackingEnabled && administered) {
+        await repo.save("ClientMedicationSchedulingEntity", { id: medication.id, stockQuantity: stockAfter });
+        if (stockAfter <= Number(medication.lowStockThreshold || 0)) {
+          const title = `Medication stock low: ${medication.medicationName}`;
+          const existing = (await db.query("SELECT id FROM node_client_entries WHERE agency_id=$1 AND client_id=$2 AND category='MEDICATION_STOCK' AND title=$3 AND status='OPEN' LIMIT 1", [req.user.agencyId,v.client_id,title])).rows[0];
+          if (!existing) await db.query(`INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,revision,created_by,updated_by)
+            VALUES($1,$2,$3,$4,'ALERT',$5,$6,'MEDICATION_STOCK','OPEN',1,$7,$7)`,
+            [randomUUID(),req.user.agencyId,v.client_id,v.id,title,`${stockAfter} ${medication.stockUnit || "units"} remaining`,req.user.id]);
+        }
       }
       const exception = !["ADMINISTERED", "PRN_ADMINISTERED"].includes(body.outcome);
       if (exception) {
@@ -130,6 +153,18 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
       return { row: inserted, created: true };
     });
     return reply(res, result.row, result.created ? "Medication administration recorded" : "Medication administration already recorded", result.created ? 201 : 200);
+  });
+
+  route("POST", "/api/medication-administrations/:id/corrections", async (req, res) => {
+    auth.admin(req);
+    const parsed = z.object({ reason:z.string().trim().min(5).max(1000), replacement:z.object({ outcome:z.enum(["ADMINISTERED","PRN_ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]).optional(), reason:z.string().trim().max(500).optional(), note:z.string().trim().max(2000).optional(), doseGiven:z.string().trim().max(160).optional() }).strict().refine((value)=>Object.keys(value).length>0,"Enter at least one corrected value") }).safeParse(req.body);
+    if (!parsed.success) fail(400, parsed.error.issues[0]?.message || "Correction details are invalid");
+    const administration = (await db.query("SELECT * FROM node_medication_administrations WHERE id=$1 AND agency_id=$2", [req.params.id,req.user.agencyId])).rows[0];
+    if (!administration) fail(404,"Medication administration not found");
+    const correction = (await db.query(`INSERT INTO node_medication_administration_corrections(id,administration_id,agency_id,actor_id,reason,replacement) VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [randomUUID(),administration.id,req.user.agencyId,req.user.id,parsed.data.reason,JSON.stringify(parsed.data.replacement)])).rows[0];
+    await visitEvent(db,administration.visit_id,req.user.id,`Medication record correction added: ${parsed.data.reason}`);
+    return reply(res,correction,"Correction appended",201);
   });
 
   route("POST", "/api/mobile/visits/:id/attendance", async (req, res) => {

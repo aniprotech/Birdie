@@ -81,7 +81,9 @@ export function Visits({user}:{user:User}) {
     [medicationOutcome,setMedicationOutcome]=useState("ADMINISTERED"),
     [medicationSlot,setMedicationSlot]=useState(""),
     [medicationReason,setMedicationReason]=useState(""),
-    [medicationNote,setMedicationNote]=useState("");
+    [medicationNote,setMedicationNote]=useState(""),
+    [medicationQuantity,setMedicationQuantity]=useState("1"),
+    [medicationWitness,setMedicationWitness]=useState("");
   const { data, error, loading, refresh } = useData<{ visits: Row[] }>(
     `/api/roster/visits?from=${date}&to=${date}`,
   );
@@ -109,11 +111,11 @@ export function Visits({user}:{user:User}) {
         clientEventId:clientEventId(),medicationId:selectedMedication.id,outcome,
         slot:medicationSlot.trim()||selectedMedication.slots?.[0]||selectedMedication.exactTimes&&Object.values(selectedMedication.exactTimes)[0]||"During visit",
         doseGiven:["ADMINISTERED","PRN_ADMINISTERED"].includes(outcome)?selectedMedication.dose||"As prescribed":"",
-        reason:medicationReason.trim(),note:medicationNote.trim(),prnEffect:"",witnessedBy:null,occurredAt:new Date().toISOString()
+        reason:medicationReason.trim(),note:medicationNote.trim(),prnEffect:"",witnessedBy:medicationWitness||null,quantityGiven:selectedMedication.stockTrackingEnabled?Number(medicationQuantity):null,occurredAt:new Date().toISOString()
       },user.id);
       if(result.queued) Alert.alert("Saved securely for synchronisation","The phone is offline. This medication record is encrypted on this device and will be sent when you next open a visit online. Please follow your organisation's offline escalation procedure.");
       else { Alert.alert("Medication recorded","The eMAR record has been saved and added to the visit audit history."); setDetail(await api(`/api/mobile/visits/${selected.id}`)); }
-      setSelectedMedication(null);setMedicationReason("");setMedicationNote("");setMedicationOutcome("ADMINISTERED");setMedicationSlot("");
+      setSelectedMedication(null);setMedicationReason("");setMedicationNote("");setMedicationOutcome("ADMINISTERED");setMedicationSlot("");setMedicationQuantity("1");setMedicationWitness("");
     } catch(e){Alert.alert("Medication could not be recorded",(e as Error).message)} finally{setBusy(false)}
   }
   async function attendance(event: "CHECK_IN" | "CHECK_OUT") {
@@ -251,7 +253,9 @@ export function Visits({user}:{user:User}) {
             <Input label="MAR time slot" value={medicationSlot} onChangeText={setMedicationSlot} maxLength={80}/>
             {!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<Input label="Reason (required)" value={medicationReason} onChangeText={setMedicationReason} maxLength={500}/>}
             <Input label={medicationOutcome==="PRN_ADMINISTERED"?"Why was PRN medication needed?":"Medication note (optional)"} value={medicationNote} onChangeText={setMedicationNote} multiline maxLength={2000}/>
-            <View style={styles.row}><Button title="Cancel" onPress={()=>setSelectedMedication(null)}/><Button disabled={busy||(!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&medicationReason.trim().length<3)||(medicationOutcome==="PRN_ADMINISTERED"&&medicationNote.trim().length<3)} title={busy?"Saving…":"Confirm eMAR record"} onPress={()=>void recordMedication()}/></View>
+            {selectedMedication.stockTrackingEnabled&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<><Text style={styles.badge}>Recorded stock: {selectedMedication.stockQuantity} {selectedMedication.stockUnit}</Text><Input label={`Quantity given (${selectedMedication.stockUnit})`} keyboardType="decimal-pad" value={medicationQuantity} onChangeText={setMedicationQuantity}/></>}
+            {(selectedMedication.isControlledDrug||selectedMedication.requiresWitness)&&<><Text style={styles.muted}>A second active team member must witness this record.</Text>{detail?.witnesses?.map((witness:Row)=><Card key={witness.id} onPress={()=>setMedicationWitness(witness.id)}><Text style={styles.text}>{medicationWitness===witness.id?"✓ ":""}{witness.name}</Text></Card>)}</>}
+            <View style={styles.row}><Button title="Cancel" onPress={()=>setSelectedMedication(null)}/><Button disabled={busy||(!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&medicationReason.trim().length<3)||(medicationOutcome==="PRN_ADMINISTERED"&&medicationNote.trim().length<3)||(selectedMedication.stockTrackingEnabled&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!(Number(medicationQuantity)>0))||((selectedMedication.isControlledDrug||selectedMedication.requiresWitness)&&!medicationWitness)} title={busy?"Saving…":"Confirm eMAR record"} onPress={()=>void recordMedication()}/></View>
           </Card>}
           <Text style={styles.heading}>Visit notes</Text>
           <Input label="What happened during the visit?" multiline maxLength={10000} value={note} onChangeText={setNote}/>

@@ -23,6 +23,14 @@ for(const [entity,fields] of Object.entries({
   ClientTaskEntity:[['agencyId','agency_id','UUID'],['createdBy','created_by','UUID'],['archived','archived','Boolean'],['revision','revision','Integer']],
   ClientTaskPlanEntity:[['taskNameSnapshot','task_name_snapshot','String'],['categoryNameSnapshot','category_name_snapshot','String'],['timesPerDay','times_per_day','Integer'],['revision','revision','Integer']]
 })) for(const [name,column,type] of fields) entities[entity].fields.push({name,javaName:name,column,type});
+for (const [name,column,type] of [
+  ['isControlledDrug','is_controlled_drug','Boolean'],
+  ['requiresWitness','requires_witness','Boolean'],
+  ['stockTrackingEnabled','stock_tracking_enabled','Boolean'],
+  ['stockQuantity','stock_quantity','BigDecimal'],
+  ['stockUnit','stock_unit','String'],
+  ['lowStockThreshold','low_stock_threshold','BigDecimal'],
+]) entities.ClientMedicationSchedulingEntity.fields.push({name,javaName:name,column,type});
 export const quote = (s) => '"' + s.replaceAll('"', '""') + '"';
 
 export async function openDatabase(config) {

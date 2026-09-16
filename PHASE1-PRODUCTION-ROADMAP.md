@@ -7,16 +7,16 @@ This roadmap converts the nine recommended development priorities and the produc
 ## Current verified foundation
 
 - Backend automated suite: 92 tests passed after the first Phase 1 clinical-safety implementation.
-- API compatibility inventory: 210 Java routes, 289 Express routes and no missing mapped routes.
+- API compatibility inventory: 210 Java routes, 290 Express routes and no missing mapped routes.
 - Mobile: TypeScript check passed and Expo exported Android and iOS bundles.
 - Web: Vite production build passed; large bundle warnings remain an optimisation task.
-- eMAR first slice: dedicated administration records, visit-state enforcement, PRN validation, exception alerts, audit events, idempotent mobile submissions and encrypted pending-mutation storage.
+- eMAR safety foundation: dedicated administration records, visit-state enforcement, due-round checkout controls, PRN validation, exception alerts, controlled-drug witnesses, stock deduction and low-stock alerts, append-only corrections, audit events, idempotent mobile submissions and encrypted pending-mutation storage.
 
 ## Nine development priorities
 
 | Priority | Required outcome | Current position | Phase 1 exit evidence |
 | --- | --- | --- | --- |
-| 1. Medication safety | Safe eMAR rounds, PRN, omissions, stock, controlled drugs, allergy/interaction warnings and escalation | Dedicated eMAR records and exception alerts started | Clinical review, scheduled round logic, stock ledger, controlled-drug witness/correction workflow, mobile and web acceptance tests |
+| 1. Medication safety | Safe eMAR rounds, PRN, omissions, stock, controlled drugs, allergy/interaction warnings and escalation | Due-round controls, controlled-drug witnessing, stock balance alerts and append-only corrections implemented | Clinical review, full stock ledger/reconciliation, allergy/interaction warnings, authorised override policy, mobile and web acceptance tests |
 | 2. Offline mobile reliability | Visits continue safely during poor connectivity without lost or duplicated records | Encrypted medication retry queue and server idempotency started | Durable queue for permitted visit mutations, sync status UI, conflict rules, restart/network-loss tests and physical-device evidence |
 | 3. Advanced rostering | Recurrence, double-up visits, travel, skills, continuity, working-time rules and open shifts | Conflicts, availability, absence, runs, templates and reviewed suggestions exist | Double-up/open-shift workflows, route/travel calculation, compliance rules and manager acceptance tests |
 | 4. Complete finance | Invoice/payroll documents, funding, mileage, rate rules, credit notes, exports and reconciliation | Review locks, planned/actual basis, service hours, rates and history exist | Immutable invoice/pay-run lifecycle, PDFs, credit notes, export adapters and reconciliation tests |
@@ -89,4 +89,4 @@ This roadmap converts the nine recommended development priorities and the produc
 
 ## Current next implementation slice
 
-Complete medication due-round calculation and controlled-drug/stock controls, then extend the encrypted mobile queue with visible sync state and deterministic conflict handling. This is the next source-development gate; production approval remains blocked until the staging and physical-device checks above are evidenced.
+Extend the encrypted mobile queue across approved visit mutations, add visible sync history and deterministic conflict handling, then add an authorised and audited checkout override policy. Medication due-round, controlled-drug witness, stock balance and append-only correction foundations are now implemented. Production approval remains blocked until clinical review, staging and physical-device checks are evidenced.

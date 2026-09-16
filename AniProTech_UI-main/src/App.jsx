@@ -725,7 +725,6 @@ function App() {
                     <div className="brand-loader__ring brand-loader__ring--one" aria-hidden="true" />
                     <div className="brand-loader__ring brand-loader__ring--two" aria-hidden="true" />
                     <img src="/brand-mark.png" alt="Caremonitor" className="brand-loader__mark" />
-                    <span className="brand-loader__text">Caremonitor</span>
                     <span className="sr-only">Loading</span>
                 </div>
             ) : (

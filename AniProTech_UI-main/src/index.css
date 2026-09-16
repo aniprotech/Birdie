@@ -171,15 +171,6 @@ body{
     animation-delay: 1.1s;
 }
 
-.brand-loader__text {
-    z-index: 2;
-    margin-top: 28px;
-    color: white;
-    font-size: clamp(1rem, 2vw, 1.3rem);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-}
-
 @media (prefers-reduced-motion: reduce) {
     .brand-loader__mark,
     .brand-loader__halo,

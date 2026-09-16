@@ -151,7 +151,7 @@ export default function App() {
         >
           {!ready ? (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colours.navy, gap: 24 }}>
-              <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: "82%", height: 150 }} accessibilityLabel="AniProTech" />
+              <Image source={require("./assets/icon.png")} resizeMode="contain" style={{ width: 136, height: 136, borderRadius: 30 }} accessibilityLabel="AniProTech" />
               <ActivityIndicator color={colours.cyanBright} />
             </View>
           ) : !user ? (

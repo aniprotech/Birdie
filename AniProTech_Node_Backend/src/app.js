@@ -35,6 +35,7 @@ import { registerReporting } from "./services/reporting.js";
 import {createInboxNotifications} from './inbox-notifications.js';
 import {registerNotificationDelivery} from './services/notification-delivery.js';
 import { registerMobileCare } from "./services/mobile-care.js";
+import { postcodeValid } from "./location.js";
 
 export function createApp({ db, config, mail = createMail(config) }) {
   const app = express(),
@@ -133,11 +134,14 @@ export function createApp({ db, config, mail = createMail(config) }) {
       website: z.union([z.url(), z.literal("")]).optional(),
       addressLine1: z.string().trim().min(3).max(200),
       addressLine2: z.string().trim().max(200).optional(),
+      state: z.string().trim().min(2).max(100),
       city: z.string().trim().min(2).max(100),
       postcode: z.string().trim().min(2).max(20),
       country: z.string().trim().min(2).max(80),
       timezone: z.string().trim().min(3).max(80),
       acceptTerms: z.literal(true),
+    }).superRefine((value, issue) => {
+      if (!postcodeValid(value.country, value.postcode)) issue.addIssue({ code:"custom", path:["postcode"], message:"Postcode format does not match the selected country" });
     });
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) fail(400, parsed.error.issues[0]?.message || "Registration details are invalid");
@@ -145,9 +149,9 @@ export function createApp({ db, config, mail = createMail(config) }) {
     const created = await db.transaction(async () => {
       if ((await db.query("SELECT 1 FROM users WHERE lower(email)=$1", [email])).rows[0]) fail(409, "An account with this email already exists");
       const agencyId = randomUUID(), userId = randomUUID();
-      await db.query(`INSERT INTO node_agencies(id,name,legal_name,business_type,registration_number,phone,website,address_line1,address_line2,city,postcode,country,timezone,terms_accepted_at)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,CURRENT_TIMESTAMP)`,
-        [agencyId,data.businessName,data.legalName||null,data.businessType,data.registrationNumber||null,data.phone,data.website||null,data.addressLine1,data.addressLine2||null,data.city,data.postcode,data.country,data.timezone]);
+      await db.query(`INSERT INTO node_agencies(id,name,legal_name,business_type,registration_number,phone,website,address_line1,address_line2,state,city,postcode,country,timezone,terms_accepted_at)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,CURRENT_TIMESTAMP)`,
+        [agencyId,data.businessName,data.legalName||null,data.businessType,data.registrationNumber||null,data.phone,data.website||null,data.addressLine1,data.addressLine2||null,data.state,data.city,data.postcode,data.country,data.timezone]);
       await repo.save("UserEntity", { id:userId, agencyId, firstName:data.firstName, lastName:data.lastName, email, primaryPhone:data.phone, role:"SUPERADMIN", isActive:true, createdBy:userId, updatedBy:userId });
       const login = await auth.createLoginLink(email);
       await mail.send({ to:email, subject:"Welcome to AniProTech Care Monitor", text:`Your business account has been created. Verify your email and sign in using this one-time link within 15 minutes:\n${login.link}` });

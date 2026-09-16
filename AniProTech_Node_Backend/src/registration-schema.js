@@ -9,6 +9,7 @@ export async function initializeRegistration(db) {
     website text,
     address_line1 text NOT NULL,
     address_line2 text,
+    state text,
     city text NOT NULL,
     postcode text NOT NULL,
     country text NOT NULL,
@@ -19,6 +20,7 @@ export async function initializeRegistration(db) {
   )`);
   await db.query("CREATE INDEX IF NOT EXISTS node_agencies_name ON node_agencies(lower(name))");
   await db.query(`ALTER TABLE node_agencies
+    ADD COLUMN IF NOT EXISTS state text,
     ADD COLUMN IF NOT EXISTS logo_path text,
     ADD COLUMN IF NOT EXISTS support_email text,
     ADD COLUMN IF NOT EXISTS support_phone text,

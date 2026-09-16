@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { fail, reply, requireValue } from "../http.js";
+import { postcodeValid } from "../location.js";
 
 const optionalText = (max) => z.string().trim().max(max).optional();
 const accountSchema = z.object({
@@ -15,6 +16,7 @@ const accountSchema = z.object({
   website: z.union([z.url(), z.literal("")]).optional(),
   addressLine1: z.string().trim().min(3).max(200),
   addressLine2: optionalText(200),
+  state: z.string().trim().min(2).max(100),
   city: z.string().trim().min(2).max(100),
   postcode: z.string().trim().min(2).max(20),
   country: z.string().trim().min(2).max(80),
@@ -26,6 +28,8 @@ const accountSchema = z.object({
   requireLocationForCheckIn: z.boolean().default(true),
   allowVoiceNotes: z.boolean().default(true),
   notifyClientOnArrival: z.boolean().default(true),
+}).superRefine((value, issue) => {
+  if (!postcodeValid(value.country, value.postcode)) issue.addIssue({ code:"custom", path:["postcode"], message:"Postcode format does not match the selected country" });
 });
 
 const value = (body, name) => Array.isArray(body[name]) ? body[name][0] : body[name];
@@ -43,7 +47,7 @@ export function registerAccount(ctx, route) {
        FROM users WHERE id=$1`, [req.user.id])).rows[0], "Account not found");
     const organisation = requireValue((await db.query(
       `SELECT id,name,legal_name,business_type,registration_number,phone,website,address_line1,
-       address_line2,city,postcode,country,timezone,status,logo_path,support_email,support_phone,
+       address_line2,state,city,postcode,country,timezone,status,logo_path,support_email,support_phone,
        carer_app_message,carer_app_settings,updated_at FROM node_agencies WHERE id=$1`,
       [req.user.agencyId])).rows[0], "Organisation not found");
     return { user, organisation };
@@ -68,7 +72,7 @@ export function registerAccount(ctx, route) {
       organisationPhone:value(req.body,"organisationPhone"),
       businessType:value(req.body,"businessType"), registrationNumber:value(req.body,"registrationNumber") || "",
       website:value(req.body,"website") || "", addressLine1:value(req.body,"addressLine1"),
-      addressLine2:value(req.body,"addressLine2") || "", city:value(req.body,"city"),
+      addressLine2:value(req.body,"addressLine2") || "", state:value(req.body,"state"), city:value(req.body,"city"),
       postcode:value(req.body,"postcode"), country:value(req.body,"country"), timezone:value(req.body,"timezone"),
       supportEmail:value(req.body,"supportEmail") || "", supportPhone:value(req.body,"supportPhone") || "",
       carerAppMessage:value(req.body,"carerAppMessage") || "",
@@ -91,11 +95,11 @@ export function registerAccount(ctx, route) {
     await db.query(`UPDATE users SET first_name=$1,last_name=$2,email=$3,primary_phone=$4,updated_by=$5,updated_at=CURRENT_TIMESTAMP WHERE id=$5`,
       [data.firstName,data.lastName,email,data.primaryPhone||null,req.user.id]);
     await db.query(`UPDATE node_agencies SET name=$1,legal_name=$2,business_type=$3,registration_number=$4,
-      phone=$5,website=$6,address_line1=$7,address_line2=$8,city=$9,postcode=$10,country=$11,timezone=$12,
-      support_email=$13,support_phone=$14,carer_app_message=$15,carer_app_settings=$16,
-      logo_path=COALESCE($17,logo_path),updated_at=CURRENT_TIMESTAMP,updated_by=$18 WHERE id=$19`,
+      phone=$5,website=$6,address_line1=$7,address_line2=$8,state=$9,city=$10,postcode=$11,country=$12,timezone=$13,
+      support_email=$14,support_phone=$15,carer_app_message=$16,carer_app_settings=$17,
+      logo_path=COALESCE($18,logo_path),updated_at=CURRENT_TIMESTAMP,updated_by=$19 WHERE id=$20`,
       [data.organisationName,data.legalName||null,data.businessType,data.registrationNumber||null,data.organisationPhone,
-       data.website||null,data.addressLine1,data.addressLine2||null,data.city,data.postcode,data.country,data.timezone,
+       data.website||null,data.addressLine1,data.addressLine2||null,data.state,data.city,data.postcode,data.country,data.timezone,
        data.supportEmail||null,data.supportPhone||null,data.carerAppMessage||null,JSON.stringify({
          allowPhotoUploads:data.allowPhotoUploads,requireLocationForCheckIn:data.requireLocationForCheckIn,
          allowVoiceNotes:data.allowVoiceNotes,notifyClientOnArrival:data.notifyClientOnArrival,

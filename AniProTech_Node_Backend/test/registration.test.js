@@ -9,7 +9,7 @@ const details = (email = "owner@example.test") => ({
   businessName: "Safe Hands Care", legalName: "Safe Hands Care Ltd",
   businessType: "HOME_CARE", registrationNumber: "CQC-12345",
   website: "https://example.test", addressLine1: "10 High Street",
-  city: "London", postcode: "SW1A 1AA", country: "United Kingdom",
+  state: "England", city: "London", postcode: "SW1A 1AA", country: "United Kingdom",
   timezone: "Europe/London", acceptTerms: true,
 });
 
@@ -34,5 +34,6 @@ test("business registration creates an isolated organisation owner and verificat
     assert.deepEqual(agency, { name:"Safe Hands Care", timezone:"Europe/London" });
     assert.equal((await request(app).post("/api/auth/register-business").send(details())).status, 409);
     assert.equal((await request(app).post("/api/auth/register-business").send({...details("bad@example.test"), acceptTerms:false})).status, 400);
+    assert.equal((await request(app).post("/api/auth/register-business").send({...details("postcode@example.test"), postcode:"501218", country:"United Kingdom"})).status, 400);
   } finally { await db.close(); }
 });

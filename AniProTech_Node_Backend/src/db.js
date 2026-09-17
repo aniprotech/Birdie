@@ -12,6 +12,7 @@ import { initializeRoster } from "./roster-schema.js";
 import { initializeOperations } from "./operations-schema.js";
 import { initializeMobileCare } from "./mobile-care-schema.js";
 import { initializeRegistration } from "./registration-schema.js";
+import { initializeSecurity } from "./security-schema.js";
 export const { entities, enums } = JSON.parse(
   readFileSync(new URL("./models/schema.json", import.meta.url)),
 );
@@ -159,6 +160,7 @@ export async function initializeSchema(db) {
       await initializePlanning(db); await initializeInboxAlerts(db);
       await initializeMobileCare(db);
       await initializeRegistration(db);
+      await initializeSecurity(db);
   });
 }
 

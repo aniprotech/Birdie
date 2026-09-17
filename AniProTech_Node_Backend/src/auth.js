@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { fail, requireValue, uuid, reply } from "./http.js";
+import { decryptSecret, verifyTotp } from "./mfa.js";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 export function createAuth({ db, repo, config, mail }) {
@@ -63,7 +64,17 @@ export function createAuth({ db, repo, config, mail }) {
       actionLabel: "Sign in to Caremonitor",
     });
   }
-  async function exchange(email, password) {
+  async function issueSession(user, device = {}, mfaVerified = false) {
+    const session = randomUUID(), expiresAt = new Date(Date.now() + 86400000).toISOString();
+    await db.query(
+      `INSERT INTO node_sessions(id,user_id,expires_at,device_name,ip_address,user_agent,mfa_verified_at)
+       VALUES($1,$2,$3,$4,$5,$6,CASE WHEN $7 THEN CURRENT_TIMESTAMP ELSE NULL END)`,
+      [session,user.id,expiresAt,String(device.name||"Unknown device").slice(0,120),String(device.ip||"").slice(0,100)||null,String(device.userAgent||"").slice(0,500)||null,mfaVerified],
+    );
+    const accessToken = jwt.sign({ email:user.email,role:user.role },config.jwtSecret,{subject:user.id,jwtid:session,expiresIn:"24h",issuer:"aniprotech",audience:"aniprotech-app",algorithm:"HS256"});
+    return { user:publicUser(user),accessToken };
+  }
+  async function exchange(email, password, device = {}) {
     if (
       !z.email().safeParse(email).success ||
       typeof password !== "string" ||
@@ -91,26 +102,18 @@ export function createAuth({ db, repo, config, mail }) {
         "UPDATE node_login_links SET used_at=CURRENT_TIMESTAMP WHERE id=$1",
         [rows[0].id],
       );
-      const session = randomUUID(),
-        expiresAt = new Date(Date.now() + 86400000).toISOString();
-      await db.query(
-        "INSERT INTO node_sessions(id,user_id,expires_at) VALUES($1,$2,$3)",
-        [session, user.id, expiresAt],
-      );
-      const accessToken = jwt.sign(
-        { email: user.email, role: user.role },
-        config.jwtSecret,
-        {
-          subject: user.id,
-          jwtid: session,
-          expiresIn: "24h",
-          issuer: "aniprotech",
-          audience: "aniprotech-app",
-          algorithm: "HS256",
-        },
-      );
-      return { user: publicUser(user), accessToken };
+      const mfa=(await db.query("SELECT enabled FROM node_mfa_settings WHERE user_id=$1",[user.id])).rows[0];
+      if(mfa?.enabled){const challengeToken=jwt.sign({purpose:"mfa-login",device},config.jwtSecret,{subject:user.id,expiresIn:"5m",issuer:"aniprotech",audience:"aniprotech-mfa",algorithm:"HS256"});return {mfaRequired:true,challengeToken};}
+      return issueSession(user,device,false);
     });
+  }
+  async function completeMfa(challengeToken,code,device={}){
+    let claims;try{claims=jwt.verify(challengeToken,config.jwtSecret,{algorithms:["HS256"],issuer:"aniprotech",audience:"aniprotech-mfa"});}catch{fail(401,"MFA challenge expired. Request a new sign-in link");}
+    if(claims.purpose!=="mfa-login")fail(401,"Invalid MFA challenge");
+    const row=(await db.query("SELECT secret_cipher,enabled FROM node_mfa_settings WHERE user_id=$1",[claims.sub])).rows[0];
+    if(!row?.enabled||!verifyTotp(decryptSecret(row.secret_cipher,config.mfaEncryptionKey||config.jwtSecret),code))fail(401,"Invalid authentication code");
+    const user=await repo.get("UserEntity",claims.sub);if(!user?.isActive)fail(401,"Account cannot sign in");
+    return issueSession(user,{...(claims.device||{}),...device},true);
   }
   async function authenticate(req, res, next) {
     try {
@@ -144,6 +147,7 @@ export function createAuth({ db, repo, config, mail }) {
       req.user = user;
       req.sessionId = claims.jti;
       req.accessToken = token;
+      await db.query("UPDATE node_sessions SET last_seen_at=CURRENT_TIMESTAMP WHERE id=$1",[claims.jti]);
       next();
     } catch (error) {
       next(error);
@@ -184,6 +188,7 @@ export function createAuth({ db, repo, config, mail }) {
   function platformAdmin(req) {
     if (!isPlatformAdmin(req.user)) fail(403, "Caremonitor platform administrator access required");
   }
+  async function requireRecent(req){const row=(await db.query("SELECT id FROM node_sessions WHERE id=$1 AND COALESCE(mfa_verified_at,created_at)>=CURRENT_TIMESTAMP-interval '10 minutes'",[req.sessionId])).rows[0];if(!row)fail(403,"Confirm your identity again before this sensitive action");}
   async function reset(id) {
     await db.transaction(async () => {
       await db.query(
@@ -200,12 +205,15 @@ export function createAuth({ db, repo, config, mail }) {
     requestLink,
     createLoginLink,
     exchange,
+    completeMfa,
+    issueSession,
     authenticate,
     userAccess,
     admin,
     platformAdmin,
     isPlatformAdmin,
     reset,
+    requireRecent,
     publicUser,
   };
 }

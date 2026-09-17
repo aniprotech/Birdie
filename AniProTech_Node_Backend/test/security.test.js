@@ -1,0 +1,37 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import request from "supertest";
+import { randomUUID } from "node:crypto";
+import { openDatabase, initializeSchema } from "../src/db.js";
+import { createApp } from "../src/app.js";
+import { totp } from "../src/mfa.js";
+
+const data=(response)=>response.body.results.data;
+test("Gate C MFA, device sessions and privacy governance are tenant scoped",async()=>{
+ const db=await openDatabase({driver:"pglite",dataDir:":memory:"});await initializeSchema(db);
+ const config={production:false,frontendUrl:"http://localhost:5173",corsOrigins:["http://localhost:5173"],jwtSecret:"gate-c-test-secret-at-least-32-characters",uploadDir:"uploads-test",outboxDir:"outbox-test"};
+ const app=createApp({db,config,mail:{send:async()=>({accepted:[]})}}),{repo,auth}=app.locals.ctx,agency=randomUUID(),adminId=randomUUID(),clientId=randomUUID();
+ await db.query(`INSERT INTO node_agencies(id,name,business_type,phone,address_line1,city,postcode,country,timezone,terms_accepted_at) VALUES($1,'Gate C Care','HOME_CARE','0200000000','1 Secure Road','London','SW1','United Kingdom','Europe/London',CURRENT_TIMESTAMP)`,[agency]);
+ await repo.save("UserEntity",{id:adminId,agencyId:agency,firstName:"Security",lastName:"Admin",email:"secure@example.test",role:"SUPERADMIN",isActive:true});
+ await repo.save("UserEntity",{id:clientId,agencyId:agency,firstName:"Privacy",lastName:"Client",email:"client@example.test",role:"USER",isActive:true});
+ const signIn=async()=>{const link=await auth.createLoginLink("secure@example.test"),raw=Buffer.from(link.link.searchParams.get("token"),"base64url").toString().split(":");return auth.exchange(raw[0],raw[1],{name:"Test browser",ip:"127.0.0.1",userAgent:"test"});};
+ const first=await signIn(),bearer={Authorization:`Bearer ${first.accessToken}`};
+ let sessions=data(await request(app).get("/api/security/sessions").set(bearer));assert.equal(sessions.length,1);assert.equal(sessions[0].deviceName,"Test browser");assert.equal(sessions[0].current,true);
+ const setup=data(await request(app).post("/api/security/mfa/setup").set(bearer).send({}));assert.match(setup.otpauthUrl,/^otpauth:\/\/totp\//);
+ assert.equal((await request(app).post("/api/security/mfa/enable").set(bearer).send({code:totp(setup.secret)})).status,200);
+ const challenged=await signIn();assert.equal(challenged.mfaRequired,true);assert.equal(challenged.accessToken,undefined);
+ assert.equal((await request(app).post("/api/auth/mfa/verify").send({challengeToken:challenged.challengeToken,code:"000000"})).status,401);
+ const verified=data(await request(app).post("/api/auth/mfa/verify").send({challengeToken:challenged.challengeToken,code:totp(setup.secret),deviceName:"Second device"}));assert.ok(verified.accessToken);
+ const second={Authorization:`Bearer ${verified.accessToken}`};sessions=data(await request(app).get("/api/security/sessions").set(second));assert.equal(sessions.length,2);
+  const revoked=await request(app).post("/api/security/sessions/revoke-others").set(second).send({});assert.equal(revoked.status,200,JSON.stringify(revoked.body));assert.equal((await request(app).get("/api/security/sessions").set(bearer)).status,401);
+ const retention={careRecordsDays:3000,auditDays:2600,financeDays:2700,inactiveAccountsDays:2800};assert.equal((await request(app).put("/api/privacy/retention").set(second).send(retention)).status,200);
+ assert.equal(data(await request(app).get("/api/privacy/retention").set(second)).careRecordsDays,3000);
+ const hold=data(await request(app).post("/api/privacy/legal-holds").set(second).send({subjectUserId:clientId,reason:"Required for an active legal investigation"}));assert.ok(hold.id);
+ const privacy=data(await request(app).post("/api/privacy/requests").set(second).send({subjectUserId:clientId,kind:"ERASURE",reason:"The client requested deletion of their account records"}));
+ assert.equal((await request(app).post(`/api/privacy/requests/${privacy.id}/status`).set(second).send({status:"APPROVED",decisionReason:"Identity verified and request reviewed by privacy lead"})).status,409);
+ assert.equal((await request(app).post(`/api/privacy/legal-holds/${hold.id}/release`).set(second).send({})).status,200);
+  assert.equal((await request(app).post(`/api/privacy/requests/${privacy.id}/status`).set(second).send({status:"APPROVED",decisionReason:"Identity verified and legal hold has been released"})).status,200);
+  assert.equal((await request(app).post(`/api/privacy/requests/${privacy.id}/execute`).set(second).send({})).status,200);
+  const erased=(await db.query("SELECT first_name,email,is_active FROM users WHERE id=$1",[clientId])).rows[0];assert.equal(erased.first_name,"Erased");assert.equal(erased.is_active,false);assert.match(erased.email,/^erased-/);
+ await db.close();
+});

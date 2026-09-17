@@ -19,6 +19,8 @@ const AuthIndex = () => {
     const [email, setEmail] = useState("");
     const [data, setData] = useState({});
     const [loading, setLoading] = useState(false);
+    const [mfa, setMfa] = useState(null);
+    const [mfaCode, setMfaCode] = useState("");
 
     const { setUserData } = useAuthStore();
 
@@ -69,10 +71,17 @@ const AuthIndex = () => {
                     const response = await _post("/api/auth/get-token", {
                         email,
                         password,
+                        deviceName: navigator.userAgentData?.platform || navigator.platform || "Web browser",
                     });
 
                     toast.dismiss();
-                    const accessToken = response?.data?.results?.data?.accessToken;
+                    const result = response?.data?.results?.data;
+                    if (result?.mfaRequired) {
+                        setMfa(result);
+                        setLoading(false);
+                        return;
+                    }
+                    const accessToken = result?.accessToken;
                     if (!accessToken || response?.data?.error) {
                         throw new Error("The server did not return a valid session.");
                     }
@@ -97,6 +106,22 @@ const AuthIndex = () => {
             loginFromToken();
         }
     }, [token]);
+
+    const verifyMfa = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        try {
+            const response = await _post("/api/auth/mfa/verify", { challengeToken: mfa.challengeToken, code: mfaCode, deviceName: navigator.userAgentData?.platform || navigator.platform || "Web browser" });
+            const result = response?.data?.results?.data;
+            if (!result?.accessToken) throw new Error("The server did not return a valid session.");
+            localStorage.setItem("access_token", encryptData(result.accessToken));
+            setUserData(result);
+            setMfa(null);
+            navigate("/admin/teams", { replace: true });
+        } catch (error) {
+            showError(error?.response?.data?.message || "The authentication code was not accepted.");
+        } finally { setLoading(false); }
+    };
 
     return (
         <div className="relative">
@@ -128,6 +153,7 @@ const AuthIndex = () => {
                     email={email}
                 />
             </SwitchComponents>
+            {mfa && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4"><form onSubmit={verifyMfa} className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl"><h2 className="text-2xl font-semibold text-slate-900">Authentication code</h2><p className="mt-2 text-sm text-slate-600">Enter the six-digit code from your authenticator app to finish signing in.</p><input autoFocus inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength="6" value={mfaCode} onChange={(event)=>setMfaCode(event.target.value.replace(/\D/g,""))} className="mt-5 w-full rounded-lg border px-4 py-3 text-center text-2xl tracking-[0.35em]" aria-label="Six-digit authentication code"/><button disabled={loading||mfaCode.length!==6} className="mt-4 w-full rounded-lg bg-customTextNavy px-4 py-3 font-semibold text-white disabled:opacity-50">{loading?"Verifying…":"Verify and sign in"}</button></form></div>}
         </div>
     );
 };

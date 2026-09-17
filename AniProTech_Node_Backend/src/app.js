@@ -36,6 +36,7 @@ import {createInboxNotifications} from './inbox-notifications.js';
 import {registerNotificationDelivery} from './services/notification-delivery.js';
 import { registerMobileCare } from "./services/mobile-care.js";
 import { registerPlatformAdmin } from "./services/platform-admin.js";
+import { registerPrivacy, registerSecurity } from "./services/security.js";
 import { postcodeValid } from "./location.js";
 
 export function createApp({ db, config, mail = createMail(config) }) {
@@ -82,7 +83,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
       await db.query("SELECT 1");
       if (typeof mail.verify === "function" && !(await mail.verify()))
         return res.status(503).json({ status: "DOWN", service: "caremonitor-api", checks: { database: "UP", email: "DOWN" } });
-      return res.json({ status: "UP", service: "caremonitor-api", checks: { database: "UP", email: "UP" } });
+      return res.json({ status: "UP", service: "caremonitor-api", checks: { database: "UP", email: "UP", storage: config.storageMode || "filesystem" } });
     } catch (error) { next(error); }
   });
   const authLimit = rateLimit({
@@ -112,10 +113,11 @@ export function createApp({ db, config, mail = createMail(config) }) {
   app.post("/api/auth/get-token", authLimit, async (req, res) =>
     reply(
       res,
-      await auth.exchange(req.body.email, req.body.password),
+       await auth.exchange(req.body.email, req.body.password, {name:req.body.deviceName,ip:req.ip,userAgent:req.get("user-agent")}),
       "Login successful",
     ),
   );
+  app.post("/api/auth/mfa/verify",authLimit,async(req,res)=>reply(res,await auth.completeMfa(req.body.challengeToken,req.body.code,{name:req.body.deviceName,ip:req.ip,userAgent:req.get("user-agent")}),"Login successful"));
   app.get("/api/auth/microsoft", (req, res) => {
     if (!config.microsoftTenantId || !config.microsoftClientId || !config.microsoftClientSecret)
       return res.redirect(`${config.frontendUrl}/login?authError=microsoft_not_configured`);
@@ -226,6 +228,8 @@ export function createApp({ db, config, mail = createMail(config) }) {
     routes.push({ method, path, handler, options });
   for (const register of [
     registerAccount,
+    registerSecurity,
+    registerPrivacy,
     registerPlatformAdmin,
     registerUsers,
     registerClientFeed,

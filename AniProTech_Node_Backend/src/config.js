@@ -24,6 +24,7 @@ export function configuration(overrides = {}) {
         : "http://localhost:5173,http://127.0.0.1:5173")
     ).split(","),
     uploadDir: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
+    storageMode: process.env.STORAGE_MODE || "filesystem",
     outboxDir: path.resolve(process.env.OUTBOX_DIR || "./outbox"),
     mailMode: process.env.MAIL_MODE || "outbox",
     platformAdminEmails: (process.env.PLATFORM_ADMIN_EMAILS || "info@aniprotech.com")
@@ -33,6 +34,7 @@ export function configuration(overrides = {}) {
     inboxNotificationsEnabled: process.env.INBOX_NOTIFICATIONS_ENABLED !== 'false',
     trustProxy: process.env.TRUST_PROXY === "true",
     jwtSecret: process.env.JWT_SECRET,
+    mfaEncryptionKey: process.env.MFA_ENCRYPTION_KEY,
     microsoftTenantId: process.env.MICROSOFT_TENANT_ID,
     microsoftClientId: process.env.MICROSOFT_CLIENT_ID,
     microsoftClientSecret: process.env.MICROSOFT_CLIENT_SECRET,
@@ -68,5 +70,6 @@ export function configuration(overrides = {}) {
       });
     config.jwtSecret = fs.readFileSync(keyFile, "utf8");
   }
+  config.mfaEncryptionKey ||= config.jwtSecret;
   return config;
 }

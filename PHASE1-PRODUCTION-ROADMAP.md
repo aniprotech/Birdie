@@ -20,7 +20,7 @@ This roadmap converts the nine recommended development priorities and the produc
 | 2. Offline mobile reliability | Visits continue safely during poor connectivity without lost or duplicated records | Encrypted ordered queue, visible sync status, idempotent attendance/care-record/eMAR replay and ordered restart/conflict tests implemented | Device storage-pressure handling and physical-device network-loss evidence |
 | 3. Advanced rostering | Recurrence, double-up visits, travel, skills, continuity, working-time rules and open shifts | Double-up calls, care-team-scoped open shifts, configurable daily/weekly/rest rules and conservative location travel checks implemented | Manager acceptance and licensed road-routing integration if exact journey times are required |
 | 4. Complete finance | Invoice/payroll documents, funding, mileage, rate rules, credit notes, exports and reconciliation | Revision-pinned invoice/pay-run lines, travel and mileage pay, credit notes, audited CSV/PDF-ready print output and reconciliation implemented | Finance-owner acceptance, tax/accounting policy validation and external accounting/payroll adapters |
-| 5. Production security and privacy | MFA, secure sessions, retention, export/erasure, backup/restore and security testing | One-time links, session revocation, tenant isolation and audit records exist | MFA/passkeys, device sessions, retention jobs, data-subject workflows, tested restore and penetration-test remediation |
+| 5. Production security and privacy | MFA, secure sessions, retention, export/erasure, backup/restore and security testing | TOTP MFA, named device sessions, recent-auth controls, retention policies, data-subject workflows, legal holds and backup/restore tooling implemented | Private durable storage, scheduled backups, recorded staging restore and penetration-test remediation |
 | 6. Quality and compliance | Incidents, safeguarding, complaints, actions, audits, policy sign-off and credential expiry | Inbox alerts/actions and staff onboarding provide a base | Dedicated registers, escalation timers, evidence packs and compliance-owner acceptance |
 | 7. Family/client portal | Scoped visits, messages, documents, consent, feedback and payments | Secure read-only shared client portal exists | Consent-led family accounts, messaging, visit visibility, granular revocation and accessibility testing |
 | 8. Human-reviewed AI | Explainable summaries and safety signals without autonomous clinical decisions | Note assistance exists | Evidence links, review/approval history, false-positive evaluation, permissions and monitoring |
@@ -46,11 +46,13 @@ Source implementation completed on 17 September 2026. Production approval remain
 
 ### Gate C - Security, privacy and operational readiness
 
-1. Add MFA or passkeys, device/session management and privileged-action reauthentication.
-2. Implement retention schedules, export, correction, erasure review and legal holds.
-3. Move uploads to durable private object storage before horizontal scaling.
-4. Automate database and file backups; complete and record a staging restoration drill.
-5. Complete threat modelling, dependency review, penetration testing and incident-response exercises.
+Source implementation started on 17 September 2026.
+
+1. TOTP MFA, named device sessions, session revocation and ten-minute recent-authentication checks are implemented.
+2. Retention schedules, export/correction/erasure review, scoped export execution, controlled pseudonymisation and legal holds are implemented.
+3. Private download tickets remain implemented. Durable storage migration remains required before horizontal scaling.
+4. Checksum-backed database/file backup and isolated restore-drill tooling are implemented; production scheduling and recorded staging restoration remain required.
+5. The threat model and operational evidence plan are documented. Independent dependency/security review, penetration testing and incident-response exercises remain required.
 
 ### Gate D - Compliance, portal, AI and analytics
 

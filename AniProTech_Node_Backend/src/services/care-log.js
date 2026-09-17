@@ -25,6 +25,7 @@ export function registerCareLog({db,auth},route) {
       round(extract(epoch FROM(v.end_time-v.start_time))/60)::int AS "plannedMinutes",
       CASE WHEN v.actual_end IS NOT NULL THEN round(extract(epoch FROM(v.actual_end-v.actual_start))/60)::int END AS "actualMinutes",
       (SELECT count(*)::int FROM node_client_entries e WHERE e.visit_id=v.id AND e.kind='ALERT' AND e.status='OPEN') alerts,
+      (SELECT count(*)::int FROM node_client_entries e WHERE e.visit_id=v.id AND e.category='COMPLIANCE' AND e.status='OPEN') overrides,
       (SELECT count(*)::int FROM node_client_entries e WHERE e.visit_id=v.id AND e.kind='OBSERVATION') observations,
       (SELECT count(*)::int FROM node_client_entries e WHERE e.visit_id=v.id AND e.kind='ACTIVITY' AND e.status='COMPLETED') activities
       ${source} AND ($9='ALL' OR v.status=$9) ORDER BY v.visit_date DESC,v.start_time DESC,v.id LIMIT 31 OFFSET $10`,[...args,status,(page-1)*30])).rows;

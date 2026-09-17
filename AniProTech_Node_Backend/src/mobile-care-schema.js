@@ -30,13 +30,14 @@ export async function initializeMobileCare(db) {
     actor_id uuid NOT NULL REFERENCES users(id), outcome text NOT NULL CHECK(outcome IN ('ADMINISTERED','PRN_ADMINISTERED','REFUSED','NOT_AVAILABLE','OMITTED')),
     slot text NOT NULL, dose_given text NOT NULL DEFAULT '', reason text NOT NULL DEFAULT '', note text NOT NULL DEFAULT '',
     prn_effect text NOT NULL DEFAULT '', witnessed_by uuid REFERENCES users(id), quantity_given numeric,
+    allergy_acknowledged boolean NOT NULL DEFAULT false,
     stock_before numeric, stock_after numeric, occurred_at timestamptz NOT NULL,
     created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(agency_id,client_event_id), UNIQUE(visit_id,medication_id,slot)
   )`);
   await db.query("CREATE INDEX IF NOT EXISTS node_medication_administrations_visit ON node_medication_administrations(visit_id,occurred_at,id)");
   await db.query("CREATE INDEX IF NOT EXISTS node_medication_administrations_client ON node_medication_administrations(client_id,occurred_at,id)");
-  await db.query("ALTER TABLE node_medication_administrations ADD COLUMN IF NOT EXISTS quantity_given numeric, ADD COLUMN IF NOT EXISTS stock_before numeric, ADD COLUMN IF NOT EXISTS stock_after numeric");
+  await db.query("ALTER TABLE node_medication_administrations ADD COLUMN IF NOT EXISTS quantity_given numeric, ADD COLUMN IF NOT EXISTS stock_before numeric, ADD COLUMN IF NOT EXISTS stock_after numeric, ADD COLUMN IF NOT EXISTS allergy_acknowledged boolean NOT NULL DEFAULT false");
   await db.query(`CREATE TABLE IF NOT EXISTS node_medication_administration_corrections (
     id uuid PRIMARY KEY, administration_id uuid NOT NULL REFERENCES node_medication_administrations(id),
     agency_id uuid NOT NULL, actor_id uuid NOT NULL REFERENCES users(id), reason text NOT NULL,

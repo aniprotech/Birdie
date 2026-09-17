@@ -24,6 +24,7 @@ const medicationAdministrationInput = z.object({
   prnEffect: z.string().trim().max(1000).default(""),
   witnessedBy: z.uuid().nullable().default(null),
   quantityGiven: z.number().positive().max(100000).nullable().default(null),
+  allergyAcknowledged: z.boolean().default(false),
   occurredAt: z.iso.datetime({ offset: true }),
 }).superRefine((value, issue) => {
   if (!["ADMINISTERED", "PRN_ADMINISTERED"].includes(value.outcome) && value.reason.length < 3)
@@ -85,7 +86,8 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
       tasks.push({ id: p.id, name, details: p.details || "", essential: !!p.isEssential, sessions: p.isAnyTime ? ["ANYTIME"] : p.sessions || [], status: recorded?.status || "PENDING", recordId: recorded?.id || null });
     }
     const medication = await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id });
-    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), isControlledDrug:!!m.isControlledDrug, requiresWitness:!!m.requiresWitness, stockTrackingEnabled:!!m.stockTrackingEnabled, stockQuantity:Number(m.stockQuantity||0), stockUnit:m.stockUnit||"", lowStockThreshold:Number(m.lowStockThreshold||0), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, witnesses:witnesses.rows, entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
+    const medicationProfile=(await repo.find("ClientMedicationEntity",{user:v.client_id}))[0];
+    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, allergyInformation:String(medicationProfile?.allergies||"").trim(), medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), isControlledDrug:!!m.isControlledDrug, requiresWitness:!!m.requiresWitness, stockTrackingEnabled:!!m.stockTrackingEnabled, stockQuantity:Number(m.stockQuantity||0), stockUnit:m.stockUnit||"", lowStockThreshold:Number(m.lowStockThreshold||0), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, witnesses:witnesses.rows, entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
   });
 
   route("POST", "/api/mobile/visits/:id/medication-administrations", async (req, res) => {
@@ -118,6 +120,8 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
         fail(400, "Administration time must be within 36 hours of submission");
       const id = randomUUID();
       const administered = ["ADMINISTERED", "PRN_ADMINISTERED"].includes(body.outcome);
+      const allergyInformation=String((await repo.find("ClientMedicationEntity",{user:v.client_id}))[0]?.allergies||"").trim();
+      if(administered&&allergyInformation&&!body.allergyAcknowledged)fail(400,"Review and acknowledge the client's recorded allergy information before administration");
       if (administered && medication.stockTrackingEnabled && body.quantityGiven == null)
         fail(400, "Quantity given is required for stock-tracked medication");
       const stockBefore = medication.stockTrackingEnabled ? Number(medication.stockQuantity || 0) : null;
@@ -126,9 +130,9 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
       let inserted;
       try {
         inserted = (await db.query(`INSERT INTO node_medication_administrations
-          (id,agency_id,client_event_id,visit_id,client_id,medication_id,actor_id,outcome,slot,dose_given,reason,note,prn_effect,witnessed_by,quantity_given,stock_before,stock_after,occurred_at)
-          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
-          [id,req.user.agencyId,body.clientEventId,v.id,v.client_id,body.medicationId,req.user.id,body.outcome,body.slot,body.doseGiven,body.reason,body.note,body.prnEffect,body.witnessedBy,body.quantityGiven,stockBefore,stockAfter,body.occurredAt])).rows[0];
+          (id,agency_id,client_event_id,visit_id,client_id,medication_id,actor_id,outcome,slot,dose_given,reason,note,prn_effect,witnessed_by,quantity_given,stock_before,stock_after,occurred_at,allergy_acknowledged)
+          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,
+          [id,req.user.agencyId,body.clientEventId,v.id,v.client_id,body.medicationId,req.user.id,body.outcome,body.slot,body.doseGiven,body.reason,body.note,body.prnEffect,body.witnessedBy,body.quantityGiven,stockBefore,stockAfter,body.occurredAt,body.allergyAcknowledged])).rows[0];
       } catch (error) {
         if (error?.code === "23505") fail(409, "This medication and time slot have already been recorded for the visit");
         throw error;

@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { replayOwnedQueue } from "./offlineQueue.js";
 export const API_URL = (
   process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:8080"
 ).replace(/\/$/, "");
@@ -134,19 +135,8 @@ export async function apiOrQueue(path: string, body: unknown, ownerId: string, l
   }
 }
 export async function flushPendingMutations(ownerId: string) {
-  const items = await readQueue(), remaining: PendingMutation[] = [];
-  let sent = 0;
-  for (let index=0;index<items.length;index+=1) {
-    const item=items[index];
-    if (item.ownerId !== ownerId) { remaining.push(item); continue; }
-    try { await api(item.path, "POST", item.body); sent += 1; }
-    catch (error) {
-      const terminal=error instanceof ApiRequestError && error.status !== null && error.status < 500;
-      remaining.push({...item,attempts:(item.attempts||0)+1,lastError:terminal?(error as Error).message:"Waiting for a network connection"});
-      remaining.push(...items.slice(index+1));
-      break;
-    }
-  }
+  const items = await readQueue();
+  const {remaining,sent}=await replayOwnedQueue(items,ownerId,(item)=>api(item.path,"POST",item.body),(error)=>error instanceof ApiRequestError&&error.status!==null&&error.status<500?(error as Error).message:"Waiting for a network connection");
   await writeQueue(remaining);
   const owned=remaining.filter((item)=>item.ownerId===ownerId),summary={sent,pending:owned.length,blocked:owned.filter((item)=>!!item.lastError).length,lastSyncAt:new Date().toISOString()};
   if(Platform.OS!=="web")await SecureStore.setItemAsync(syncKey,JSON.stringify(summary));

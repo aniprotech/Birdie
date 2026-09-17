@@ -89,6 +89,7 @@ export function Visits({user}:{user:User}) {
   const { data, error, loading, refresh } = useData<{ visits: Row[] }>(
     `/api/roster/visits?from=${date}&to=${date}`,
   );
+  const openShifts=useData<{visits:Row[]}>(`/api/roster/open-shifts?from=${date}&to=${date}`);
   const options=useData<{canManage:boolean;clients:Row[];staff:Row[]}>("/api/roster/options");
   useEffect(()=>{void pendingMutationSummary(user.id).then(setSyncSummary)},[user.id]);
   async function synchroniseNow(){setBusy(true);try{const result=await flushPendingMutations(user.id);setSyncSummary(await pendingMutationSummary(user.id));if(!result.pending)Alert.alert("Synchronisation complete",`${result.sent} pending visit record${result.sent===1?"":"s"} sent successfully.`);else Alert.alert("Synchronisation needs attention",`${result.pending} record${result.pending===1?"":"s"} remain on this device. Review the reason below and resolve it before completing care records.`);}catch(e){Alert.alert("Synchronisation unavailable",(e as Error).message)}finally{setBusy(false)}}
@@ -213,6 +214,7 @@ export function Visits({user}:{user:User}) {
       </View>
       <Text style={styles.heading}>{date}</Text>
       <ErrorText error={error} />
+      {!selected&&user.role==="CAREGIVER"&&!!openShifts.data?.visits.length&&<><Text style={styles.heading}>Available open shifts</Text>{openShifts.data.visits.map(v=><Card key={v.id}><Text style={styles.badge}>{v.startTime} – {v.endTime}</Text><Text style={styles.heading}>{v.clientName}</Text><Text style={styles.text}>{v.title}{v.requiredStaff>1?` · double-up position ${v.slotIndex} of ${v.requiredStaff}`:""}</Text><Button disabled={busy} title="Claim shift" onPress={async()=>{setBusy(true);try{await api(`/api/roster/visits/${v.id}/claim`,"POST",{});Alert.alert("Shift assigned","The visit is now in your schedule.");openShifts.refresh();refresh()}catch(e){Alert.alert("Shift could not be assigned",(e as Error).message)}finally{setBusy(false)}}}/></Card>)}</>}
       {selected ? (
         <>
           <Button title="Back to visits" onPress={() => {setSelected(null);setDetail(null)}} />

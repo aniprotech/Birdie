@@ -236,6 +236,7 @@ export default function RosterBoard({ week, setWeek, visits, options, loading, e
                             <small>
                                 {v.startTime}–{v.endTime}
                                 {v.status === "COMPLETED" ? " ✓" : v.status === "IN_PROGRESS" ? " • In progress" : ""}
+                                {v.openShift?" · Open shift":""}{v.requiredStaff>1?` · ${v.slotIndex}/${v.requiredStaff} carers`:""}
                             </small>
                         </button>
                     ))}

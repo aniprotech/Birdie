@@ -32,6 +32,7 @@ test("Roster workflows and Team safeguards", async (t) => {
   }
   const admin = await person("admin@roster.test", "ADMIN"),
     staff = await person("staff@roster.test", "CAREGIVER"),
+    staff2 = await person("staff2@roster.test", "CAREGIVER"),
     client = await person("client@roster.test", "USER"),
     client2 = await person("client2@roster.test", "USER"),
     other = await person("other@roster.test", "ADMIN", randomUUID());
@@ -48,6 +49,7 @@ test("Roster workflows and Team safeguards", async (t) => {
   }
   const adminToken = await token(admin.email),
     staffToken = await token(staff.email),
+    staff2Token = await token(staff2.email),
     otherToken = await token(other.email);
   const call = (method, path, body, access = adminToken) =>
     request(app)
@@ -85,6 +87,21 @@ test("Roster workflows and Team safeguards", async (t) => {
         );
       },
     );
+    await t.test("Double-up calls, open shifts, working limits and location travel gaps are enforced",async()=>{
+      await repo.save("ClientCareTeamEntity",{client:client.id,carer:staff2.id,allowedToVisit:true,viewAccess:true});
+      await repo.save("UserPrimaryAddressEntity",{user:client.id,isPrimary:true,latitude:52.4862,longitude:-1.8904,addressLine1:"Birmingham"});
+      await repo.save("UserPrimaryAddressEntity",{user:client2.id,isPrimary:true,latitude:52.9548,longitude:-1.1581,addressLine1:"Nottingham"});
+      const created=await call("post","/api/roster/visits",{...base,date:"2026-09-17",startTime:"13:00",endTime:"14:00",requiredStaff:2,openShift:true});
+      assert.equal(created.status,201,JSON.stringify(created.body));
+      const slots=data(created).visits;assert.equal(slots.length,2);assert.equal(slots[0].callGroupId,slots[1].callGroupId);assert.equal(slots[1].openShift,true);assert.equal(slots[1].staffId,null);
+      const available=await call("get","/api/roster/open-shifts?from=2026-09-17&to=2026-09-17",undefined,staff2Token);assert.equal(data(available).visits.length,1);
+      const claimed=await call("post",`/api/roster/visits/${slots[1].id}/claim`,{},staff2Token);assert.equal(claimed.status,200,JSON.stringify(claimed.body));assert.equal(data(claimed).staffId,staff2.id);assert.equal(data(claimed).openShift,false);
+      assert.equal((await call("put","/api/roster/workforce-rules",{maxDailyMinutes:60,maxWeeklyMinutes:3600,minRestMinutes:0,travelSpeedMph:25,travelBufferMinutes:10})).status,200);
+      assert.equal((await call("post","/api/roster/visits",{...base,clientId:client2.id,staffId:staff2.id,date:"2026-09-17",startTime:"15:00",endTime:"16:00"})).status,409);
+      await call("put","/api/roster/workforce-rules",{maxDailyMinutes:720,maxWeeklyMinutes:3600,minRestMinutes:0,travelSpeedMph:25,travelBufferMinutes:10});
+      const travelConflict=await call("post","/api/roster/visits",{...base,clientId:client2.id,staffId:staff2.id,date:"2026-09-17",startTime:"14:05",endTime:"15:00"});assert.equal(travelConflict.status,409);assert.match(travelConflict.body.message,/Travel gap/);
+      assert.equal(data(await call("get","/api/roster/workforce-rules")).travelBufferMinutes,10);
+    });
     await t.test(
       "Overlap prevention, atomic repeat rollback, and invalid dates",
       async () => {
@@ -111,7 +128,7 @@ test("Roster workflows and Team safeguards", async (t) => {
           "get",
           "/api/roster/visits?from=2026-09-07&to=2026-09-20",
         );
-        assert.equal(data(list).visits.length, 1);
+        assert.equal(data(list).visits.length, 3);
         assert.equal(
           (
             await call("post", "/api/roster/visits", {

@@ -26,7 +26,7 @@ export function registerFinance({ db, repo, auth }, route) {
       rateKind = kind === "INVOICE" ? "BILLING" : "PAY";
     const { rows } = await db.query(
       `SELECT v.id AS "visitId",v.visit_date::text AS date,v.title,
-      review.minutes AS minutes,
+      review.minutes AS minutes,v.revision AS "visitRevision",review.revision AS "reviewRevision",
       (SELECT hourly_pence FROM node_rates r WHERE r.user_id=$2 AND r.agency_id=$1 AND r.kind=$5 AND r.effective_from<=v.visit_date ORDER BY effective_from DESC LIMIT 1) AS "hourlyPence"
       FROM node_roster_visits v JOIN node_finance_reviews review ON review.visit_id=v.id AND review.kind=$5 AND review.state='CONFIRMED' AND review.visit_revision=v.revision WHERE v.agency_id=$1 AND ${kind === "INVOICE" ? "v.client_id" : "v.staff_id"}=$2 AND v.status='COMPLETED'
       AND v.visit_date BETWEEN $3 AND $4 AND NOT EXISTS(SELECT 1 FROM node_finance_lines l WHERE l.visit_id=v.id AND l.kind=$6 AND l.released=false)
@@ -35,9 +35,18 @@ export function registerFinance({ db, repo, auth }, route) {
     );
     const lines = rows.map((r) => ({
       ...r,
+      component:"CARE",
       amountPence:
         r.hourlyPence === null ? null : roundCharge(r.minutes, r.hourlyPence),
     }));
+    if(kind==="PAYRUN"&&rows.length){const travel=(await db.query(`SELECT t.visit_id AS "visitId",t.miles,t.minutes,t.revision AS "travelRevision",v.visit_date::text AS date,v.title,v.revision AS "visitRevision",review.revision AS "reviewRevision",
+      (SELECT mileage_pence FROM node_travel_rates r WHERE r.user_id=$2 AND r.agency_id=$1 AND r.effective_from<=v.visit_date ORDER BY effective_from DESC LIMIT 1) AS "mileagePence",
+      (SELECT hourly_pence FROM node_travel_rates r WHERE r.user_id=$2 AND r.agency_id=$1 AND r.effective_from<=v.visit_date ORDER BY effective_from DESC LIMIT 1) AS "travelHourlyPence"
+      FROM node_visit_travel t JOIN node_roster_visits v ON v.id=t.visit_id JOIN node_finance_reviews review ON review.visit_id=v.id AND review.kind='PAY' AND review.state='CONFIRMED' AND review.visit_revision=v.revision
+      WHERE t.agency_id=$1 AND t.staff_id=$2 AND v.visit_date BETWEEN $3 AND $4 AND v.status='COMPLETED'
+      AND NOT EXISTS(SELECT 1 FROM node_finance_lines l WHERE l.visit_id=v.id AND l.kind='PAYRUN' AND l.component IN ('MILEAGE','TRAVEL_TIME') AND l.released=false)`,[req.user.agencyId,user.id,from,to])).rows;
+      for(const t of travel){if(Number(t.miles)>0)lines.push({...t,component:"MILEAGE",title:`Mileage - ${t.title}`,minutes:0,hourlyPence:t.mileagePence,amountPence:t.mileagePence==null?null:Math.round(Number(t.miles)*Number(t.mileagePence))});if(Number(t.minutes)>0)lines.push({...t,component:"TRAVEL_TIME",title:`Travel time - ${t.title}`,hourlyPence:t.travelHourlyPence,amountPence:t.travelHourlyPence==null?null:roundCharge(Number(t.minutes),Number(t.travelHourlyPence))});}
+    }
     return {
       kind,
       recipientId: user.id,
@@ -51,6 +60,8 @@ export function registerFinance({ db, repo, auth }, route) {
     };
   }
   const docSelect = `SELECT id,kind,number,recipient_id AS "recipientId",recipient_name AS "recipientName",from_date::text AS "from",to_date::text AS "to",total_pence AS "totalPence",status,created_at AS "createdAt" FROM node_finance_documents`;
+  async function reconciliation(req,id){const d=(await db.query("SELECT * FROM node_finance_documents WHERE id=$1 AND agency_id=$2",[id,req.user.agencyId])).rows[0];if(!d)fail(404,"Document not found");const lines=(await db.query(`SELECT l.id,l.amount_pence,l.component,l.visit_revision,l.review_revision,l.travel_revision,v.revision current_visit_revision,r.revision current_review_revision,t.revision current_travel_revision
+    FROM node_finance_lines l JOIN node_roster_visits v ON v.id=l.visit_id LEFT JOIN node_finance_reviews r ON r.visit_id=v.id AND r.kind=CASE WHEN l.kind='INVOICE' THEN 'BILLING' ELSE 'PAY' END LEFT JOIN node_visit_travel t ON t.visit_id=v.id WHERE l.document_id=$1`,[id])).rows;const lineTotal=lines.reduce((sum,l)=>sum+Number(l.amount_pence),0),sourcesMatch=lines.every(l=>Number(l.visit_revision)===Number(l.current_visit_revision)&&Number(l.review_revision)===Number(l.current_review_revision)&&(!['MILEAGE','TRAVEL_TIME'].includes(l.component)||Number(l.travel_revision)===Number(l.current_travel_revision)));return {documentId:id,documentTotalPence:Number(d.total_pence),lineTotalPence:lineTotal,totalMatches:Number(d.total_pence)===lineTotal,sourcesMatch,balanced:Number(d.total_pence)===lineTotal&&sourcesMatch,lineCount:lines.length};}
   route("GET", "/api/finance/options", async (req, res) => {
     auth.admin(req);
     const people = await repo.find(
@@ -154,7 +165,7 @@ export function registerFinance({ db, repo, auth }, route) {
     );
     for (const l of p.lines)
       await db.query(
-        "INSERT INTO node_finance_lines(id,document_id,visit_id,kind,visit_date,title,minutes,hourly_pence,amount_pence) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+        "INSERT INTO node_finance_lines(id,document_id,visit_id,kind,visit_date,title,minutes,hourly_pence,amount_pence,component,visit_revision,review_revision,travel_revision) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
         [
           randomUUID(),
           id,
@@ -165,6 +176,10 @@ export function registerFinance({ db, repo, auth }, route) {
           l.minutes,
           l.hourlyPence,
           l.amountPence,
+          l.component,
+          l.visitRevision,
+          l.reviewRevision,
+          l.travelRevision||null,
         ],
       );
     return reply(res, { id }, "Draft created", 201);
@@ -197,7 +212,7 @@ export function registerFinance({ db, repo, auth }, route) {
     if (!d) fail(404, "Document not found");
     d.lines = (
       await db.query(
-        'SELECT visit_date::text AS date,title,minutes,hourly_pence AS "hourlyPence",amount_pence AS "amountPence" FROM node_finance_lines WHERE document_id=$1 ORDER BY visit_date,id',
+        'SELECT id,visit_id AS "visitId",visit_date::text AS date,title,component,minutes,hourly_pence AS "hourlyPence",amount_pence AS "amountPence" FROM node_finance_lines WHERE document_id=$1 ORDER BY visit_date,component,id',
         [d.id],
       )
     ).rows;
@@ -225,6 +240,7 @@ export function registerFinance({ db, repo, auth }, route) {
     };
     if (!allowed[d.status]?.includes(next))
       fail(400, "This status change is not allowed");
+    if(next===approved){const check=await reconciliation(req,d.id);if(!check.balanced)fail(409,"Document no longer reconciles to its confirmed visit revisions. Void it and create a new draft.");}
     await db.query(
       "UPDATE node_finance_documents SET status=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",
       [d.id, next],
@@ -234,6 +250,15 @@ export function registerFinance({ db, repo, auth }, route) {
         "UPDATE node_finance_lines SET released=true WHERE document_id=$1",
         [d.id],
       );
+    await db.query("INSERT INTO node_finance_history(id,agency_id,actor_id,subject_id,action,snapshot) VALUES($1,$2,$3,$4,'DOCUMENT_STATUS_CHANGED',$5)",[randomUUID(),req.user.agencyId,req.user.id,d.id,JSON.stringify({before:d.status,after:next})]);
     return reply(res, {}, "Document updated");
   });
+  route("GET","/api/finance/documents/:id/reconcile",async(req,res)=>{auth.admin(req);return reply(res,await reconciliation(req,req.params.id))});
+  route("POST","/api/finance/documents/:id/export",async(req,res)=>{auth.admin(req);const check=await reconciliation(req,req.params.id),d=(await db.query(docSelect+" WHERE id=$1 AND agency_id=$2",[req.params.id,req.user.agencyId])).rows[0];if(!d)fail(404,"Document not found");const lines=(await db.query('SELECT visit_date::text AS date,title,component,minutes,hourly_pence AS "hourlyPence",amount_pence AS "amountPence" FROM node_finance_lines WHERE document_id=$1 ORDER BY visit_date,component,id',[d.id])).rows;await db.query("INSERT INTO node_finance_history(id,agency_id,actor_id,subject_id,action,snapshot) VALUES($1,$2,$3,$4,'DOCUMENT_EXPORTED',$5)",[randomUUID(),req.user.agencyId,req.user.id,d.id,JSON.stringify({format:req.body?.format||"CSV",status:d.status,reconciliation:check})]);return reply(res,{document:d,lines,reconciliation:check},"Export recorded")});
+  route("POST","/api/finance/travel",async(req,res)=>{auth.admin(req);const p=z.object({visitId:z.uuid(),miles:z.number().min(0).max(10000),minutes:z.number().int().min(0).max(1440),source:z.enum(["ACTUAL","ESTIMATE"]).default("ACTUAL"),expectedRevision:z.number().int().min(0).default(0)}).safeParse(req.body);if(!p.success)fail(400,"Enter valid visit mileage and travel time");const b=p.data;const v=(await db.query("SELECT * FROM node_roster_visits WHERE id=$1 AND agency_id=$2",[b.visitId,req.user.agencyId])).rows[0];if(!v||v.status!=="COMPLETED"||!v.staff_id)fail(400,"Choose a completed assigned visit");const old=(await db.query("SELECT * FROM node_visit_travel WHERE visit_id=$1",[v.id])).rows[0];if((old?.revision||0)!==b.expectedRevision)fail(409,"Travel changed. Refresh before saving.");if((await db.query("SELECT id FROM node_finance_lines WHERE visit_id=$1 AND kind='PAYRUN' AND released=false",[v.id])).rows.length)fail(409,"Travel is locked in a staff pay document");await db.query(`INSERT INTO node_visit_travel(visit_id,agency_id,staff_id,miles,minutes,source,recorded_by) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(visit_id) DO UPDATE SET miles=EXCLUDED.miles,minutes=EXCLUDED.minutes,source=EXCLUDED.source,revision=node_visit_travel.revision+1,recorded_by=EXCLUDED.recorded_by,updated_at=CURRENT_TIMESTAMP`,[v.id,req.user.agencyId,v.staff_id,b.miles,b.minutes,b.source,req.user.id]);await db.query("INSERT INTO node_finance_history(id,agency_id,actor_id,subject_id,action,snapshot) VALUES($1,$2,$3,$4,'TRAVEL_RECORDED',$5)",[randomUUID(),req.user.agencyId,req.user.id,v.id,JSON.stringify(b)]);return reply(res,{},"Travel saved")});
+  route("GET","/api/finance/travel",async(req,res)=>{auth.admin(req);const {from,to}=dateRange(req.query);return reply(res,(await db.query(`SELECT t.visit_id AS "visitId",t.staff_id AS "staffId",t.miles,t.minutes,t.source,t.revision,v.visit_date::text date,v.title,u.first_name||' '||u.last_name name FROM node_visit_travel t JOIN node_roster_visits v ON v.id=t.visit_id JOIN users u ON u.id=t.staff_id WHERE t.agency_id=$1 AND v.visit_date BETWEEN $2 AND $3 ORDER BY v.visit_date,v.start_time`,[req.user.agencyId,from,to])).rows)});
+  route("POST","/api/finance/credit-notes",async(req,res)=>{auth.admin(req);const p=z.object({invoiceId:z.uuid(),reason:z.string().trim().min(5).max(1000),lines:z.array(z.object({financeLineId:z.uuid(),amountPence:z.number().int().positive()})).min(1).max(500)}).safeParse(req.body);if(!p.success)fail(400,"Enter an invoice, reason and valid credit lines");const b=p.data;const result=await db.transaction(async()=>{await lock(req);const invoice=(await db.query("SELECT * FROM node_finance_documents WHERE id=$1 AND agency_id=$2 AND kind='INVOICE' FOR UPDATE",[b.invoiceId,req.user.agencyId])).rows[0];if(!invoice||!['ISSUED','PAID'].includes(invoice.status))fail(400,"Choose an issued or paid invoice");const ids=b.lines.map(x=>x.financeLineId);if(new Set(ids).size!==ids.length)fail(400,"Choose each invoice line once");const source=(await db.query("SELECT * FROM node_finance_lines WHERE document_id=$1 AND id=ANY($2::uuid[])",[invoice.id,ids])).rows;if(source.length!==ids.length)fail(400,"A credit line does not belong to this invoice");const already=(await db.query("SELECT COALESCE(sum(total_pence),0)::int total FROM node_credit_notes WHERE invoice_id=$1 AND status<>'VOID'",[invoice.id])).rows[0].total,creditedByLine=(await db.query(`SELECT l.finance_line_id,sum(l.amount_pence)::int total FROM node_credit_note_lines l JOIN node_credit_notes c ON c.id=l.credit_note_id WHERE c.invoice_id=$1 AND c.status<>'VOID' GROUP BY l.finance_line_id`,[invoice.id])).rows;let total=0;for(const line of b.lines){const original=source.find(x=>x.id===line.financeLineId),lineAlready=Number(creditedByLine.find(x=>x.finance_line_id===line.financeLineId)?.total||0);if(lineAlready+line.amountPence>Number(original.amount_pence))fail(409,"Credits cannot exceed an original invoice line");total+=line.amountPence;}if(Number(already)+total>Number(invoice.total_pence))fail(409,"Credits cannot exceed the invoice total");const number=(await db.query("SELECT COALESCE(max(number),0)+1 next FROM node_credit_notes WHERE agency_id=$1",[req.user.agencyId])).rows[0].next,id=randomUUID();await db.query("INSERT INTO node_credit_notes(id,agency_id,invoice_id,number,reason,total_pence,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)",[id,req.user.agencyId,invoice.id,number,b.reason,total,req.user.id]);for(const line of b.lines){const original=source.find(x=>x.id===line.financeLineId);await db.query("INSERT INTO node_credit_note_lines(id,credit_note_id,finance_line_id,description,amount_pence) VALUES($1,$2,$3,$4,$5)",[randomUUID(),id,original.id,original.title,line.amountPence]);}await db.query("INSERT INTO node_finance_history(id,agency_id,actor_id,subject_id,action,snapshot) VALUES($1,$2,$3,$4,'CREDIT_NOTE_CREATED',$5)",[randomUUID(),req.user.agencyId,req.user.id,id,JSON.stringify({invoiceId:invoice.id,totalPence:total,reason:b.reason})]);return id});return reply(res,{id:result},"Credit note draft created",201)});
+  route("GET","/api/finance/credit-notes",async(req,res)=>{auth.admin(req);return reply(res,(await db.query(`SELECT c.id,c.number,c.invoice_id AS "invoiceId",d.number AS "invoiceNumber",c.reason,c.total_pence AS "totalPence",c.status,c.created_at AS "createdAt" FROM node_credit_notes c JOIN node_finance_documents d ON d.id=c.invoice_id WHERE c.agency_id=$1 ORDER BY c.number DESC`,[req.user.agencyId])).rows)});
+  route("GET","/api/finance/credit-notes/:id",async(req,res)=>{auth.admin(req);const c=(await db.query(`SELECT c.id,c.number,c.invoice_id AS "invoiceId",d.number AS "invoiceNumber",c.reason,c.total_pence AS "totalPence",c.status,c.created_at AS "createdAt" FROM node_credit_notes c JOIN node_finance_documents d ON d.id=c.invoice_id WHERE c.id=$1 AND c.agency_id=$2`,[req.params.id,req.user.agencyId])).rows[0];if(!c)fail(404,"Credit note not found");c.lines=(await db.query('SELECT finance_line_id AS "financeLineId",description,amount_pence AS "amountPence" FROM node_credit_note_lines WHERE credit_note_id=$1 ORDER BY id',[c.id])).rows;return reply(res,c)});
+  route("POST","/api/finance/credit-notes/:id/status",async(req,res)=>{auth.admin(req);await lock(req);const c=(await db.query("SELECT * FROM node_credit_notes WHERE id=$1 AND agency_id=$2 FOR UPDATE",[req.params.id,req.user.agencyId])).rows[0];if(!c)fail(404,"Credit note not found");if(req.body.expectedStatus!==c.status)fail(409,"This credit note changed. Refresh before updating");const allowed={DRAFT:['ISSUED','VOID'],ISSUED:['APPLIED','VOID'],APPLIED:[],VOID:[]};if(!allowed[c.status]?.includes(req.body.status))fail(400,"This status change is not allowed");await db.query("UPDATE node_credit_notes SET status=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[c.id,req.body.status]);await db.query("INSERT INTO node_finance_history(id,agency_id,actor_id,subject_id,action,snapshot) VALUES($1,$2,$3,$4,'CREDIT_NOTE_STATUS_CHANGED',$5)",[randomUUID(),req.user.agencyId,req.user.id,c.id,JSON.stringify({before:c.status,after:req.body.status})]);return reply(res,{},"Credit note updated")});
 }

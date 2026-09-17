@@ -19,8 +19,14 @@ export async function initializeOperations(db) {
     visit_date date NOT NULL,title text NOT NULL,minutes integer NOT NULL,hourly_pence integer NOT NULL,
     amount_pence integer NOT NULL,released boolean NOT NULL DEFAULT false
   )`);
+  await db.query(`ALTER TABLE node_finance_lines
+    ADD COLUMN IF NOT EXISTS component text NOT NULL DEFAULT 'CARE',
+    ADD COLUMN IF NOT EXISTS visit_revision integer NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS review_revision integer NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS travel_revision integer`);
+  await db.query("DROP INDEX IF EXISTS node_finance_visit_once");
   await db.query(
-    "CREATE UNIQUE INDEX IF NOT EXISTS node_finance_visit_once ON node_finance_lines(kind,visit_id) WHERE released=false",
+    "CREATE UNIQUE INDEX IF NOT EXISTS node_finance_visit_once ON node_finance_lines(kind,visit_id,component) WHERE released=false",
   );
   await db.query(`CREATE TABLE IF NOT EXISTS node_finance_reviews (
     visit_id uuid NOT NULL REFERENCES node_roster_visits(id), kind text NOT NULL CHECK(kind IN ('PAY','BILLING')),
@@ -38,6 +44,25 @@ export async function initializeOperations(db) {
     id uuid PRIMARY KEY,agency_id uuid NOT NULL,user_id uuid NOT NULL REFERENCES users(id),effective_from date NOT NULL,
     weekly_minutes integer NOT NULL CHECK(weekly_minutes BETWEEN 0 AND 10080),funding_source text NOT NULL DEFAULT '',reference text NOT NULL DEFAULT '',
     UNIQUE(user_id,effective_from))`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_visit_travel (
+    visit_id uuid PRIMARY KEY REFERENCES node_roster_visits(id),agency_id uuid NOT NULL,
+    staff_id uuid NOT NULL REFERENCES users(id),miles numeric NOT NULL CHECK(miles BETWEEN 0 AND 10000),
+    minutes integer NOT NULL CHECK(minutes BETWEEN 0 AND 1440),source text NOT NULL DEFAULT 'ACTUAL',
+    revision integer NOT NULL DEFAULT 1,recorded_by uuid NOT NULL REFERENCES users(id),
+    recorded_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_credit_notes (
+    id uuid PRIMARY KEY,agency_id uuid NOT NULL,invoice_id uuid NOT NULL REFERENCES node_finance_documents(id),
+    number integer NOT NULL,reason text NOT NULL,total_pence integer NOT NULL CHECK(total_pence>0),
+    status text NOT NULL DEFAULT 'DRAFT' CHECK(status IN ('DRAFT','ISSUED','APPLIED','VOID')),
+    created_by uuid NOT NULL REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,UNIQUE(agency_id,number)
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_credit_note_lines (
+    id uuid PRIMARY KEY,credit_note_id uuid NOT NULL REFERENCES node_credit_notes(id),
+    finance_line_id uuid NOT NULL REFERENCES node_finance_lines(id),description text NOT NULL,
+    amount_pence integer NOT NULL CHECK(amount_pence>0),UNIQUE(credit_note_id,finance_line_id)
+  )`);
   await db.query(`CREATE TABLE IF NOT EXISTS node_threads (
     id uuid PRIMARY KEY,agency_id uuid NOT NULL,subject text NOT NULL,
     created_by uuid NOT NULL REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP

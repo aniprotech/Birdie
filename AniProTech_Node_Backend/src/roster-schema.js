@@ -27,4 +27,16 @@ export async function initializeRoster(db) {
   await db.query(
     "CREATE INDEX IF NOT EXISTS node_roster_agency_date ON node_roster_visits(agency_id,visit_date)",
   );
+  await db.query(`ALTER TABLE node_roster_visits
+    ADD COLUMN IF NOT EXISTS call_group_id uuid,
+    ADD COLUMN IF NOT EXISTS required_staff integer NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS slot_index integer NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS open_shift boolean NOT NULL DEFAULT false`);
+  await db.query("CREATE UNIQUE INDEX IF NOT EXISTS node_roster_call_slot ON node_roster_visits(call_group_id,slot_index) WHERE call_group_id IS NOT NULL");
+  await db.query(`CREATE TABLE IF NOT EXISTS node_workforce_rules (
+    agency_id uuid PRIMARY KEY,max_daily_minutes integer NOT NULL DEFAULT 720,
+    max_weekly_minutes integer NOT NULL DEFAULT 3600,min_rest_minutes integer NOT NULL DEFAULT 660,
+    travel_speed_mph integer NOT NULL DEFAULT 25,travel_buffer_minutes integer NOT NULL DEFAULT 10,
+    updated_by uuid REFERENCES users(id),updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
 }

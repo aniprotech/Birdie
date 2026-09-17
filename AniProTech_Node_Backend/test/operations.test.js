@@ -398,6 +398,27 @@ test("Operations modules", async (t) => {
           ).status,
           400,
         );
+        const visit2=(await db.query(`INSERT INTO node_roster_visits(id,agency_id,client_id,staff_id,visit_date,start_time,end_time,title,notes,status,created_by,updated_by)
+          VALUES($1,$2,$3,$4,'2026-09-11','10:00','10:45','Travelled visit','','COMPLETED',$5,$5) RETURNING id`,[randomUUID(),agency,client.id,staff.id,admin.id])).rows[0];
+        for(const kind of ["BILLING","PAY"])assert.equal((await call("post","/api/finance/visits/review",{items:[{id:visit2.id,revision:1,reviewRevision:0}],kind,state:"CONFIRMED",basis:"PLANNED",reason:"Gate B test approval"})).status,200);
+        assert.equal((await call("post","/api/finance/travel",{visitId:visit2.id,miles:2,minutes:30,source:"ACTUAL",expectedRevision:0})).status,200);
+        const travelPreview=data(await call("get",`/api/finance/preview?kind=PAYRUN&recipientId=${staff.id}&from=2026-09-11&to=2026-09-11`));
+        assert.deepEqual(travelPreview.lines.map(x=>x.component).sort(),["CARE","MILEAGE","TRAVEL_TIME"]);assert.equal(travelPreview.totalPence,1590);
+        const travelPay=data(await call("post","/api/finance/documents",{kind:"PAYRUN",recipientId:staff.id,from:"2026-09-11",to:"2026-09-11"}));
+        const reconciliation=data(await call("get",`/api/finance/documents/${travelPay.id}/reconcile`));assert.equal(reconciliation.balanced,true);assert.equal(reconciliation.lineCount,3);
+        const exported=await call("post",`/api/finance/documents/${travelPay.id}/export`,{format:"CSV"});assert.equal(exported.status,200);assert.equal(data(exported).reconciliation.balanced,true);
+        const newInvoice=data(await call("post","/api/finance/documents",{kind:"INVOICE",recipientId:client.id,from:"2026-09-11",to:"2026-09-11"}));
+        assert.equal((await call("post",`/api/finance/documents/${newInvoice.id}/status`,{expectedStatus:"DRAFT",status:"ISSUED"})).status,200);
+        const invoiceDetail=data(await call("get",`/api/finance/documents/${newInvoice.id}`));
+        const credit=data(await call("post","/api/finance/credit-notes",{invoiceId:newInvoice.id,reason:"Service adjustment agreed",lines:[{financeLineId:invoiceDetail.lines[0].id,amountPence:500}]}));
+        let creditDetail=data(await call("get",`/api/finance/credit-notes/${credit.id}`));assert.equal(creditDetail.totalPence,500);assert.equal(creditDetail.status,"DRAFT");
+        assert.equal((await call("post",`/api/finance/credit-notes/${credit.id}/status`,{expectedStatus:"DRAFT",status:"ISSUED"})).status,200);
+        assert.equal((await call("post",`/api/finance/credit-notes/${credit.id}/status`,{expectedStatus:"ISSUED",status:"APPLIED"})).status,200);
+        assert.equal((await call("post","/api/finance/credit-notes",{invoiceId:newInvoice.id,reason:"Invalid excessive line credit",lines:[{financeLineId:invoiceDetail.lines[0].id,amountPence:2000}]})).status,409);
+        assert.equal((await call("post","/api/finance/travel",{visitId:visit2.id,miles:3,minutes:35,source:"ACTUAL",expectedRevision:1})).status,409);
+        await db.query("UPDATE node_roster_visits SET revision=revision+1 WHERE id=$1",[visit2.id]);
+        assert.equal(data(await call("get",`/api/finance/documents/${travelPay.id}/reconcile`)).sourcesMatch,false);
+        assert.equal((await call("post",`/api/finance/documents/${travelPay.id}/status`,{expectedStatus:"DRAFT",status:"APPROVED"})).status,409);
       },
     );
     await t.test(
@@ -408,9 +429,9 @@ test("Operations modules", async (t) => {
         assert.equal(r.status, 200);
         assert.equal(
           data(r).byStatus.find((s) => s.status === "COMPLETED").visits,
-          1,
+          2,
         );
-        assert.equal(data(r).staff[0].completedMinutes, 45);
+        assert.equal(data(r).staff[0].completedMinutes, 90);
         assert.equal((await call("get", path, undefined, st)).status, 403);
         assert.equal(
           data(await call("get", path, undefined, ot)).byStatus.length,

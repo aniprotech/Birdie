@@ -37,6 +37,7 @@ export default function FinanceIndex() {
         [kind, setKind] = useState("PAY"),
         [basis, setBasis] = useState("ACTUAL"),
         [review, setReview] = useState(null),
+        [travelEntry,setTravelEntry]=useState(null),
         [reason, setReason] = useState(""),
         [saved, setSaved] = useState(""),
         [history, setHistory] = useState([]),
@@ -227,8 +228,7 @@ export default function FinanceIndex() {
                 ) : section === "TRAVEL" ? (
                     <div className="fin-content">
                         <p>
-                            Effective-dated staff travel rates. These are saved for travel calculations; mileage is not added to pay drafts
-                            automatically.
+                            Effective-dated staff travel rates. Approved mileage and travel time recorded against completed visits are automatically included in pay-run drafts.
                         </p>
                         <form
                             onSubmit={async (e) => {
@@ -493,6 +493,8 @@ export default function FinanceIndex() {
                                                 <td>
                                                     {v.status.replaceAll("_", " ")}
                                                     {v.edited ? " · Edited" : ""}
+                                                    {v.travel?<><br/>{v.travel.miles} miles · {v.travel.minutes} travel min</>:null}
+                                                    {v.status==="COMPLETED"&&v.staffId&&!v.locked.includes("PAYRUN")&&<><br/><button className="underline" onClick={()=>setTravelEntry({visitId:v.id,miles:String(v.travel?.miles||""),minutes:String(v.travel?.minutes||""),source:v.travel?.source||"ACTUAL",expectedRevision:v.travel?.revision||0,label:`${v.client} · ${v.date}`})}>{v.travel?"Edit travel":"Record travel"}</button></>}
                                                 </td>
                                             </tr>
                                         ))}
@@ -544,6 +546,7 @@ export default function FinanceIndex() {
                         </section>
                     </div>
                 )}
+                {travelEntry&&<div className="fin-overlay"><section role="dialog" aria-modal="true" aria-label="Record visit travel"><h2>Record payable travel</h2><p>{travelEntry.label}. Enter verified journey values; these will be snapshotted into the staff pay run.</p><label>Miles<input type="number" min="0" max="10000" step="0.1" value={travelEntry.miles} onChange={e=>setTravelEntry({...travelEntry,miles:e.target.value})}/></label><label>Travel minutes<input type="number" min="0" max="1440" value={travelEntry.minutes} onChange={e=>setTravelEntry({...travelEntry,minutes:e.target.value})}/></label><label>Source<select value={travelEntry.source} onChange={e=>setTravelEntry({...travelEntry,source:e.target.value})}><option value="ACTUAL">Verified actual</option><option value="ESTIMATE">Approved estimate</option></select></label>{error&&<p role="alert">{error}</p>}<button disabled={busy} onClick={()=>setTravelEntry(null)}>Cancel</button><button disabled={busy||!(Number(travelEntry.miles)>=0)||!(Number(travelEntry.minutes)>=0)} onClick={async()=>{setBusy(true);setError("");try{await _post("/api/finance/travel",{visitId:travelEntry.visitId,miles:Number(travelEntry.miles),minutes:Number(travelEntry.minutes),source:travelEntry.source,expectedRevision:travelEntry.expectedRevision});setTravelEntry(null);setSaved("Visit travel saved for payroll.");setReload(n=>n+1)}catch(e){setError(e.response?.data?.message||"Unable to save travel")}finally{setBusy(false)}}}>Save travel</button></section></div>}
             </main>
         </div>
     );

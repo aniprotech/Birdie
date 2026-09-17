@@ -5,7 +5,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
     const [tab, setTab] = useState(initialTab),
         [people, setPeople] = useState([]),
         [rates, setRates] = useState([]),
-        [documents, setDocuments] = useState([]);
+        [documents, setDocuments] = useState([]),[credits,setCredits]=useState([]);
     const [from, setFrom] = useState(() => londonToday().slice(0, 8) + "01"),
         [to, setTo] = useState(londonToday),
         [recipient, setRecipient] = useState("");
@@ -14,6 +14,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
         [error, setError] = useState(""),
         [busy, setBusy] = useState(false),
         [reload, setReload] = useState(0);
+    const [reconciliation,setReconciliation]=useState(null),[credit,setCredit]=useState(null);
     const [rate, setRate] = useState({ userId: "", kind: "BILLING", effectiveFrom: londonToday(), amount: "" });
     useEffect(() => {
         let active = true;
@@ -22,12 +23,14 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
             _get("/api/finance/options"),
             _get("/api/finance/rates"),
             _get("/api/finance/documents", { params: { from, to, kind: tab === "RATES" ? "INVOICE" : tab } }),
+            _get("/api/finance/credit-notes"),
         ])
-            .then(([o, r, d]) => {
+            .then(([o, r, d,c]) => {
                 if (active) {
                     setPeople(o.data.results.data.people);
                     setRates(r.data.results.data);
                     setDocuments(d.data.results.data);
+                    setCredits(c.data.results.data);
                 }
             })
             .catch((e) => {
@@ -48,7 +51,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
             setBusy(false);
         }
     }
-    const show = (id) => run(async () => setDetail((await _get(`/api/finance/documents/${id}`)).data.results.data));
+    const show = (id) => run(async () => {const [d,r]=await Promise.all([_get(`/api/finance/documents/${id}`),_get(`/api/finance/documents/${id}/reconcile`)]);setDetail(d.data.results.data);setReconciliation(r.data.results.data)});
     async function saveRate(e) {
         e.preventDefault();
         await run(async () => {
@@ -67,6 +70,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
             const r = await _post("/api/finance/documents", { kind: tab, recipientId: recipient, from, to });
             setPreview(null);
             setDetail((await _get(`/api/finance/documents/${r.data.results.data.id}`)).data.results.data);
+            setReconciliation((await _get(`/api/finance/documents/${r.data.results.data.id}/reconcile`)).data.results.data);
             setReload((n) => n + 1);
         });
     const transition = (status) =>
@@ -74,10 +78,13 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
             if (!window.confirm(`Mark this document as ${status.toLowerCase()}?`)) return;
             await _post(`/api/finance/documents/${detail.id}/status`, { status, expectedStatus: detail.status });
             setDetail((await _get(`/api/finance/documents/${detail.id}`)).data.results.data);
+            setReconciliation((await _get(`/api/finance/documents/${detail.id}/reconcile`)).data.results.data);
             setReload((n) => n + 1);
         });
     const record = detail || preview;
     const documentName = (d) => `${d.kind === "INVOICE" ? "INV" : "PAY"}-${String(d.number).padStart(5, "0")}`;
+    const exportDocument=()=>run(async()=>{const result=(await _post(`/api/finance/documents/${detail.id}/export`,{format:"CSV"})).data.results.data;downloadCsv(documentName(detail)+".csv",[["Date","Type","Visit","Minutes","Hourly GBP","Amount GBP"],...result.lines.map(l=>[l.date,l.component,l.title,l.minutes,(l.hourlyPence/100).toFixed(2),(l.amountPence/100).toFixed(2)])]);setReconciliation(result.reconciliation)});
+    const transitionCredit=(item,status)=>run(async()=>{await _post(`/api/finance/credit-notes/${item.id}/status`,{expectedStatus:item.status,status});setReload(n=>n+1)});
     return (
         <Page
             title="Finance"
@@ -294,13 +301,13 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {record.lines.map((l, i) => (
+                                            {record.lines.map((l, i) => (
                                             <tr
                                                 key={i}
                                                 className="border-t"
                                             >
                                                 <td className="p-2">{l.date}</td>
-                                                <td className="p-2">{l.title}</td>
+                                                <td className="p-2">{l.title}{l.component&&l.component!=="CARE"?<small className="block text-gray-500">{l.component.replaceAll("_"," ")}</small>:null}</td>
                                                 <td className="p-2">{(l.minutes / 60).toFixed(2)}</td>
                                                 <td className="p-2">{l.hourlyPence === null ? "Rate missing" : money(l.hourlyPence)}</td>
                                                 <td className="p-2">{l.amountPence === null ? "-" : money(l.amountPence)}</td>
@@ -320,6 +327,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
                                 </table>
                             </div>
                             <p className="text-right text-lg font-semibold">Total: {money(record.totalPence)}</p>
+                            {detail&&reconciliation&&<p className={reconciliation.balanced?"rounded bg-green-50 p-3 text-green-800":"rounded bg-red-50 p-3 text-red-800"}>{reconciliation.balanced?`Reconciled: ${reconciliation.lineCount} immutable source lines match the confirmed visit revisions.`:"Reconciliation failed: a source visit or review changed. Void this draft and create a replacement."}</p>}
                             <p className="text-xs text-gray-500">
                                 Currency GBP. Based on completed visits and their scheduled duration. No tax, payroll deductions or bank transfer is
                                 applied by this document.
@@ -344,18 +352,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
                                         </button>
                                         <button
                                             className="rounded border px-3 py-2"
-                                            onClick={() =>
-                                                downloadCsv(documentName(detail) + ".csv", [
-                                                    ["Date", "Visit", "Minutes", "Hourly GBP", "Amount GBP"],
-                                                    ...detail.lines.map((l) => [
-                                                        l.date,
-                                                        l.title,
-                                                        l.minutes,
-                                                        (l.hourlyPence / 100).toFixed(2),
-                                                        (l.amountPence / 100).toFixed(2),
-                                                    ]),
-                                                ])
-                                            }
+                                            onClick={exportDocument}
                                         >
                                             Export CSV
                                         </button>
@@ -368,6 +365,7 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
                                                 {detail.kind === "INVOICE" ? "Mark issued" : "Approve pay run"}
                                             </button>
                                         )}
+                                        {detail.kind==="INVOICE"&&["ISSUED","PAID"].includes(detail.status)&&<button className="rounded border px-3 py-2" onClick={()=>setCredit({financeLineId:detail.lines[0]?.id||"",amount:"",reason:""})}>Create credit note</button>}
                                         {["ISSUED", "APPROVED"].includes(detail.status) && (
                                             <button
                                                 disabled={busy}
@@ -448,6 +446,8 @@ export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
                             </tbody>
                         </table>
                     </div>
+                    {tab==="INVOICE"&&<><h2 className="text-lg font-semibold">Credit notes</h2><div className="overflow-auto rounded-xl border bg-white"><table className="w-full text-left text-sm"><thead><tr><th className="p-3">Number</th><th className="p-3">Invoice</th><th className="p-3">Reason</th><th className="p-3">Amount</th><th className="p-3">Status</th><th className="p-3">Actions</th></tr></thead><tbody>{credits.map(c=><tr className="border-t" key={c.id}><td className="p-3">CRN-{String(c.number).padStart(5,"0")}</td><td className="p-3">INV-{String(c.invoiceNumber).padStart(5,"0")}</td><td className="p-3">{c.reason}</td><td className="p-3">-{money(c.totalPence)}</td><td className="p-3">{c.status}</td><td className="p-3"><div className="flex gap-2">{c.status==="DRAFT"&&<button className="underline" onClick={()=>transitionCredit(c,"ISSUED")}>Issue</button>}{c.status==="ISSUED"&&<button className="underline" onClick={()=>transitionCredit(c,"APPLIED")}>Apply</button>}{["DRAFT","ISSUED"].includes(c.status)&&<button className="text-red-700 underline" onClick={()=>transitionCredit(c,"VOID")}>Void</button>}</div></td></tr>)}{!credits.length&&<tr><td colSpan={6} className="p-8 text-center text-gray-500">No credit notes yet.</td></tr>}</tbody></table></div></>}
+                    {credit&&detail&&<div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"><section className="w-full max-w-lg space-y-4 rounded-xl bg-white p-6" role="dialog" aria-modal="true" aria-label="Create credit note"><h2 className="text-xl font-semibold">Credit {documentName(detail)}</h2><Field label="Invoice line"><select className={inputClass} value={credit.financeLineId} onChange={e=>setCredit({...credit,financeLineId:e.target.value})}>{detail.lines.map(l=><option key={l.id} value={l.id}>{l.date} · {l.title} · {money(l.amountPence)}</option>)}</select></Field><Field label="Credit amount (GBP)"><input className={inputClass} type="number" min="0.01" step="0.01" value={credit.amount} onChange={e=>setCredit({...credit,amount:e.target.value})}/></Field><Field label="Reason"><textarea className={inputClass} minLength={5} maxLength={1000} value={credit.reason} onChange={e=>setCredit({...credit,reason:e.target.value})}/></Field><div className="flex gap-3"><button className="rounded border px-3 py-2" onClick={()=>setCredit(null)}>Cancel</button><button className={buttonClass} disabled={busy||!credit.financeLineId||credit.reason.trim().length<5||!(Number(credit.amount)>0)} onClick={()=>run(async()=>{await _post("/api/finance/credit-notes",{invoiceId:detail.id,reason:credit.reason,lines:[{financeLineId:credit.financeLineId,amountPence:Math.round(Number(credit.amount)*100)}]});setCredit(null);setReload(n=>n+1)})}>Create draft credit note</button></div></section></div>}
                 </>
             )}
         </Page>

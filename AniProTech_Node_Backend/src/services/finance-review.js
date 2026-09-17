@@ -11,6 +11,7 @@ export function registerFinanceReview({db,auth},route){
    round(extract(epoch FROM(v.end_time-v.start_time))/60)::int AS planned,
    CASE WHEN v.actual_start IS NOT NULL AND v.actual_end IS NOT NULL THEN round(extract(epoch FROM(v.actual_end-v.actual_start))/60)::int END AS actual,
    EXISTS(SELECT 1 FROM node_visit_events e WHERE e.visit_id=v.id AND e.description LIKE 'Manual attendance correction:%') AS edited,
+   COALESCE((SELECT jsonb_build_object('miles',t.miles,'minutes',t.minutes,'source',t.source,'revision',t.revision) FROM node_visit_travel t WHERE t.visit_id=v.id),'null') travel,
    COALESCE((SELECT jsonb_agg(r) FROM node_finance_reviews r WHERE r.visit_id=v.id),'[]') reviews,
    COALESCE((SELECT jsonb_agg(l.kind) FROM node_finance_lines l WHERE l.visit_id=v.id AND NOT l.released),'[]') locked
    FROM node_roster_visits v JOIN users c ON c.id=v.client_id LEFT JOIN users s ON s.id=v.staff_id

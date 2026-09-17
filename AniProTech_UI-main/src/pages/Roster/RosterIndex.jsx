@@ -18,6 +18,8 @@ const blank = (date) => ({
     notes: "",
     status: "DRAFT",
     repeatWeeks: 1,
+    requiredStaff: 1,
+    openShift: false,
 });
 const control = "mt-1 block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm disabled:bg-gray-100";
 function Field({ label, children }) {
@@ -35,6 +37,8 @@ export default function RosterIndex() {
         [loading, setLoading] = useState(true),
         [error, setError] = useState("");
     const [editor, setEditor] = useState(null),
+        [showRules,setShowRules]=useState(false),
+        [rules,setRules]=useState({maxDailyMinutes:720,maxWeeklyMinutes:3600,minRestMinutes:660,travelSpeedMph:25,travelBufferMinutes:10}),
         [saving, setSaving] = useState(false),
         [formError, setFormError] = useState(""),
         [reload, setReload] = useState(0);
@@ -46,11 +50,13 @@ export default function RosterIndex() {
         Promise.all([
             _get("/api/roster/options", { signal: controller.signal }),
             _get("/api/roster/visits", { params: { from: week, to: addDays(week, 6) }, signal: controller.signal }),
+            _get("/api/roster/workforce-rules",{signal:controller.signal}),
         ])
-            .then(([o, v]) => {
+            .then(([o, v,r]) => {
                 if (active) {
                     setOptions(o.data.results.data);
                     setVisits(v.data.results.data.visits);
+                    setRules(r.data.results.data);
                 }
             })
             .catch((e) => {
@@ -75,7 +81,7 @@ export default function RosterIndex() {
         setSaving(true);
         setFormError("");
         try {
-            const payload = { ...editor, staffId: editor.staffId || null, repeatWeeks: Number(editor.repeatWeeks) };
+            const payload = { ...editor, staffId: editor.staffId || null, repeatWeeks: Number(editor.repeatWeeks),requiredStaff:Number(editor.requiredStaff||1),openShift:!!editor.openShift };
             if (editor.id) await _put("/api/roster/visits/" + editor.id, payload);
             else await _post("/api/roster/visits", payload);
             showSuccess("Visit saved");
@@ -115,6 +121,41 @@ export default function RosterIndex() {
                 onEdit={edit}
                 onCreate={(date) => edit(blank(date))}
             />{" "}
+            {options.canManage&&<button className="m-3 rounded-lg border bg-white px-4 py-2" onClick={()=>setShowRules(true)}>Workforce & travel rules</button>}
+            {showRules && (
+                <section role="dialog" aria-modal="true" aria-label="Workforce and travel rules" className="roster-edit-panel rounded-xl border border-cyan-200 bg-white p-5 shadow-sm">
+                    <div className="mb-4 flex justify-between">
+                        <h2 className="text-lg font-semibold">Workforce and travel rules</h2>
+                        <button onClick={() => setShowRules(false)}>Close</button>
+                    </div>
+                    <p className="mb-4 text-sm text-gray-600">Assignments are blocked when these limits or the location-based travel estimate cannot be met.</p>
+                    {formError && <p className="mb-3 text-sm text-red-700">{formError}</p>}
+                    <form
+                        className="grid gap-4 md:grid-cols-2"
+                        onSubmit={async (event) => {
+                            event.preventDefault();
+                            setSaving(true);
+                            setFormError("");
+                            try {
+                                await _put("/api/roster/workforce-rules", Object.fromEntries(Object.entries(rules).map(([key, value]) => [key, Number(value)])));
+                                showSuccess("Workforce rules saved");
+                                setShowRules(false);
+                            } catch (requestError) {
+                                setFormError(requestError.response?.data?.message || "Unable to save workforce rules");
+                            } finally {
+                                setSaving(false);
+                            }
+                        }}
+                    >
+                        {[["maxDailyMinutes", "Maximum daily work (minutes)"], ["maxWeeklyMinutes", "Maximum weekly work (minutes)"], ["minRestMinutes", "Minimum rest between days (minutes)"], ["travelSpeedMph", "Planning speed (mph)"], ["travelBufferMinutes", "Travel contingency (minutes)"]].map(([key, label]) => (
+                            <Field key={key} label={label}>
+                                <input required type="number" min="0" className={control} value={rules[key]} onChange={(event) => setRules({ ...rules, [key]: event.target.value })} />
+                            </Field>
+                        ))}
+                        <button disabled={saving} className="rounded bg-blue-800 px-4 py-2 text-white">Save rules</button>
+                    </form>
+                </section>
+            )}
             {editor && (
                 <section
                     id="visit-editor"
@@ -263,6 +304,8 @@ export default function RosterIndex() {
                                     </select>
                                 </Field>
                             )}
+                            {!editor.id&&<Field label="Caregivers required"><select className={control} value={editor.requiredStaff||1} onChange={e=>update("requiredStaff",e.target.value)}>{[1,2,3,4].map(n=><option key={n} value={n}>{n}{n>1?" (double-up/multi-carer)":""}</option>)}</select></Field>}
+                            {!editor.staffId&&<label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editor.openShift} onChange={e=>update("openShift",e.target.checked)}/>Publish as an open shift for eligible care-team members</label>}
                             <div className="md:col-span-3">
                                 <Field label="Visit notes">
                                     <textarea

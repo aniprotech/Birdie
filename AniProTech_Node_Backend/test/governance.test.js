@@ -4,11 +4,12 @@ import request from "supertest";
 import { randomUUID } from "node:crypto";
 import { openDatabase, initializeSchema } from "../src/db.js";
 import { createApp } from "../src/app.js";
+import { runGovernanceReports } from "../src/governance-jobs.js";
 
 const data=r=>r.body.results.data;
 test("Gate D governance, evidence and human AI review remain tenant scoped",async()=>{
  const db=await openDatabase({driver:"pglite",dataDir:":memory:"});await initializeSchema(db);
- const config={production:false,frontendUrl:"http://localhost:5173",corsOrigins:["http://localhost:5173"],jwtSecret:"gate-d-test-secret-at-least-32-characters",uploadDir:"uploads-test",outboxDir:"outbox-test",storageMode:"filesystem"};
+ const config={production:false,frontendUrl:"http://localhost:5173",corsOrigins:["http://localhost:5173"],jwtSecret:"gate-d-test-secret-at-least-32-characters",uploadDir:"uploads-test",outboxDir:"outbox-test",storageMode:"database"};
  const app=createApp({db,config,mail:{send:async()=>({accepted:[]})}}),{repo,auth}=app.locals.ctx,agency=randomUUID(),other=randomUUID(),adminId=randomUUID(),clientId=randomUUID(),staffId=randomUUID();
  await db.query(`INSERT INTO node_agencies(id,name,business_type,phone,address_line1,city,postcode,country,timezone,terms_accepted_at) VALUES($1,'Gate D Care','HOME_CARE','0200000000','1 Quality Road','London','SW1','United Kingdom','Europe/London',CURRENT_TIMESTAMP),($2,'Other Care','HOME_CARE','0200000001','2 Other Road','London','SW2','United Kingdom','Europe/London',CURRENT_TIMESTAMP)`,[agency,other]);
  for(const u of [{id:adminId,agencyId:agency,firstName:"Quality",lastName:"Admin",email:"quality@example.test",role:"SUPERADMIN"},{id:clientId,agencyId:agency,firstName:"Care",lastName:"Client",email:"care@example.test",role:"USER"},{id:staffId,agencyId:agency,firstName:"Care",lastName:"Worker",email:"worker@example.test",role:"CAREGIVER"}])await repo.save("UserEntity",{...u,isActive:true});
@@ -16,6 +17,12 @@ test("Gate D governance, evidence and human AI review remain tenant scoped",asyn
  const created=await request(app).post("/api/governance/cases").set(headers).send({clientId,kind:"INCIDENT",severity:"HIGH",title:"Medication incident",description:"Medication was recorded late and requires management review",ownerId:staffId,dueAt:new Date(Date.now()+86400000).toISOString()});assert.equal(created.status,201,JSON.stringify(created.body));
  const cases=data(await request(app).get("/api/governance/cases").set(headers));assert.equal(cases.length,1);assert.equal(cases[0].agency_id,agency);
  assert.equal((await request(app).post(`/api/governance/cases/${data(created).id}/status`).set(headers).send({status:"INVESTIGATING",reason:"Manager started evidence review",revision:1})).status,200);
+ assert.equal((await request(app).post(`/api/governance/cases/${data(created).id}/actions`).set(headers).send({title:"Review medication records",ownerId:staffId,dueAt:new Date(Date.now()+86400000).toISOString()})).status,201);
+ assert.equal(data(await request(app).get(`/api/governance/cases/${data(created).id}/actions`).set(headers)).length,1);
+ assert.equal((await request(app).post(`/api/governance/cases/${data(created).id}/escalate`).set(headers).send({level:"MANAGER",reason:"High-severity incident requires management oversight"})).status,201);
+ const png=Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=","base64");
+ assert.equal((await request(app).post("/api/governance/evidence/upload").set(headers).field("entityType","CASE").field("entityId",data(created).id).attach("file",png,"evidence.png")).status,201);
+ assert.equal((await db.query("SELECT count(*)::int n FROM node_private_files")).rows[0].n,1);
  assert.equal((await request(app).post("/api/governance/policies").set(headers).send({title:"Medication safety",version:"1.0",status:"ACTIVE",effectiveAt:"2026-09-17",reviewAt:"2027-09-17"})).status,201);
  assert.equal((await request(app).post("/api/governance/credentials").set(headers).send({staffId,kind:"Right to work",expiresAt:"2027-09-17"})).status,201);
  await db.query(`INSERT INTO node_client_entries(id,agency_id,client_id,kind,title,body,status,created_by,updated_by) VALUES($1,$2,$3,'NOTE','Pain reported','Client reported pain after a fall','OPEN',$4,$4)`,[randomUUID(),agency,clientId,adminId]);
@@ -23,12 +30,20 @@ test("Gate D governance, evidence and human AI review remain tenant scoped",asyn
  const reviewId=data(generated).id;assert.equal((await db.query("SELECT status FROM node_ai_reviews WHERE id=$1",[reviewId])).rows[0].status,"PENDING");
  assert.equal((await request(app).post(`/api/governance/ai-reviews/${reviewId}/decision`).set(headers).send({decision:"APPROVED",reason:"A registered manager reviewed the cited care note"})).status,200);
  assert.equal((await db.query("SELECT count(*)::int n FROM node_client_entries WHERE client_id=$1",[clientId])).rows[0].n,1,"AI approval must not alter care records");
+ const model=data(await request(app).post("/api/governance/ai-models").set(headers).send({modelKey:"candidate-model",version:"1.0",purpose:"Evaluate a candidate assistance model before controlled use",limitations:"Synthetic evaluation only; no clinical decisions or automatic record changes",riskLevel:"HIGH"}));
+ assert.equal((await request(app).post(`/api/governance/ai-models/${model.id}/evaluations`).set(headers).send({datasetName:"Governance fixture",sampleSize:100,precision:.9,recall:.85,falsePositiveRate:.1,subgroupResults:{groupA:{precision:.9},groupB:{precision:.88}},notes:"Reviewed for false positives and subgroup variance in the controlled test set",outcome:"PASS"})).status,201);
+ assert.equal((await request(app).post(`/api/governance/ai-models/${model.id}/status`).set(headers).send({status:"APPROVED",reason:"Passing evaluation reviewed and limitations accepted for controlled human review"})).status,200);
+ assert.equal((await request(app).put("/api/governance/settings").set(headers).send({criticalEscalationMinutes:15,highEscalationMinutes:60,familyResponseHours:12,regulatorTemplate:"CQC"})).status,200);
+ assert.equal((await request(app).post("/api/governance/reminders/run").set(headers).send({})).status,200);
+ assert.equal((await request(app).post("/api/governance/report-schedules").set(headers).send({name:"Monthly governance",reportKind:"GOVERNANCE",cadence:"MONTHLY",recipientEmails:["quality@example.test"]})).status,201);
+ await db.query("UPDATE node_report_schedules SET next_run_at=CURRENT_TIMESTAMP-interval '1 minute'");const sent=[];const job=await runGovernanceReports({db,frontendUrl:config.frontendUrl,mail:{send:async m=>{sent.push(m);return {accepted:[m.to]}}}});assert.equal(job.sent,1);assert.equal(sent.length,1);assert.doesNotMatch(sent[0].text,/Care Client/);
+ assert.equal((await request(app).post("/api/governance/release-signoffs").set(headers).send({persona:"CARE_MANAGER",scenario:"Manager creates and reviews a governed incident from end to end",result:"PASS",evidence:"Automated integration record plus manual workflow reference GOV-TEST-1"})).status,201);
  const check=data(await request(app).post("/api/governance/data-quality/run").set(headers).send({}));assert.ok(["PASS","ATTENTION"].includes(check.status));assert.equal(check.findings.length,3);
  const evidence=data(await request(app).get("/api/governance/evidence-pack").set(headers));assert.equal(evidence.agencyId,agency);assert.equal(evidence.cases[0].count,1);assert.match(evidence.statement,/do not modify clinical records/);
  const sharing=data(await request(app).post("/api/client-share-access/generate").set(headers).send({clientId,acknowledged:true,days:7,scopes:["BASIC","MESSAGES","FEEDBACK"],revision:0}));
  const portalLogin=data(await request(app).post("/api/portal/exchange").send({shareId:sharing.shareId,code:sharing.accessCode,name:"Family Viewer",email:"family@example.test"})),portal={Authorization:`Bearer ${portalLogin.token}`};
  assert.equal((await request(app).post("/api/portal/messages").set(portal).send({body:"Please call me about tomorrow's visit."})).status,201);
- assert.equal(data(await request(app).get("/api/portal/messages").set(portal)).length,1);
+ assert.equal(data(await request(app).get("/api/portal/messages").set(portal)).messages.length,1);
  assert.equal((await request(app).post("/api/portal/feedback").set(portal).send({rating:5,comment:"The visit update was clear.",consent:true})).status,201);
  assert.equal((await db.query("SELECT count(*)::int n FROM node_portal_feedback WHERE agency_id=$1",[agency])).rows[0].n,1);
  assert.equal((await db.query("SELECT count(*)::int n FROM node_quality_cases WHERE agency_id=$1",[other])).rows[0].n,0);

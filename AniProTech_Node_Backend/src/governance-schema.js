@@ -64,10 +64,66 @@ export async function initializeGovernance(db) {
     agency_id uuid NOT NULL, client_id uuid NOT NULL REFERENCES users(id), rating integer NOT NULL CHECK(rating BETWEEN 1 AND 5),
     comment text, consented_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_governance_settings (
+    agency_id uuid PRIMARY KEY, critical_escalation_minutes integer NOT NULL DEFAULT 30,
+    high_escalation_minutes integer NOT NULL DEFAULT 240, family_response_hours integer NOT NULL DEFAULT 24,
+    regulator_template text NOT NULL DEFAULT 'CQC', updated_by uuid REFERENCES users(id),
+    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_governance_escalations (
+    id uuid PRIMARY KEY, case_id uuid NOT NULL REFERENCES node_quality_cases(id) ON DELETE CASCADE,
+    level text NOT NULL CHECK(level IN ('MANAGER','SAFEGUARDING_LEAD','DIRECTOR','REGULATOR')),
+    reason text NOT NULL, escalated_by uuid NOT NULL REFERENCES users(id),
+    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_governance_evidence (
+    id uuid PRIMARY KEY, agency_id uuid NOT NULL, entity_type text NOT NULL CHECK(entity_type IN ('CASE','ACTION','POLICY','CREDENTIAL')),
+    entity_id uuid NOT NULL, file_name text NOT NULL, file_url text NOT NULL,
+    uploaded_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_governance_reminders (
+    id uuid PRIMARY KEY, agency_id uuid NOT NULL, reminder_key text NOT NULL, recipient_id uuid NOT NULL REFERENCES users(id),
+    subject text NOT NULL, status text NOT NULL DEFAULT 'QUEUED' CHECK(status IN ('QUEUED','SENT','FAILED')),
+    due_at timestamptz NOT NULL, sent_at timestamptz, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(agency_id,reminder_key,recipient_id)
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_portal_preferences (
+    grant_id uuid PRIMARY KEY REFERENCES node_share_grants(id) ON DELETE CASCADE,
+    message_email boolean NOT NULL DEFAULT true, feedback_email boolean NOT NULL DEFAULT false,
+    response_target_hours integer NOT NULL DEFAULT 24, updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_ai_models (
+    id uuid PRIMARY KEY, agency_id uuid NOT NULL, model_key text NOT NULL, version text NOT NULL,
+    purpose text NOT NULL, limitations text NOT NULL, risk_level text NOT NULL CHECK(risk_level IN ('LOW','MEDIUM','HIGH')),
+    status text NOT NULL DEFAULT 'DRAFT' CHECK(status IN ('DRAFT','APPROVED','RETIRED')),
+    approved_by uuid REFERENCES users(id), approved_at timestamptz, created_by uuid NOT NULL REFERENCES users(id),
+    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(agency_id,model_key,version)
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_ai_evaluations (
+    id uuid PRIMARY KEY, model_id uuid NOT NULL REFERENCES node_ai_models(id) ON DELETE CASCADE,
+    dataset_name text NOT NULL, sample_size integer NOT NULL, precision numeric NOT NULL, recall numeric NOT NULL,
+    false_positive_rate numeric NOT NULL, subgroup_results jsonb NOT NULL, notes text NOT NULL,
+    outcome text NOT NULL CHECK(outcome IN ('PASS','FAIL','CONDITIONAL')),
+    reviewed_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_report_schedules (
+    id uuid PRIMARY KEY, agency_id uuid NOT NULL, name text NOT NULL, report_kind text NOT NULL,
+    cadence text NOT NULL CHECK(cadence IN ('WEEKLY','MONTHLY','QUARTERLY')), recipient_emails jsonb NOT NULL,
+    active boolean NOT NULL DEFAULT true, last_run_at timestamptz, next_run_at timestamptz NOT NULL,
+    created_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_release_signoffs (
+    id uuid PRIMARY KEY, agency_id uuid NOT NULL, persona text NOT NULL CHECK(persona IN ('CARE_MANAGER','CAREGIVER','CLIENT','FAMILY')),
+    scenario text NOT NULL, result text NOT NULL CHECK(result IN ('PASS','FAIL','BLOCKED')),
+    evidence text NOT NULL, signed_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
   for (const sql of [
     "CREATE INDEX IF NOT EXISTS node_quality_cases_agency ON node_quality_cases(agency_id,status,due_at)",
     "CREATE INDEX IF NOT EXISTS node_credentials_agency ON node_staff_credentials(agency_id,expires_at)",
     "CREATE INDEX IF NOT EXISTS node_ai_reviews_agency ON node_ai_reviews(agency_id,status,created_at)",
     "CREATE INDEX IF NOT EXISTS node_portal_messages_grant ON node_portal_messages(grant_id,created_at)"
+    ,"CREATE INDEX IF NOT EXISTS node_governance_evidence_entity ON node_governance_evidence(agency_id,entity_type,entity_id)"
+    ,"CREATE INDEX IF NOT EXISTS node_governance_reminders_due ON node_governance_reminders(agency_id,status,due_at)"
+    ,"CREATE INDEX IF NOT EXISTS node_ai_models_agency ON node_ai_models(agency_id,status)"
   ]) await db.query(sql);
 }

@@ -24,7 +24,7 @@ export function configuration(overrides = {}) {
         : "http://localhost:5173,http://127.0.0.1:5173")
     ).split(","),
     uploadDir: path.resolve(process.env.UPLOAD_DIR || "./uploads"),
-    storageMode: process.env.STORAGE_MODE || "filesystem",
+    storageMode: process.env.STORAGE_MODE || (production ? "database" : "filesystem"),
     outboxDir: path.resolve(process.env.OUTBOX_DIR || "./outbox"),
     mailMode: process.env.MAIL_MODE || "outbox",
     platformAdminEmails: (process.env.PLATFORM_ADMIN_EMAILS || "info@aniprotech.com")

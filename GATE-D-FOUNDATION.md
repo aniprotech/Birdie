@@ -1,4 +1,4 @@
-# Gate D foundation
+# Gate D production implementation
 
 Gate D begins the product's quality, compliance, family-engagement, responsible-assistance and governed-reporting work. This first package is deliberately auditable and tenant scoped.
 
@@ -21,11 +21,16 @@ Gate D begins the product's quality, compliance, family-engagement, responsible-
 - AI output is decision support only. It does not diagnose, assign risk, update care notes or trigger actions automatically.
 - Existing API authentication, role checks, transactions and audit logging remain in force.
 
-## Remaining Gate D work
+## Production controls delivered
 
-- Full creation and editing forms for every register, policy distribution reminders and evidence-file uploads.
-- Configurable escalation workflows and regulator-specific evidence templates.
-- Family notification preferences and moderation/response service levels.
-- Validated model evaluation datasets, bias and false-positive monitoring, model-change approval and production drift alerts before any external model is introduced.
-- Broader metric lineage, period comparisons, scheduled report delivery and independent reconciliation against finance/payroll exports.
-- User acceptance testing with care managers, carers, clients and authorised family members.
+- Working administration forms for cases, policies, credentials, evidence, review decisions, report schedules and release sign-offs.
+- Revision-safe edits, corrective actions, configurable escalation targets and deduplicated reminder delivery.
+- Private PDF, image and Word evidence uploads using the existing signed-download controls.
+- Family portal messages, feedback consent, notification preferences and measurable response targets.
+- AI model register, evaluation results, subgroup evidence, false-positive rates and approval gates. No external model is enabled by this change.
+- Metric dictionary, period comparisons, completed-visit/finance reconciliation and scheduled email reports without client details.
+- Care-manager, caregiver, client and family acceptance sign-off register so production approval cannot be implied without recorded evidence.
+
+## Operational release evidence still required
+
+Software completion does not manufacture real-world acceptance evidence. Before production promotion, authorised users must record passing sign-offs for all four personas, complete physical Android and iOS checks, confirm durable private file storage, and verify the deployed commit. Failed or blocked sign-offs must remain visible and prevent an internal release decision.

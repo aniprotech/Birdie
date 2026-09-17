@@ -27,14 +27,15 @@ export function createFiles(config, db) {
     const type = await fileTypeFromBuffer(file.buffer);
     if (!type || !allowed.has(type.mime))
       fail(400, "Only PDF, PNG, JPEG and Word documents are allowed");
-    await fs.mkdir(config.uploadDir, { recursive: true });
     const filename = `${randomUUID()}.${type.ext}`;
-    await fs.writeFile(path.join(config.uploadDir, filename), file.buffer, {
-      flag: "wx",
-      mode: 0o600,
-    });
+    const resource=`uploads/${filename}`;
+    if(config.storageMode==="database")await db.query("INSERT INTO node_private_files(resource,original_name,mime_type,content) VALUES($1,$2,$3,$4)",[resource,path.basename(file.originalname.replaceAll("\\", "/")),type.mime,file.buffer]);
+    else {
+      await fs.mkdir(config.uploadDir, { recursive: true });
+      await fs.writeFile(path.join(config.uploadDir, filename), file.buffer, {flag: "wx",mode: 0o600});
+    }
     return {
-      url: `uploads/${filename}`,
+      url: resource,
       filename: path.basename(file.originalname.replaceAll("\\", "/")),
       mime: type.mime,
     };
@@ -80,6 +81,12 @@ export function createFiles(config, db) {
       )
     ).rows[0];
     if (!session) fail(401, "Session expired");
+    res.set("Cache-Control", "private, no-store");
+    if(config.storageMode==="database"){
+      const stored=(await db.query("SELECT original_name,mime_type,content FROM node_private_files WHERE resource=$1",[resource])).rows[0];
+      if(!stored)fail(404,"File not found");
+      res.type(stored.mime_type);res.set("Content-Disposition",`inline; filename*=UTF-8''${encodeURIComponent(stored.original_name)}`);return res.send(stored.content);
+    }
     const relative = resource.slice("uploads/".length),
       target = path.resolve(config.uploadDir, relative);
     if (!target.startsWith(path.resolve(config.uploadDir) + path.sep))
@@ -89,7 +96,6 @@ export function createFiles(config, db) {
     } catch {
       fail(404, "File not found");
     }
-    res.set("Cache-Control", "private, no-store");
     res.sendFile(target);
   }
   return { upload, save, signTree, download };

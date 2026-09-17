@@ -146,6 +146,7 @@ export async function initializeSchema(db) {
     await db.query(
       "CREATE TABLE IF NOT EXISTS node_audit_log (id uuid PRIMARY KEY, actor_id uuid, agency_id uuid, method text NOT NULL, path text NOT NULL, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP)",
     );
+    await db.query("CREATE TABLE IF NOT EXISTS node_private_files (resource text PRIMARY KEY, original_name text NOT NULL, mime_type text NOT NULL, content bytea NOT NULL, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP)");
     await db.query(
       "CREATE UNIQUE INDEX IF NOT EXISTS node_users_email_lower ON users (lower(email))",
     );

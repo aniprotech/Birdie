@@ -239,6 +239,18 @@ export function registerShareAccess(ctx, route) {
     if (!grant) return reply(res, []);
     return reply(res, (await db.query(`SELECT id,sender_type AS "senderType",sender_name AS "senderName",body,created_at AS "createdAt" FROM node_portal_messages WHERE grant_id=$1 ORDER BY created_at,id`, [grant.id])).rows);
   });
+  route("GET", "/api/client-share-access/:clientId/preferences", async(req,res)=>{
+    const c=await client(req),grant=(await db.query("SELECT id FROM node_share_grants WHERE client_id=$1 AND agency_id=$2",[c.id,c.agencyId])).rows[0];
+    if(!grant)return reply(res,{messageEmail:true,feedbackEmail:false,responseTargetHours:24});
+    const pref=(await db.query(`SELECT message_email AS "messageEmail",feedback_email AS "feedbackEmail",response_target_hours AS "responseTargetHours" FROM node_portal_preferences WHERE grant_id=$1`,[grant.id])).rows[0];
+    return reply(res,pref||{messageEmail:true,feedbackEmail:false,responseTargetHours:24});
+  });
+  route("PUT", "/api/client-share-access/:clientId/preferences", async(req,res)=>{
+    const c=await client(req),parsed=z.object({messageEmail:z.boolean(),feedbackEmail:z.boolean(),responseTargetHours:z.number().int().min(1).max(168)}).safeParse(req.body);if(!parsed.success)fail(400,"Enter valid portal notification preferences");
+    const grant=(await db.query("SELECT id FROM node_share_grants WHERE client_id=$1 AND agency_id=$2",[c.id,c.agencyId])).rows[0];if(!grant)fail(404,"Sharing is not enabled");const b=parsed.data;
+    await db.query(`INSERT INTO node_portal_preferences(grant_id,message_email,feedback_email,response_target_hours) VALUES($1,$2,$3,$4) ON CONFLICT(grant_id) DO UPDATE SET message_email=EXCLUDED.message_email,feedback_email=EXCLUDED.feedback_email,response_target_hours=EXCLUDED.response_target_hours,updated_at=CURRENT_TIMESTAMP`,[grant.id,b.messageEmail,b.feedbackEmail,b.responseTargetHours]);
+    await audit(db,grant.id,"PREFERENCES_UPDATED",actor(req.user));return reply(res,b,"Portal preferences saved");
+  });
   route("POST", "/api/client-share-access/:clientId/messages", async (req, res) => {
     const c = await client(req);
     const parsed = z.object({ body: z.string().trim().min(1).max(2000) }).safeParse(req.body);
@@ -248,12 +260,14 @@ export function registerShareAccess(ctx, route) {
     const id = randomUUID();
     await db.query("INSERT INTO node_portal_messages(id,grant_id,agency_id,client_id,sender_type,sender_name,body) VALUES($1,$2,$3,$4,'STAFF',$5,$6)", [id,grant.id,c.agencyId,c.id,actor(req.user),parsed.data.body]);
     await audit(db, grant.id, "STAFF_MESSAGE_SENT", actor(req.user));
+    const pref=(await db.query("SELECT message_email FROM node_portal_preferences WHERE grant_id=$1",[grant.id])).rows[0];
+    if(pref?.message_email!==false&&!reserved(c.email))req.afterCommit.push(()=>mail.send({to:c.email,subject:"New secure Caremonitor message",text:"Your care team sent a secure message. Sign in to the shared care record to read it. No care details are included in this email.",actionUrl:portalUrl(config,grant.id),actionLabel:"Open secure portal"}));
     return reply(res, { id }, "Message sent", 201);
   });
 }
 
 export function createPortal(ctx) {
-  const { db, repo, config } = ctx,
+  const { db, repo, config, mail } = ctx,
     router = Router();
   router.use((req, res, next) => {
     res.set("Cache-Control", "no-store");
@@ -445,7 +459,10 @@ export function createPortal(ctx) {
     const s=req.portal;
     if (!s.scopes.includes("MESSAGES")) fail(403,"Messaging is not included in this shared access");
     const rows=(await db.query(`SELECT id,sender_type AS "senderType",sender_name AS "senderName",body,created_at AS "createdAt" FROM node_portal_messages WHERE grant_id=$1 ORDER BY created_at,id`,[s.grant_id])).rows;
-    return reply(res,rows);
+    const pref=(await db.query(`SELECT response_target_hours AS "responseTargetHours",message_email AS "messageEmail",feedback_email AS "feedbackEmail" FROM node_portal_preferences WHERE grant_id=$1`,[s.grant_id])).rows[0]||{responseTargetHours:24,messageEmail:true,feedbackEmail:false};
+    const latestPortal=[...rows].reverse().find(x=>x.senderType==='PORTAL'),latestStaff=[...rows].reverse().find(x=>x.senderType==='STAFF');
+    const pending=latestPortal&&(!latestStaff||new Date(latestStaff.createdAt)<new Date(latestPortal.createdAt));
+    return reply(res,{messages:rows,preferences:pref,responseDueAt:pending?new Date(new Date(latestPortal.createdAt).getTime()+pref.responseTargetHours*3600000).toISOString():null});
   });
   router.post("/messages", async (req, res) => {
     const s=req.portal;
@@ -455,6 +472,8 @@ export function createPortal(ctx) {
     const id=randomUUID();
     await db.query("INSERT INTO node_portal_messages(id,grant_id,agency_id,client_id,sender_type,sender_name,body) VALUES($1,$2,$3,$4,'PORTAL',$5,$6)",[id,s.grant_id,s.agency_id,s.client_id,s.viewer_name,parsed.data.body]);
     await audit(db,s.grant_id,"PORTAL_MESSAGE_SENT",s.viewer_name,s.viewer_email);
+    const admins=(await db.query("SELECT email FROM users WHERE agency_id=$1 AND role IN ('ADMIN','SUPERADMIN') AND is_active=true AND deleted_at IS NULL",[s.agency_id])).rows;
+    await Promise.allSettled(admins.map(a=>mail.send({to:a.email,subject:"New family portal message",text:"A new secure portal message is waiting in Caremonitor. Sign in to review it; no care details are included in this email.",actionUrl:config.frontendUrl,actionLabel:"Open Caremonitor"})));
     return reply(res,{id},"Message sent",201);
   });
   router.post("/feedback", async (req,res)=>{
@@ -465,6 +484,8 @@ export function createPortal(ctx) {
     const id=randomUUID();
     await db.query("INSERT INTO node_portal_feedback(id,grant_id,agency_id,client_id,rating,comment,consented_at) VALUES($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP)",[id,s.grant_id,s.agency_id,s.client_id,parsed.data.rating,parsed.data.comment||null]);
     await audit(db,s.grant_id,"FEEDBACK_SUBMITTED",s.viewer_name,s.viewer_email);
+    const pref=(await db.query("SELECT feedback_email FROM node_portal_preferences WHERE grant_id=$1",[s.grant_id])).rows[0];
+    if(pref?.feedback_email){const admins=(await db.query("SELECT email FROM users WHERE agency_id=$1 AND role IN ('ADMIN','SUPERADMIN') AND is_active=true AND deleted_at IS NULL",[s.agency_id])).rows;await Promise.allSettled(admins.map(a=>mail.send({to:a.email,subject:"New Caremonitor feedback",text:"New consented feedback is available in Caremonitor. Sign in to review it.",actionUrl:config.frontendUrl,actionLabel:"Open Caremonitor"})))}
     return reply(res,{id},"Thank you for your feedback",201);
   });
   router.post("/logout", async (req, res) => {

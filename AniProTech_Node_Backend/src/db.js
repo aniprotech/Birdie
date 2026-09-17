@@ -13,6 +13,7 @@ import { initializeOperations } from "./operations-schema.js";
 import { initializeMobileCare } from "./mobile-care-schema.js";
 import { initializeRegistration } from "./registration-schema.js";
 import { initializeSecurity } from "./security-schema.js";
+import { initializeGovernance } from "./governance-schema.js";
 export const { entities, enums } = JSON.parse(
   readFileSync(new URL("./models/schema.json", import.meta.url)),
 );
@@ -161,6 +162,7 @@ export async function initializeSchema(db) {
       await initializeMobileCare(db);
       await initializeRegistration(db);
       await initializeSecurity(db);
+      await initializeGovernance(db);
   });
 }
 

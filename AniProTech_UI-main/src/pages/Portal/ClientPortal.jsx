@@ -42,7 +42,11 @@ export default function ClientPortal() {
         [record, setRecord] = useState(null),
         [error, setError] = useState(""),
         [busy, setBusy] = useState(false),
-        [page, setPage] = useState(1);
+        [page, setPage] = useState(1),
+        [messages,setMessages]=useState([]),
+        [message,setMessage]=useState(""),
+        [rating,setRating]=useState(5),
+        [feedback,setFeedback]=useState("");
     useEffect(() => {
         document.title = "AniProTech | Shared care record";
         if (link.token) {
@@ -82,6 +86,7 @@ export default function ClientPortal() {
             clearInterval(timer);
         };
     }, [token, page]);
+    useEffect(()=>{if(token&&record?.scopes.includes("MESSAGES")) api("/messages",token).then(setMessages).catch(e=>setError(e.message))},[token,record]);
     const signIn = async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -260,6 +265,8 @@ export default function ClientPortal() {
                                 </footer>
                             </section>
                         )}
+                        {record.scopes.includes("MESSAGES")&&<section><h2>Secure messages</h2>{messages.map(m=><article key={m.id}><strong>{m.senderName}</strong><small> · {m.senderType} · {date(m.createdAt)}</small><p className="cp-pre">{m.body}</p></article>)}{!messages.length&&<p>No messages yet.</p>}<form onSubmit={async e=>{e.preventDefault();setBusy(true);try{await api("/messages",token,{body:message});setMessage("");setMessages(await api("/messages",token))}catch(e){setError(e.message)}finally{setBusy(false)}}}><label>Your message<textarea required maxLength={2000} value={message} onChange={e=>setMessage(e.target.value)}/></label><button disabled={busy}>Send securely</button></form></section>}
+                        {record.scopes.includes("FEEDBACK")&&<section><h2>Share feedback</h2><p className="cp-muted">Feedback is stored with this access grant. Select Submit only if you consent to sharing it with the care provider.</p><form onSubmit={async e=>{e.preventDefault();setBusy(true);try{await api("/feedback",token,{rating:Number(rating),comment:feedback,consent:true});setFeedback("");setError("Feedback submitted successfully.")}catch(e){setError(e.message)}finally{setBusy(false)}}}><label>Rating<select value={rating} onChange={e=>setRating(e.target.value)}>{[5,4,3,2,1].map(n=><option key={n} value={n}>{n} / 5</option>)}</select></label><label>Comments<textarea maxLength={2000} value={feedback} onChange={e=>setFeedback(e.target.value)}/></label><button disabled={busy}>I consent and submit feedback</button></form></section>}
                     </>
                 )}
             </main>

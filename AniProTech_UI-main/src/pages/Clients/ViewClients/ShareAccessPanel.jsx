@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { _get, _post } from "../../../utils/ApiService";
 import "./share-access.css";
-const scopes = { BASIC: "Basic information", MEDICAL: "Medical history and allergies", CARE_LOG: "Care notes, observations and activities" };
+const scopes = { BASIC: "Basic information", MEDICAL: "Medical history and allergies", CARE_LOG: "Care notes, observations and activities", MESSAGES: "Secure messages", FEEDBACK: "Consent-based feedback" };
 const date = (v) =>
     v ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/London" }).format(new Date(v)) : "Not enabled";
 const actions = {

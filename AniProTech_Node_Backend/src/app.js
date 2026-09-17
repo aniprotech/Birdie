@@ -38,6 +38,7 @@ import { registerMobileCare } from "./services/mobile-care.js";
 import { registerPlatformAdmin } from "./services/platform-admin.js";
 import { registerPrivacy, registerSecurity } from "./services/security.js";
 import { postcodeValid } from "./location.js";
+import { registerGovernance } from "./services/governance.js";
 
 export function createApp({ db, config, mail = createMail(config) }) {
   const app = express(),
@@ -255,6 +256,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     registerReporting,
     registerNotificationDelivery,
     registerMobileCare,
+    registerGovernance,
   ])
     register(ctx, route);
   routes.sort(

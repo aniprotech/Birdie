@@ -13,7 +13,7 @@ import { reply, fail } from "../http.js";
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const actor = (u) => [u.firstName, u.lastName].filter(Boolean).join(" ");
 const reserved = (email) => !email || /\.(test|invalid)$/i.test(email);
-const scopeNames = ["BASIC", "MEDICAL", "CARE_LOG"];
+const scopeNames = ["BASIC", "MEDICAL", "CARE_LOG", "MESSAGES", "FEEDBACK"];
 function crypt(config, value, decrypt = false) {
   const key = createHash("sha256")
     .update("aniprotech-share-code:" + config.jwtSecret)
@@ -106,7 +106,7 @@ export function registerShareAccess(ctx, route) {
       .object({
         acknowledged: z.literal(true),
         days: z.number().int().min(1).max(30).default(7),
-        scopes: z.array(z.enum(scopeNames)).min(1).max(3),
+        scopes: z.array(z.enum(scopeNames)).min(1).max(scopeNames.length),
         revision: z.number().int().nonnegative(),
       })
       .safeParse(req.body);
@@ -233,6 +233,23 @@ export function registerShareAccess(ctx, route) {
       return reply(res, {}, "Client access email queued");
     },
   );
+  route("GET", "/api/client-share-access/:clientId/messages", async (req, res) => {
+    const c = await client(req);
+    const grant = (await db.query("SELECT id,scopes FROM node_share_grants WHERE client_id=$1 AND agency_id=$2", [c.id, c.agencyId])).rows[0];
+    if (!grant) return reply(res, []);
+    return reply(res, (await db.query(`SELECT id,sender_type AS "senderType",sender_name AS "senderName",body,created_at AS "createdAt" FROM node_portal_messages WHERE grant_id=$1 ORDER BY created_at,id`, [grant.id])).rows);
+  });
+  route("POST", "/api/client-share-access/:clientId/messages", async (req, res) => {
+    const c = await client(req);
+    const parsed = z.object({ body: z.string().trim().min(1).max(2000) }).safeParse(req.body);
+    if (!parsed.success) fail(400, "Enter a message of up to 2,000 characters");
+    const grant = (await db.query("SELECT id,scopes FROM node_share_grants WHERE client_id=$1 AND agency_id=$2 AND revoked_at IS NULL AND expires_at>CURRENT_TIMESTAMP", [c.id, c.agencyId])).rows[0];
+    if (!grant || !grant.scopes.includes("MESSAGES")) fail(403, "Messaging is not enabled for this shared record");
+    const id = randomUUID();
+    await db.query("INSERT INTO node_portal_messages(id,grant_id,agency_id,client_id,sender_type,sender_name,body) VALUES($1,$2,$3,$4,'STAFF',$5,$6)", [id,grant.id,c.agencyId,c.id,actor(req.user),parsed.data.body]);
+    await audit(db, grant.id, "STAFF_MESSAGE_SENT", actor(req.user));
+    return reply(res, { id }, "Message sent", 201);
+  });
 }
 
 export function createPortal(ctx) {
@@ -423,6 +440,32 @@ export function createPortal(ctx) {
     }
     await audit(db, s.grant_id, "RECORD_VIEWED", s.viewer_name, s.viewer_email);
     return reply(res, out);
+  });
+  router.get("/messages", async (req, res) => {
+    const s=req.portal;
+    if (!s.scopes.includes("MESSAGES")) fail(403,"Messaging is not included in this shared access");
+    const rows=(await db.query(`SELECT id,sender_type AS "senderType",sender_name AS "senderName",body,created_at AS "createdAt" FROM node_portal_messages WHERE grant_id=$1 ORDER BY created_at,id`,[s.grant_id])).rows;
+    return reply(res,rows);
+  });
+  router.post("/messages", async (req, res) => {
+    const s=req.portal;
+    if (!s.scopes.includes("MESSAGES")) fail(403,"Messaging is not included in this shared access");
+    const parsed=z.object({body:z.string().trim().min(1).max(2000)}).safeParse(req.body);
+    if(!parsed.success) fail(400,"Enter a message of up to 2,000 characters");
+    const id=randomUUID();
+    await db.query("INSERT INTO node_portal_messages(id,grant_id,agency_id,client_id,sender_type,sender_name,body) VALUES($1,$2,$3,$4,'PORTAL',$5,$6)",[id,s.grant_id,s.agency_id,s.client_id,s.viewer_name,parsed.data.body]);
+    await audit(db,s.grant_id,"PORTAL_MESSAGE_SENT",s.viewer_name,s.viewer_email);
+    return reply(res,{id},"Message sent",201);
+  });
+  router.post("/feedback", async (req,res)=>{
+    const s=req.portal;
+    if(!s.scopes.includes("FEEDBACK")) fail(403,"Feedback is not included in this shared access");
+    const parsed=z.object({rating:z.number().int().min(1).max(5),comment:z.string().trim().max(2000).optional(),consent:z.literal(true)}).safeParse(req.body);
+    if(!parsed.success) fail(400,"Choose a rating and confirm consent");
+    const id=randomUUID();
+    await db.query("INSERT INTO node_portal_feedback(id,grant_id,agency_id,client_id,rating,comment,consented_at) VALUES($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP)",[id,s.grant_id,s.agency_id,s.client_id,parsed.data.rating,parsed.data.comment||null]);
+    await audit(db,s.grant_id,"FEEDBACK_SUBMITTED",s.viewer_name,s.viewer_email);
+    return reply(res,{id},"Thank you for your feedback",201);
   });
   router.post("/logout", async (req, res) => {
     await db.query(

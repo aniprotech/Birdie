@@ -23,7 +23,8 @@ export const navLinks = [
     { path: "/admin/inbox", label: "Inbox" },
     { path: "/admin/logs", label: "Log" },
     { path: "/admin/finances", label: "Finance" },
-    { path: "/admin/reports", label: "Reporting", external: true, url: "https://birdie.eu.looker.com/login/email" },
+    { path: "/admin/reports", label: "Reporting" },
+    { path: "/admin/governance", label: "Governance" },
 ];
 
 export const accountLinks = [

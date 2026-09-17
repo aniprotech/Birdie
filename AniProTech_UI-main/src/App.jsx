@@ -5,6 +5,7 @@ import Layout from "./layout";
 import ClientIndex from "./pages/Clients/ClientIndex";
 import TeamIndex from "./pages/Teams/TeamIndex";
 import ReportIndex from "./pages/Reporting/ReportIndex";
+import GovernanceIndex from "./pages/Governance/GovernanceIndex";
 import LogIndex from "./pages/Log/LogIndex";
 import RosterIndex from "./pages/Roster/RosterIndex";
 import InboxIndex from "./pages/Inbox/InboxIndex";
@@ -673,6 +674,10 @@ const router = createBrowserRouter([
             {
                 path: "reports",
                 element: <ReportIndex />,
+            },
+            {
+                path: "governance",
+                element: <GovernanceIndex />,
             },
             {
                 path: "logs",

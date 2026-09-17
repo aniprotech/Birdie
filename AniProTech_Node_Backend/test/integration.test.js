@@ -76,7 +76,7 @@ test("Express migration integration tests against PostgreSQL", async (t) => {
       "health and CORS preflight work without authentication",
       async () => {
         assert.equal((await request(app).get("/api/health")).status, 200);
-        assert.deepEqual((await request(app).get("/api/ready")).body.checks, { database: "UP", email: "UP" });
+        assert.deepEqual((await request(app).get("/api/ready")).body.checks, { database: "UP", email: "UP", storage: "filesystem" });
         assert.equal(
           (
             await request(app)

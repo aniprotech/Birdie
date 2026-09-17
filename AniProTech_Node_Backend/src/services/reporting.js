@@ -8,7 +8,8 @@ export function registerReporting({ db, auth }, route) {
     const args = [req.user.agencyId, from, to];
     const byStatus = (
       await db.query(
-        `SELECT status,count(*)::int AS visits,COALESCE(sum(EXTRACT(EPOCH FROM(end_time-start_time))/60),0)::int AS minutes
+        `SELECT status,count(*)::int AS visits,COALESCE(sum(EXTRACT(EPOCH FROM(end_time-start_time))/60),0)::int AS minutes,
+        COALESCE(sum(EXTRACT(EPOCH FROM(actual_end-actual_start))/60) FILTER(WHERE actual_start IS NOT NULL AND actual_end IS NOT NULL),0)::int AS "actualMinutes"
       FROM node_roster_visits WHERE agency_id=$1 AND visit_date BETWEEN $2 AND $3 GROUP BY status ORDER BY status`,
         args,
       )
@@ -30,6 +31,26 @@ export function registerReporting({ db, auth }, route) {
         args,
       )
     ).rows;
+    const clients = (
+      await db.query(
+        `SELECT u.id,u.first_name||' '||u.last_name AS name,count(*)::int visits,
+        count(*) FILTER(WHERE v.status='COMPLETED')::int completed,
+        count(*) FILTER(WHERE v.status='COMPLETED' AND (v.actual_start IS NULL OR v.actual_end IS NULL))::int AS "missingActuals",
+        COALESCE(sum(EXTRACT(EPOCH FROM(v.end_time-v.start_time))/60),0)::int AS "plannedMinutes",
+        COALESCE(sum(EXTRACT(EPOCH FROM(v.actual_end-v.actual_start))/60) FILTER(WHERE v.actual_start IS NOT NULL AND v.actual_end IS NOT NULL),0)::int AS "actualMinutes"
+        FROM node_roster_visits v JOIN users u ON u.id=v.client_id
+        WHERE v.agency_id=$1 AND v.visit_date BETWEEN $2 AND $3 AND v.status<>'CANCELLED'
+        GROUP BY u.id ORDER BY name`, args,
+      )
+    ).rows;
+    const quality = (
+      await db.query(
+        `SELECT count(*) FILTER(WHERE status<>'CLOSED')::int AS "openCases",
+        count(*) FILTER(WHERE status<>'CLOSED' AND due_at<CURRENT_TIMESTAMP)::int AS "overdueCases",
+        count(*) FILTER(WHERE severity IN ('HIGH','CRITICAL') AND status<>'CLOSED')::int AS "highRiskCases"
+        FROM node_quality_cases WHERE agency_id=$1 AND created_at::date BETWEEN $2 AND $3`, args,
+      )
+    ).rows[0];
     const money = (
       await db.query(
         `SELECT kind,status,count(*)::int AS documents,COALESCE(sum(total_pence),0)::bigint::text AS "totalPence"
@@ -50,6 +71,8 @@ export function registerReporting({ db, auth }, route) {
       byStatus,
       staff,
       daily,
+      clients,
+      quality,
       money,
       people,
       timezone: "Europe/London",

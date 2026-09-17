@@ -1,193 +1,54 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { _get } from "../../utils/ApiService";
 import { Page, Field, ErrorBox, inputClass, buttonClass, londonToday, money, downloadCsv } from "../../components/Operations/common";
+
+const unwrap = (r) => r.data.results.data;
+const hours = (minutes) => (Number(minutes || 0) / 60).toFixed(1);
+const pct = (value, total) => (total ? `${Math.round((Number(value) / Number(total)) * 100)}%` : "0%");
+const previousPeriod = (from, to) => {
+    const start = new Date(`${from}T12:00:00Z`), end = new Date(`${to}T12:00:00Z`), days = Math.round((end - start) / 86400000) + 1;
+    const oldEnd = new Date(start); oldEnd.setUTCDate(oldEnd.getUTCDate() - 1);
+    const oldStart = new Date(oldEnd); oldStart.setUTCDate(oldStart.getUTCDate() - days + 1);
+    return { fromB: oldStart.toISOString().slice(0, 10), toB: oldEnd.toISOString().slice(0, 10) };
+};
+
 export default function ReportIndex() {
-    const [from, setFrom] = useState(() => londonToday().slice(0, 8) + "01"),
-        [to, setTo] = useState(londonToday),
-        [data, setData] = useState(null),
-        [error, setError] = useState(""),
-        [loading, setLoading] = useState(false);
-    useEffect(() => {
-        let active = true;
-        setLoading(true);
-        setError("");
-        _get("/api/reports/summary", { params: { from, to } })
-            .then((r) => {
-                if (active) setData(r.data.results.data);
-            })
-            .catch((e) => {
-                if (active) setError(e.response?.data?.message || "Unable to load reports");
-            })
-            .finally(() => {
-                if (active) setLoading(false);
-            });
-        return () => {
-            active = false;
-        };
+    const [from, setFrom] = useState(() => londonToday().slice(0, 8) + "01"), [to, setTo] = useState(londonToday);
+    const [tab, setTab] = useState("overview"), [data, setData] = useState(null), [comparison, setComparison] = useState(null), [reconciliation, setReconciliation] = useState(null);
+    const [error, setError] = useState(""), [loading, setLoading] = useState(false), [search, setSearch] = useState("");
+    const load = useCallback(async () => {
+        setLoading(true); setError("");
+        try {
+            const prior = previousPeriod(from, to);
+            const [summary, compare, reconcile] = await Promise.all([
+                _get("/api/reports/summary", { params: { from, to } }),
+                _get("/api/reports/compare", { params: { fromA: from, toA: to, ...prior } }),
+                _get("/api/reports/reconciliation", { params: { from, to } }),
+            ]);
+            setData(unwrap(summary)); setComparison(unwrap(compare)); setReconciliation(unwrap(reconcile));
+        } catch (e) { setError(e.response?.data?.message || "Unable to load reporting data"); }
+        finally { setLoading(false); }
     }, [from, to]);
-    const completed = data?.byStatus.find((s) => s.status === "COMPLETED") || { visits: 0, minutes: 0 };
+    useEffect(() => { load(); }, [load]);
+    const completed = data?.byStatus.find((s) => s.status === "COMPLETED") || { visits: 0 };
     const total = data?.byStatus.filter((s) => s.status !== "CANCELLED").reduce((n, s) => n + s.visits, 0) || 0;
-    return (
-        <Page
-            title="Reporting"
-            description="Visit delivery, staff workload and financial document summaries. Schedule dates use Europe/London."
-        >
-            <div className="flex flex-wrap items-end gap-3">
-                <Field label="From">
-                    <input
-                        className={inputClass}
-                        type="date"
-                        value={from}
-                        onChange={(e) => setFrom(e.target.value)}
-                    />
-                </Field>
-                <Field label="To">
-                    <input
-                        className={inputClass}
-                        type="date"
-                        value={to}
-                        onChange={(e) => setTo(e.target.value)}
-                    />
-                </Field>
-                {data && (
-                    <button
-                        className={buttonClass}
-                        onClick={() =>
-                            downloadCsv(`staff-report-${from}-${to}.csv`, [
-                                ["Staff", "Visits", "Completed", "Completed scheduled hours"],
-                                ...data.staff.map((s) => [s.name, s.visits, s.completed, (s.completedMinutes / 60).toFixed(2)]),
-                            ])
-                        }
-                    >
-                        Export staff report
-                    </button>
-                )}
-            </div>
-            <ErrorBox error={error} />
-            {loading ? (
-                <p>Loading reports...</p>
-            ) : (
-                data &&
-                !error && (
-                    <>
-                        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                            {[
-                                ["Visits (excluding cancelled)", total],
-                                ["Completed visits", completed.visits],
-                                ["Completed scheduled hours", (completed.minutes / 60).toFixed(1)],
-                                ["Completion rate", total ? Math.round((completed.visits / total) * 100) + "%" : "0%"],
-                            ].map(([k, v]) => (
-                                <div
-                                    className="rounded-xl border bg-white p-4"
-                                    key={k}
-                                >
-                                    <p className="text-xs text-gray-500">{k}</p>
-                                    <p className="mt-2 text-2xl font-semibold">{v}</p>
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-sm text-gray-500">
-                            Current active people: {data.people.clients} clients and {data.people.staff} staff. These counts reflect current status,
-                            not historical headcount.
-                        </p>
-                        <div className="grid gap-5 lg:grid-cols-2">
-                            <section className="space-y-4 rounded-xl border bg-white p-5">
-                                <h2 className="font-semibold">Visits by status</h2>
-                                {data.byStatus.map((s) => (
-                                    <div key={s.status}>
-                                        <div className="flex justify-between text-sm">
-                                            <span>{s.status.replaceAll("_", " ")}</span>
-                                            <span>{s.visits}</span>
-                                        </div>
-                                        <div className="mt-1 h-3 rounded bg-gray-100">
-                                            <div
-                                                className="h-3 rounded bg-cyan-600"
-                                                style={{ width: (s.visits / Math.max(1, ...data.byStatus.map((s) => s.visits))) * 100 + "%" }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                                {!data.byStatus.length && <p className="text-sm text-gray-500">No visits in this period.</p>}
-                            </section>
-                            <section className="rounded-xl border bg-white p-5">
-                                <h2 className="mb-4 font-semibold">Financial documents covering this period</h2>
-                                <p className="mb-3 text-xs text-gray-500">
-                                    Full document totals where the billing period overlaps these dates. Drafts and voided documents are shown
-                                    separately; these are not bank balances.
-                                </p>
-                                {data.money.map((m, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex justify-between border-t py-3 text-sm"
-                                    >
-                                        <span>
-                                            {m.kind === "INVOICE" ? "Invoices" : "Staff pay"} · {m.status} ({m.documents})
-                                        </span>
-                                        <strong>{money(m.totalPence)}</strong>
-                                    </div>
-                                ))}
-                                {!data.money.length && <p className="text-sm text-gray-500">No financial documents yet.</p>}
-                            </section>
-                        </div>
-                        <section className="overflow-auto rounded-xl border bg-white p-5">
-                            <h2 className="mb-3 font-semibold">Staff workload</h2>
-                            <table className="w-full text-left text-sm">
-                                <thead>
-                                    <tr>
-                                        {["Staff", "Visits", "Completed", "Completed scheduled hours"].map((h) => (
-                                            <th
-                                                key={h}
-                                                className="p-3"
-                                            >
-                                                {h}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.staff.map((s) => (
-                                        <tr
-                                            className="border-t"
-                                            key={s.id}
-                                        >
-                                            <td className="p-3">{s.name}</td>
-                                            <td className="p-3">{s.visits}</td>
-                                            <td className="p-3">{s.completed}</td>
-                                            <td className="p-3">{(s.completedMinutes / 60).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {!data.staff.length && <p className="p-5 text-gray-500">No assigned visits in this period.</p>}
-                        </section>
-                        <section className="overflow-auto rounded-xl border bg-white p-5">
-                            <h2 className="mb-3 font-semibold">Daily delivery</h2>
-                            <table className="w-full text-left text-sm">
-                                <thead>
-                                    <tr>
-                                        <th className="p-3">Date</th>
-                                        <th className="p-3">Visits</th>
-                                        <th className="p-3">Completed</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.daily.map((d) => (
-                                        <tr
-                                            key={d.date}
-                                            className="border-t"
-                                        >
-                                            <td className="p-3">{d.date}</td>
-                                            <td className="p-3">{d.visits}</td>
-                                            <td className="p-3">{d.completed}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {!data.daily.length && <p className="p-5 text-gray-500">No daily data in this period.</p>}
-                        </section>
-                    </>
-                )
-            )}
-        </Page>
-    );
+    const planned = data?.byStatus.reduce((n, s) => n + Number(s.minutes || 0), 0) || 0;
+    const actual = data?.byStatus.reduce((n, s) => n + Number(s.actualMinutes || 0), 0) || 0;
+    const clients = useMemo(() => (data?.clients || []).filter((x) => x.name.toLowerCase().includes(search.toLowerCase())), [data, search]);
+    const tabs = [["overview", "Executive overview"], ["delivery", "Visit delivery"], ["people", "People and clients"], ["finance", "Finance assurance"]];
+    const exportOverview = () => data && downloadCsv(`caremonitor-report-${from}-${to}.csv`, [["Metric", "Value"], ["Visits", total], ["Completed visits", completed.visits], ["Planned hours", hours(planned)], ["Actual delivered hours", hours(actual)], ["Open quality cases", data.quality.openCases], ["Reconciliation issues", reconciliation?.issues.length || 0]]);
+    return <Page title="Reporting and assurance" description="Live operational, care-delivery, workforce, finance and quality reporting from Caremonitor data. Times use Europe/London.">
+        <section className="rounded-xl border bg-white p-4"><div className="flex flex-wrap items-end gap-3"><Field label="From"><input className={inputClass} type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Field><Field label="To"><input className={inputClass} type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Field><button className={buttonClass} onClick={load} disabled={loading}>Refresh</button><button className={buttonClass} onClick={exportOverview} disabled={!data}>Export assurance summary</button></div><div className="mt-4 flex flex-wrap gap-2">{tabs.map(([key, label]) => <button key={key} onClick={() => setTab(key)} className={tab === key ? buttonClass : "rounded-lg border px-4 py-2 text-sm font-semibold text-slate-700"}>{label}</button>)}</div></section>
+        <ErrorBox error={error} />{loading && <p>Loading verified report data…</p>}
+        {!loading && data && !error && <>
+            {tab === "overview" && <><div className="grid grid-cols-2 gap-3 lg:grid-cols-6"><Metric label="Visits" value={total} detail={`${comparison?.change.visits >= 0 ? "+" : ""}${comparison?.change.visits || 0} vs previous period`} /><Metric label="Completion" value={pct(completed.visits, total)} detail={`${completed.visits} completed`} /><Metric label="Actual hours" value={hours(actual)} detail={`${comparison?.change.actualMinutes >= 0 ? "+" : ""}${hours(comparison?.change.actualMinutes)} hours`} /><Metric label="Planned hours" value={hours(planned)} detail={`${hours(actual - planned)} variance`} /><Metric label="Quality cases" value={data.quality.openCases} detail={`${data.quality.overdueCases} overdue`} risk={data.quality.overdueCases > 0} /><Metric label="Reconciliation" value={reconciliation?.issues.length || 0} detail="items requiring review" risk={reconciliation?.issues.length > 0} /></div><div className="grid gap-5 lg:grid-cols-2"><StatusChart rows={data.byStatus} /><DailyTable rows={data.daily} /></div><section className="rounded-xl border border-cyan-100 bg-cyan-50 p-5 text-sm text-slate-700"><h2 className="font-semibold text-slate-900">Report definitions</h2><p className="mt-2">Actual hours use verified caregiver check-in and check-out timestamps. Planned hours use roster start and end times. Finance assurance checks inclusion in generated invoice and pay documents; it does not represent bank settlement.</p><p className="mt-2">Current active population: {data.people.clients} clients and {data.people.staff} staff. Generated for {from} to {to}; previous-period comparison uses an immediately preceding period of equal length.</p></section></>}
+            {tab === "delivery" && <><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Metric label="Completed" value={completed.visits} detail={`${pct(completed.visits, total)} of visits`} /><Metric label="Actual hours" value={hours(actual)} detail="verified delivery" /><Metric label="Planned hours" value={hours(planned)} detail="scheduled delivery" /><Metric label="Missing actuals" value={reconciliation?.issues.filter((x) => x.kind === "MISSING_ACTUALS").length || 0} detail="completed visits" risk /></div><StatusChart rows={data.byStatus} /><DailyTable rows={data.daily} /></>}
+            {tab === "people" && <><div className="flex justify-between gap-3"><input className={`${inputClass} max-w-md`} placeholder="Search client" value={search} onChange={(e) => setSearch(e.target.value)} /><button className={buttonClass} onClick={() => downloadCsv(`client-delivery-${from}-${to}.csv`, [["Client", "Visits", "Completed", "Planned hours", "Actual hours", "Missing actuals"], ...clients.map((x) => [x.name, x.visits, x.completed, hours(x.plannedMinutes), hours(x.actualMinutes), x.missingActuals])])}>Export clients</button></div><DataTable title="Client service delivery" headers={["Client", "Visits", "Completed", "Planned hours", "Actual hours", "Missing actuals"]} rows={clients.map((x) => [x.name, x.visits, x.completed, hours(x.plannedMinutes), hours(x.actualMinutes), x.missingActuals])} /><DataTable title="Staff workload" headers={["Staff", "Visits", "Completed", "Completed scheduled hours"]} rows={data.staff.map((x) => [x.name, x.visits, x.completed, hours(x.completedMinutes)])} /></>}
+            {tab === "finance" && <><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Metric label="Completed visits" value={reconciliation?.completedVisits || 0} detail="eligible for review" /><Metric label="Fully reconciled" value={reconciliation?.balancedVisits || 0} detail={pct(reconciliation?.balancedVisits, reconciliation?.completedVisits)} /><Metric label="Not invoiced" value={reconciliation?.issues.filter((x) => x.kind === "NOT_INVOICED").length || 0} detail="completed visits" risk /><Metric label="Not in payrun" value={reconciliation?.issues.filter((x) => x.kind === "NOT_IN_PAYRUN").length || 0} detail="completed visits" risk /></div><DataTable title="Financial documents" headers={["Type", "Status", "Documents", "Total"]} rows={data.money.map((x) => [x.kind === "INVOICE" ? "Invoices" : "Staff pay", x.status, x.documents, money(x.totalPence)])} /><DataTable title="Reconciliation exceptions" headers={["Date", "Visit", "Issue"]} rows={(reconciliation?.issues || []).map((x) => [x.date, x.title, x.kind.replaceAll("_", " ")])} empty="No reconciliation exceptions for this period." /></>}
+        </>}
+    </Page>;
 }
+function Metric({ label, value, detail, risk = false }) { return <article className={`rounded-xl border bg-white p-4 ${risk && Number(value) ? "border-amber-300" : ""}`}><p className="text-xs font-medium text-slate-500">{label}</p><p className="mt-2 text-2xl font-semibold text-slate-900">{value}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></article>; }
+function StatusChart({ rows }) { const max = Math.max(1, ...rows.map((x) => x.visits)); return <section className="space-y-4 rounded-xl border bg-white p-5"><h2 className="font-semibold">Visits by status</h2>{rows.map((x) => <div key={x.status}><div className="flex justify-between text-sm"><span>{x.status.replaceAll("_", " ")}</span><span>{x.visits}</span></div><div className="mt-1 h-3 rounded bg-slate-100"><div className="h-3 rounded bg-cyan-500" style={{ width: `${(x.visits / max) * 100}%` }} /></div></div>)}{!rows.length && <p className="text-sm text-slate-500">No visits in this period.</p>}</section>; }
+function DailyTable({ rows }) { return <DataTable title="Daily delivery" headers={["Date", "Visits", "Completed", "Completion"]} rows={rows.map((x) => [x.date, x.visits, x.completed, pct(x.completed, x.visits)])} />; }
+function DataTable({ title, headers, rows, empty = "No records for this period." }) { return <section className="overflow-auto rounded-xl border bg-white p-5"><h2 className="mb-3 font-semibold">{title}</h2><table className="w-full text-left text-sm"><thead><tr>{headers.map((h) => <th className="whitespace-nowrap p-3" key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((row, i) => <tr className="border-t" key={`${row[0]}-${i}`}>{row.map((cell, j) => <td className="whitespace-nowrap p-3" key={j}>{cell}</td>)}</tr>)}</tbody></table>{!rows.length && <p className="p-3 text-sm text-slate-500">{empty}</p>}</section>; }

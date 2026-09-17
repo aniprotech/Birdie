@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
 import { accountLinks, navLinks } from "../../constants";
 import { useClickOutside } from "../../hooks/use-click-outside";
 import useAuthStore from "../../stores/authStore";
@@ -62,19 +61,7 @@ const Navbar = () => {
 
                     {/* Desktop Nav Links */}
                     <div className="hidden space-x-6 text-sm text-white lg:flex">
-                        {navLinks?.map(({ path, label, external, url }) =>
-                            external ? (
-                                <a
-                                    key={path}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 hover:underline"
-                                >
-                                    {label}
-                                    <ExternalLink className="mb-0.5 h-4 w-4 opacity-80" />
-                                </a>
-                            ) : (
+                        {navLinks?.map(({ path, label }) =>
                                 <Link
                                     key={path}
                                     to={path}
@@ -86,7 +73,6 @@ const Navbar = () => {
                                 >
                                     {label}
                                 </Link>
-                            ),
                         )}
                         {userData?.user?.isPlatformAdmin && <Link to="/admin/platform" className={`rounded px-2.5 py-2 transition ${location.pathname.startsWith("/admin/platform")?"bg-customActiveBg":"hover:bg-customActiveBg/40"}`}>Platform admin</Link>}
                     </div>
@@ -94,7 +80,6 @@ const Navbar = () => {
 
                 {/* Right Side Info (Visible on all screen sizes) */}
                 <div className="flex items-center space-x-4">
-                    <div className="hidden text-sm text-white lg:flex">{organisationName}</div>
                     <div className="relative">
                         <button
                             ref={profileBtnRef}
@@ -174,27 +159,10 @@ const Navbar = () => {
                     toggleMenu ? "scale-y-100 pb-6 pt-4" : "h-0 scale-y-0 overflow-hidden"
                 }`}
             >
-                {/* Org Info */}
-                <div className="mb-3 border-b border-white/20 pb-3 text-sm">
-                    <div className="text-white">{organisationName}</div>
-                </div>
-
                 {/* Mobile Nav Links */}
                 <div className="flex flex-col space-y-2">
                     {userData?.user?.isPlatformAdmin && <Link to="/admin/platform" onClick={()=>setToggleMenu(false)} className="rounded px-2 py-2 text-white transition hover:bg-customBlue/60">Platform admin</Link>}
-                    {navLinks.map(({ path, label, external, url }) =>
-                        external ? (
-                            <a
-                                key={path}
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="rounded px-2 py-2 text-white transition hover:bg-customBlue/60"
-                                onClick={() => setToggleMenu(false)}
-                            >
-                                {label}
-                            </a>
-                        ) : (
+                    {navLinks.map(({ path, label }) =>
                             <Link
                                 key={path}
                                 to={path}
@@ -207,7 +175,6 @@ const Navbar = () => {
                             >
                                 {label}
                             </Link>
-                        ),
                     )}
                 </div>
             </div>

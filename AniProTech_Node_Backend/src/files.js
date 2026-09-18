@@ -9,6 +9,8 @@ const allowed = new Set([
   "application/pdf",
   "image/png",
   "image/jpeg",
+  "image/heic",
+  "image/heif",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
@@ -26,7 +28,7 @@ export function createFiles(config, db) {
     if (!file?.buffer?.length) fail(400, "A non-empty file is required");
     const type = await fileTypeFromBuffer(file.buffer);
     if (!type || !allowed.has(type.mime))
-      fail(400, "Only PDF, PNG, JPEG and Word documents are allowed");
+      fail(400, "Only PDF, PNG, JPEG, HEIC and Word documents are allowed");
     const filename = `${randomUUID()}.${type.ext}`;
     const resource=`uploads/${filename}`;
     if(config.storageMode==="database")await db.query("INSERT INTO node_private_files(resource,original_name,mime_type,content) VALUES($1,$2,$3,$4)",[resource,path.basename(file.originalname.replaceAll("\\", "/")),type.mime,file.buffer]);

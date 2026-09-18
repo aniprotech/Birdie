@@ -186,7 +186,7 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     if (!parsed.success) fail(400, "Provide a valid attendance event and location");
     const b = parsed.data;
     const duplicate=(await db.query("SELECT event,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\" FROM node_visit_attendance WHERE client_event_id=$1 AND actor_id=$2",[b.clientEventId,req.user.id])).rows[0];
-    if(duplicate){if(duplicate.event!==b.event)fail(409,"This offline event identifier was already used");return reply(res,{status:duplicate.event==="CHECK_IN"?"IN_PROGRESS":"COMPLETED",distanceMetres:duplicate.distanceMetres,withinRadius:duplicate.withinRadius},"Attendance already recorded");}
+    if(duplicate){if(duplicate.event!==b.event)fail(409,"This offline event identifier was already used");return reply(res,{status:duplicate.event==="CHECK_IN"?"IN_PROGRESS":"COMPLETED",distanceMetres:duplicate.distanceMetres,withinRadius:duplicate.withinRadius,locationStatus:duplicate.event!=="CHECK_IN"?"NOT_REQUIRED":duplicate.withinRadius===true?"VERIFIED":duplicate.withinRadius===false?"OUTSIDE_RADIUS":"CLIENT_LOCATION_NOT_CONFIGURED"},"Attendance already recorded");}
     if (b.event === "CHECK_IN" && v.status !== "SCHEDULED") fail(409, "Only a scheduled visit can be checked in");
     if (b.event === "CHECK_OUT" && v.status !== "IN_PROGRESS") fail(409, "Check in before checking out");
     if (b.event === "CHECK_OUT") {
@@ -212,12 +212,14 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     if (b.event === "CHECK_IN") await db.query("UPDATE node_roster_visits SET status='IN_PROGRESS',actual_start=COALESCE(actual_start,CURRENT_TIMESTAMP),revision=revision+1,updated_by=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[v.id,req.user.id]);
     else await db.query("UPDATE node_roster_visits SET status='COMPLETED',actual_end=COALESCE(actual_end,CURRENT_TIMESTAMP),revision=revision+1,updated_by=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1",[v.id,req.user.id]);
     await visitEvent(db,v.id,req.user.id,b.event === "CHECK_IN" ? "Checked in using the mobile app" : "Checked out using the mobile app");
+    let locationStatus="NOT_REQUIRED";
     if(b.event==="CHECK_IN"){
-      const id=randomUUID(),location=within===true?"Location verified":within===false?`Outside configured radius (${distance} m)`:"Location could not be verified";
-      await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by) VALUES($1,$2,$3,$4,'ALERT','Caregiver arrived',$5,'Other alerts','OPEN',$6,$6)",[id,req.user.agencyId,v.client_id,v.id,location,req.user.id]);
+      locationStatus=within===true?"VERIFIED":within===false?"OUTSIDE_RADIUS":"CLIENT_LOCATION_NOT_CONFIGURED";
+      const id=randomUUID(),title=within===true?"Caregiver arrived":within===false?"Caregiver arrived outside check-in radius":"Client location setup required",body=within===true?`Location verified${distance!=null?` (${distance} m)`:""}`:within===false?`Attendance was captured ${distance} m from the configured client location.`:"Attendance was captured, but this client's primary address does not have map coordinates. Add latitude, longitude and a check-in radius in the client address.";
+      await db.query("INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,'ATTENDANCE',$8,$9,$9)",[id,req.user.agencyId,v.client_id,v.id,within===true?'NOTE':'ALERT',title,body,within===true?'RECORDED':'OPEN',req.user.id]);
       if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.clientEmail||"")) req.afterCommit?.push(()=>mail.send({to:v.clientEmail,subject:"Your caregiver has arrived",text:`Your scheduled caregiver checked in at ${new Date().toLocaleString("en-GB",{timeZone:"Europe/London"})}. Contact your care provider if this was unexpected.`}));
     }
-    return reply(res,{ status:b.event === "CHECK_IN" ? "IN_PROGRESS" : "COMPLETED",distanceMetres:distance,withinRadius:within },b.event === "CHECK_IN" ? "Checked in" : "Checked out");
+    return reply(res,{ status:b.event === "CHECK_IN" ? "IN_PROGRESS" : "COMPLETED",distanceMetres:distance,withinRadius:within,locationStatus },b.event === "CHECK_IN" ? "Checked in" : "Checked out");
   });
 
   route("POST", "/api/mobile/visits/:id/locations", async (req,res) => {

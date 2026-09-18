@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { _get, _post } from "../../../utils/ApiService";
 import { showSuccess } from "../../../utils/toaster";
 import { clientsProfileTitleOptions, clientsContactAddressTypes, clientsContactPhoneTypes } from "../../../constants";
+import { loadGoogleMapScript } from "../../../utils/loadGoogleMapScript";
 
 const blankAddress = () => ({
     addressType: "PERMANENT_RESIDENCE",
@@ -61,6 +62,7 @@ export default function ClientForm({ editing = false }) {
         [loading, setLoading] = useState(editing),
         [busy, setBusy] = useState(false),
         [error, setError] = useState(""),
+        [locatingAddress, setLocatingAddress] = useState(null),
         [photo, setPhoto] = useState(null),
         [removePhoto, setRemovePhoto] = useState(false);
     useEffect(() => {
@@ -83,6 +85,20 @@ export default function ClientForm({ editing = false }) {
     const set = (key, value) => setValues((v) => ({ ...v, [key]: value }));
     const addr = (index, key, value) =>
         setValues((v) => ({ ...v, addresses: v.addresses.map((a, i) => (i === index ? { ...a, [key]: value } : a)) }));
+    async function locateAddress(index) {
+        const address = values.addresses[index], query = [address.addressLine1, address.addressLine2, address.city, address.county, address.postalCode, address.country].filter(Boolean).join(", ");
+        if (!query.trim()) return setError("Enter the client address before finding its check-in location.");
+        setError(""); setLocatingAddress(index);
+        try {
+            await loadGoogleMapScript(import.meta.env.VITE_APP_MAP_API_KEY);
+            const response = await new window.google.maps.Geocoder().geocode({ address: query });
+            const location = response.results?.[0]?.geometry?.location;
+            if (!location) throw new Error("Address not found");
+            setValues((current) => ({ ...current, addresses: current.addresses.map((item, i) => i === index ? { ...item, latitude: location.lat().toFixed(7), longitude: location.lng().toFixed(7), secureCheckin: "true", checkinRadius: item.checkinRadius || 200 } : item) }));
+        } catch (geocodeError) {
+            setError(geocodeError?.message === "Address not found" ? "The address could not be located. Check the postcode and address, then retry." : "Google Maps could not locate this address. Check the browser map key and its domain restrictions.");
+        } finally { setLocatingAddress(null); }
+    }
     const field = (key, label, type = "text", required = false) => (
         <label
             className="block text-sm"
@@ -313,9 +329,11 @@ export default function ClientForm({ editing = false }) {
                         {(a.secureCheckin === true || a.secureCheckin === "true") && (
                             <>
                                 <p className="text-sm text-slate-600">
-                                    Save the location and permitted radius. Attendance is currently recorded manually; location enforcement will be
-                                    connected to mobile check-in.
+                                    Find the address coordinates and choose the permitted radius. Mobile check-in and check-out use these values to verify attendance.
                                 </p>
+                                <button type="button" disabled={locatingAddress === i} onClick={() => void locateAddress(i)} className="rounded bg-cyan-600 px-4 py-2 font-medium text-white disabled:opacity-50">
+                                    {locatingAddress === i ? "Finding address…" : "Find coordinates from address"}
+                                </button>
                                 <div className="grid gap-4 md:grid-cols-3">
                                     {[
                                         ["latitude", "Latitude", -90, 90],

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Caremonitor by Aniprotech",
     "slug": "aniprotech-mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "backgroundColor": "#F4FBFF",
@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.aniprotech.care",
+      "buildNumber": "3",
       "config": {
         "usesNonExemptEncryption": false
       }
@@ -24,7 +25,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.aniprotech.care",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"

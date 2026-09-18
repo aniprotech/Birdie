@@ -143,7 +143,10 @@ export async function flushPendingMutations(ownerId: string) {
   return summary;
 }
 
-export async function upload(path: string, uri: string, caption = "", metadata?: { latitude:number|null; longitude:number|null; accuracy:number|null; capturedAt:string }) {
+export type UploadAsset = { uri:string; fileName?:string|null; mimeType?:string|null; fileSize?:number|null };
+export async function upload(path: string, asset: UploadAsset, caption = "", metadata?: { latitude:number|null; longitude:number|null; accuracy:number|null; capturedAt:string }) {
+  if(asset.fileSize && asset.fileSize > 12 * 1024 * 1024)
+    throw new Error("The photo is larger than 12 MB. Retake it at a lower resolution.");
   const form = new FormData();
   form.append("caption", caption);
   if(metadata){
@@ -152,13 +155,24 @@ export async function upload(path: string, uri: string, caption = "", metadata?:
     if(metadata.accuracy!=null)form.append("accuracy",String(metadata.accuracy));
     form.append("capturedAt",metadata.capturedAt);
   }
-  form.append("photo", { uri, name: `care-photo-${Date.now()}.jpg`, type: "image/jpeg" } as any);
-  const response = await fetch(API_URL + path, {
-    method: "POST",
-    headers: token ? { Authorization: "Bearer " + token } : {},
-    body: form,
-  });
-  const result = await response.json();
-  if (!response.ok || result.error) throw new Error(result.message || "Upload failed");
-  return result.results?.data;
+  const inferredExtension=asset.mimeType==="image/png"?"png":asset.mimeType?.includes("hei")?"heic":"jpg";
+  form.append("photo", { uri:asset.uri, name:asset.fileName||`care-photo-${Date.now()}.${inferredExtension}`, type:asset.mimeType||"image/jpeg" } as any);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),60000);
+  try{
+    const response = await fetch(API_URL + path, {
+      method: "POST",
+      signal:controller.signal,
+      headers: token ? { Authorization: "Bearer " + token } : {},
+      body: form,
+    });
+    const raw=await response.text();
+    let result:any={};
+    try{result=raw?JSON.parse(raw):{}}catch{throw new Error(`Photo upload failed (${response.status}). Please retry.`)}
+    if(response.status===401)unauthorized?.();
+    if (!response.ok || result.error) throw new ApiRequestError(result.message || "Photo upload failed",response.status);
+    return result.results?.data;
+  }catch(error){
+    if(error instanceof Error&&error.name==="AbortError")throw new Error("The photo upload took too long. Check your connection and retry.");
+    throw error;
+  }finally{clearTimeout(timer)}
 }

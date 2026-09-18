@@ -131,7 +131,7 @@ export function createAuth({ db, repo, config, mail }) {
       }
       const session = (
         await db.query(
-          "SELECT id FROM node_sessions WHERE id=$1 AND user_id=$2 AND revoked_at IS NULL AND expires_at>CURRENT_TIMESTAMP",
+          "SELECT id FROM node_sessions WHERE id=$1 AND user_id=$2 AND revoked_at IS NULL AND expires_at>CURRENT_TIMESTAMP AND last_seen_at>CURRENT_TIMESTAMP-interval '5 minutes'",
           [claims.jti, claims.sub],
         )
       ).rows[0];

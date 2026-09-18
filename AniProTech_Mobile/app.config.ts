@@ -20,7 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 320, resizeMode: "contain", backgroundColor: "#071A33" }],
       ["expo-image-picker", { "photosPermission": "Allow Caremonitor to attach care evidence to an assigned visit.", "cameraPermission": "Allow Caremonitor to take a photo for an assigned visit." }],
       ["expo-location", { "locationWhenInUsePermission": "Allow Caremonitor to record location when you check in or out of an assigned visit." }],
-      ["expo-speech-recognition", { microphonePermission: "Allow Caremonitor to convert caregiver speech into editable visit text.", speechRecognitionPermission: "Allow Caremonitor to convert caregiver speech into editable visit text." }],
+      ["expo-speech-recognition", { microphonePermission: "Allow Caremonitor to convert caregiver speech into editable visit text.", speechRecognitionPermission: "Allow Caremonitor to convert caregiver speech into editable visit text.", androidSpeechServicePackages: ["com.google.android.googlequicksearchbox"] }],
       [
         "expo-build-properties",
         { android: { usesCleartextTraffic: !production && local } },

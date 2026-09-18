@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
   AppState,
+  Alert,
   Image,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -35,6 +36,8 @@ export default function App() {
     [link, setLink] = useState(""),
     [tab, setTab] = useState("Visits");
   const exchanging = useRef(false);
+  const lastActivity = useRef(Date.now()), warningShown = useRef(false), backgroundAt = useRef<number | null>(null), endingSession = useRef(false);
+  const markActivity = () => { lastActivity.current = Date.now(); warningShown.current = false; };
   async function signIn(url: string) {
     if (exchanging.current) return;
     exchanging.current = true;
@@ -108,20 +111,53 @@ export default function App() {
       sub.remove();
     };
   }, []);
-  async function logout() {
+  async function finishLogout(message = "", clearOfflineRecords = false) {
+    if (endingSession.current) return;
+    endingSession.current = true;
     setBusy(true);
     try {
       await api("/api/auth/logout", "POST");
     } catch {
     } finally {
       await saveToken(null);
-      await clearPendingMutations();
+      if (clearOfflineRecords) await clearPendingMutations();
       setUser(null);
       setTab("Visits");
-      setError("");
+      setError(message);
       setBusy(false);
+      endingSession.current = false;
     }
   }
+  async function logout() { await finishLogout("", true); }
+  useEffect(() => {
+    if (!user) return;
+    markActivity();
+    const check = setInterval(() => {
+      const idle = Date.now() - lastActivity.current;
+      if (idle >= 5 * 60 * 1000) {
+        void finishLogout("You were signed out after 5 minutes of inactivity. Request a new sign-in link to continue.");
+      } else if (idle >= 4.5 * 60 * 1000 && !warningShown.current) {
+        warningShown.current = true;
+        Alert.alert("Session ending soon", "Caremonitor will sign you out in 30 seconds because there has been no activity.", [
+          { text: "Sign out", style: "destructive", onPress: () => void finishLogout("Please request a new sign-in link to continue.") },
+          { text: "Stay signed in", onPress: () => { markActivity(); void api("/api/auth/validate-token", "POST").catch(() => finishLogout("Your session expired. Request a new sign-in link to continue.")); } },
+        ], { cancelable: false });
+      }
+    }, 1000);
+    const heartbeat = setInterval(() => {
+      if (AppState.currentState === "active" && Date.now() - lastActivity.current < 60000)
+        void api("/api/auth/validate-token", "POST").catch(() => finishLogout("Your session expired. Request a new sign-in link to continue."));
+    }, 60000);
+    const appState = AppState.addEventListener("change", (next) => {
+      if (next !== "active") backgroundAt.current = Date.now();
+      else if (backgroundAt.current) {
+        if (Date.now() - backgroundAt.current >= 5 * 60 * 1000) void finishLogout("You were signed out after 5 minutes away from Caremonitor. Request a new sign-in link to continue.");
+        else markActivity();
+        backgroundAt.current = null;
+      }
+    });
+    return () => { clearInterval(check); clearInterval(heartbeat); appState.remove(); };
+  }, [user]);
   async function requestLink() {
     setBusy(true);
     setError("");
@@ -145,7 +181,7 @@ export default function App() {
       : ["Visits", "Clients", "Team", "Inbox", "More"];
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colours.background }}>
+      <SafeAreaView onTouchStart={markActivity} style={{ flex: 1, backgroundColor: colours.background }}>
         <StatusBar style="dark" />
         <KeyboardAvoidingView
           style={{ flex: 1 }}

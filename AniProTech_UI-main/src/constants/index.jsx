@@ -25,6 +25,7 @@ export const navLinks = [
     { path: "/admin/finances", label: "Finance" },
     { path: "/admin/reports", label: "Reporting" },
     { path: "/admin/governance", label: "Governance" },
+    { path: "/admin/governance?tab=assistance", label: "AI Assistance" },
 ];
 
 export const accountLinks = [

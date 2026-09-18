@@ -33,5 +33,7 @@ test("Gate C MFA, device sessions and privacy governance are tenant scoped",asyn
   assert.equal((await request(app).post(`/api/privacy/requests/${privacy.id}/status`).set(second).send({status:"APPROVED",decisionReason:"Identity verified and legal hold has been released"})).status,200);
   assert.equal((await request(app).post(`/api/privacy/requests/${privacy.id}/execute`).set(second).send({})).status,200);
   const erased=(await db.query("SELECT first_name,email,is_active FROM users WHERE id=$1",[clientId])).rows[0];assert.equal(erased.first_name,"Erased");assert.equal(erased.is_active,false);assert.match(erased.email,/^erased-/);
+ await db.query("UPDATE node_sessions SET last_seen_at=CURRENT_TIMESTAMP-interval '6 minutes' WHERE user_id=$1 AND device_name='Second device'",[adminId]);
+ assert.equal((await request(app).post("/api/auth/validate-token").set(second).send({})).status,401,"inactive sessions must require a fresh sign-in link");
  await db.close();
 });

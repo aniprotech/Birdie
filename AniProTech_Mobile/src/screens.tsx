@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   View,
@@ -85,13 +85,29 @@ export function Visits({user}:{user:User}) {
     [medicationQuantity,setMedicationQuantity]=useState("1"),
     [medicationWitness,setMedicationWitness]=useState(""),
     [medicationAllergyAcknowledged,setMedicationAllergyAcknowledged]=useState(false),
+    [tracking,setTracking]=useState(false),
+    [lastLocationAt,setLastLocationAt]=useState<string|null>(null),
     [syncSummary,setSyncSummary]=useState<SyncSummary>({pending:0,blocked:0,sent:0,lastSyncAt:null,items:[]});
+  const locationSubscription=useRef<Location.LocationSubscription|null>(null);
   const { data, error, loading, refresh } = useData<{ visits: Row[] }>(
     `/api/roster/visits?from=${date}&to=${date}`,
   );
   const openShifts=useData<{visits:Row[]}>(`/api/roster/open-shifts?from=${date}&to=${date}`);
   const options=useData<{canManage:boolean;clients:Row[];staff:Row[]}>("/api/roster/options");
   useEffect(()=>{void pendingMutationSummary(user.id).then(setSyncSummary)},[user.id]);
+  useEffect(()=>()=>{locationSubscription.current?.remove();locationSubscription.current=null},[]);
+  async function stopLocationTracking(){locationSubscription.current?.remove();locationSubscription.current=null;setTracking(false)}
+  async function startLocationTracking(visitId:string){
+    if(locationSubscription.current)return;
+    if(!(await Location.hasServicesEnabledAsync()))throw new Error("Turn on location services to track this active visit.");
+    const permission=await Location.requestForegroundPermissionsAsync();
+    if(permission.status!=="granted")throw new Error("Location permission is required while the visit is active.");
+    locationSubscription.current=await Location.watchPositionAsync({accuracy:Location.Accuracy.High,timeInterval:60000,distanceInterval:25},position=>{
+      const recordedAt=new Date(position.timestamp).toISOString();setLastLocationAt(recordedAt);
+      void apiOrQueue(`/api/mobile/visits/${visitId}/locations`,{clientEventId:clientEventId(),latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy,recordedAt},user.id,"Active visit location").then(()=>pendingMutationSummary(user.id).then(setSyncSummary)).catch(()=>pendingMutationSummary(user.id).then(setSyncSummary));
+    });
+    setTracking(true);
+  }
   async function synchroniseNow(){setBusy(true);try{const result=await flushPendingMutations(user.id);setSyncSummary(await pendingMutationSummary(user.id));if(!result.pending)Alert.alert("Synchronisation complete",`${result.sent} pending visit record${result.sent===1?"":"s"} sent successfully.`);else Alert.alert("Synchronisation needs attention",`${result.pending} record${result.pending===1?"":"s"} remain on this device. Review the reason below and resolve it before completing care records.`);}catch(e){Alert.alert("Synchronisation unavailable",(e as Error).message)}finally{setBusy(false)}}
   async function createVisit(){
     setBusy(true);
@@ -137,6 +153,9 @@ export function Visits({user}:{user:User}) {
       const result=await apiOrQueue(`/api/mobile/visits/${selected.id}/attendance`,{clientEventId:clientEventId(),event,...coordinates},user.id,event==="CHECK_IN"?"Visit check-in":"Visit check-out");
       if(result.queued){setSyncSummary(await pendingMutationSummary(user.id));const status=event==="CHECK_IN"?"IN_PROGRESS":"COMPLETED";setDetail((current)=>current?{...current,visit:{...current.visit,status}}:current);setSelected({...selected,status});Alert.alert("Attendance saved securely",`${event==="CHECK_IN"?"Check-in":"Check-out"} is pending synchronisation. Keep the app installed and review sync status when connectivity returns.`);}
       else {const attendanceResult=result.data as Row;if(event==="CHECK_IN") Alert.alert("Check-in recorded",attendanceResult.withinRadius===true?`Client location verified${attendanceResult.distanceMetres!=null?` (${attendanceResult.distanceMetres} m)`:""}. The arrival notification has been created.`:attendanceResult.withinRadius===false?`You appear to be ${attendanceResult.distanceMetres} m from the configured client location. The admin has been notified for review.`:"The client location is not configured, so proximity could not be verified. The admin has been notified.");const updated=await api<Row>(`/api/mobile/visits/${selected.id}`);setDetail(updated);setSelected({...selected,status:updated.visit.status});}
+      if(event==="CHECK_IN"){
+        try{await startLocationTracking(selected.id)}catch(error){Alert.alert("Check-in saved; tracking paused",(error as Error).message)}
+      }else await stopLocationTracking();
       refresh();
     } catch (e) {
       Alert.alert("Attendance could not be recorded", (e as Error).message);
@@ -153,7 +172,7 @@ export function Visits({user}:{user:User}) {
     if(!selected) return;
     const permission=await ImagePicker.requestCameraPermissionsAsync(); if(!permission.granted){Alert.alert("Camera permission needed","Allow camera access to add a visit photo.");return;}
     const result=await ImagePicker.launchCameraAsync({mediaTypes:["images"],quality:.75}); if(result.canceled)return;
-    setBusy(true); try{await upload(`/api/mobile/visits/${selected.id}/photos`,result.assets[0].uri,caption);setDetail(await api(`/api/mobile/visits/${selected.id}`));setCaption("");}catch(e){Alert.alert("Photo could not be uploaded",(e as Error).message)}finally{setBusy(false)}
+    setBusy(true); try{let metadata:{latitude:number|null;longitude:number|null;accuracy:number|null;capturedAt:string}={latitude:null,longitude:null,accuracy:null,capturedAt:new Date().toISOString()};try{const position=await Location.getCurrentPositionAsync({accuracy:Location.Accuracy.High});metadata={latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy,capturedAt:new Date(position.timestamp).toISOString()}}catch{}await upload(`/api/mobile/visits/${selected.id}/photos`,result.assets[0].uri,caption,metadata);setDetail(await api(`/api/mobile/visits/${selected.id}`));setCaption("");}catch(e){Alert.alert("Photo could not be uploaded",(e as Error).message)}finally{setBusy(false)}
   }
   async function dictate(target:"note"|"incident") {
     try {
@@ -217,7 +236,7 @@ export function Visits({user}:{user:User}) {
       {!selected&&user.role==="CAREGIVER"&&!!openShifts.data?.visits.length&&<><Text style={styles.heading}>Available open shifts</Text>{openShifts.data.visits.map(v=><Card key={v.id}><Text style={styles.badge}>{v.startTime} – {v.endTime}</Text><Text style={styles.heading}>{v.clientName}</Text><Text style={styles.text}>{v.title}{v.requiredStaff>1?` · double-up position ${v.slotIndex} of ${v.requiredStaff}`:""}</Text><Button disabled={busy} title="Claim shift" onPress={async()=>{setBusy(true);try{await api(`/api/roster/visits/${v.id}/claim`,"POST",{});Alert.alert("Shift assigned","The visit is now in your schedule.");openShifts.refresh();refresh()}catch(e){Alert.alert("Shift could not be assigned",(e as Error).message)}finally{setBusy(false)}}}/></Card>)}</>}
       {selected ? (
         <>
-          <Button title="Back to visits" onPress={() => {setSelected(null);setDetail(null)}} />
+          <Button title="Back to visits" onPress={() => {void stopLocationTracking();setSelected(null);setDetail(null)}} />
           {(syncSummary.pending>0||syncSummary.lastSyncAt)&&<Card><Text style={styles.heading}>Offline sync status</Text><Text style={syncSummary.blocked?styles.error:styles.badge}>{syncSummary.pending?`${syncSummary.pending} pending · ${syncSummary.blocked} need attention`:`Up to date${syncSummary.lastSyncAt?` · ${timestamp(syncSummary.lastSyncAt)}`:""}`}</Text>{syncSummary.items.slice(0,5).map(item=><Text key={item.id} style={item.lastError?styles.error:styles.muted}>{item.label||"Visit record"} · {item.lastError||"Waiting to send"}</Text>)}<Button disabled={busy} title={busy?"Synchronising…":"Synchronise now"} onPress={()=>void synchroniseNow()}/></Card>}
           <Card>
           <Text style={styles.heading}>{selected.clientName}</Text>
@@ -240,11 +259,11 @@ export function Visits({user}:{user:User}) {
             />
           )}
           {detail?.visit?.status === "IN_PROGRESS" && (
-            <Button
+            <><Card><Text style={styles.heading}>Active-visit location</Text><Text style={styles.muted}>{tracking?`Tracking while Caremonitor is open${lastLocationAt?` · last update ${timestamp(lastLocationAt)}`:""}.`:"Location tracking is paused. Resume it while delivering this visit."}</Text><Button disabled={busy} title={tracking?"Location tracking active":"Resume location tracking"} onPress={()=>{if(!tracking)void startLocationTracking(selected.id).catch(e=>Alert.alert("Tracking unavailable",(e as Error).message))}}/></Card><Button
               disabled={busy}
               title="Check out and complete"
               onPress={() => void attendance("CHECK_OUT")}
-            />
+            /></>
           )}
           </Card>
           <Text style={styles.heading}>Care tasks</Text>
@@ -275,7 +294,8 @@ export function Visits({user}:{user:User}) {
           <Button disabled={busy||incident.trim().length<2} title="Submit incident alert" onPress={()=>void record("ALERT","Incident reported",incident,"OPEN","INCIDENT")}/>
           <Text style={styles.heading}>Photos</Text>
           <Input label="Photo caption (optional)" maxLength={500} value={caption} onChangeText={setCaption}/><Button disabled={busy} title="Take and upload photo" onPress={()=>void addPhoto()}/>
-          {detail?.attachments?.map((a:Row)=><Card key={a.id}><Text style={styles.text}>{a.caption||a.name}</Text><Text style={styles.muted}>{timestamp(a.created_at)}</Text></Card>)}
+          {detail?.attachments?.map((a:Row)=><Card key={a.id}><Text style={styles.text}>{a.caption||a.name}</Text><Text style={styles.muted}>{timestamp(a.capturedAt||a.created_at)}{a.latitude!=null?" · location recorded":""}</Text></Card>)}
+          {!!detail?.locationTrail?.length&&<Card><Text style={styles.heading}>Location audit</Text><Text style={styles.badge}>{detail.locationTrail.length} active-visit sample{detail.locationTrail.length===1?"":"s"}</Text><Text style={styles.muted}>Visible to authorised administrators in the web visit record.</Text></Card>}
           <Text style={styles.heading}>Recorded activity</Text>
           {detail?.entries?.map((e:Row)=><Card key={e.id}><Text style={styles.badge}>{e.kind} · {e.status}</Text><Text style={styles.heading}>{e.title}</Text>{e.body?<Text style={styles.text}>{e.body}</Text>:null}</Card>)}
         </>

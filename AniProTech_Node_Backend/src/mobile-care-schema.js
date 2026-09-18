@@ -15,6 +15,15 @@ export async function initializeMobileCare(db) {
   await db.query("CREATE INDEX IF NOT EXISTS node_visit_attendance_visit ON node_visit_attendance(visit_id,created_at)");
   await db.query("ALTER TABLE node_visit_attendance ADD COLUMN IF NOT EXISTS distance_metres integer, ADD COLUMN IF NOT EXISTS within_radius boolean, ADD COLUMN IF NOT EXISTS client_event_id uuid");
   await db.query("CREATE UNIQUE INDEX IF NOT EXISTS node_visit_attendance_event ON node_visit_attendance(client_event_id) WHERE client_event_id IS NOT NULL");
+  await db.query(`CREATE TABLE IF NOT EXISTS node_visit_locations (
+    id uuid PRIMARY KEY, agency_id uuid NOT NULL, visit_id uuid NOT NULL REFERENCES node_roster_visits(id) ON DELETE CASCADE,
+    actor_id uuid NOT NULL REFERENCES users(id), client_event_id uuid NOT NULL,
+    latitude double precision NOT NULL, longitude double precision NOT NULL, accuracy double precision,
+    distance_metres integer, within_radius boolean, recorded_at timestamptz NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(agency_id,client_event_id)
+  )`);
+  await db.query("CREATE INDEX IF NOT EXISTS node_visit_locations_visit ON node_visit_locations(visit_id,recorded_at,id)");
   await db.query("ALTER TABLE node_client_entries ADD COLUMN IF NOT EXISTS client_event_id uuid");
   await db.query("CREATE UNIQUE INDEX IF NOT EXISTS node_client_entries_event ON node_client_entries(agency_id,client_event_id) WHERE client_event_id IS NOT NULL");
   await db.query(`CREATE TABLE IF NOT EXISTS node_visit_attachments (
@@ -23,6 +32,7 @@ export async function initializeMobileCare(db) {
     caption text NOT NULL DEFAULT '', created_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
   await db.query("CREATE INDEX IF NOT EXISTS node_visit_attachments_visit ON node_visit_attachments(visit_id,created_at)");
+  await db.query("ALTER TABLE node_visit_attachments ADD COLUMN IF NOT EXISTS latitude double precision, ADD COLUMN IF NOT EXISTS longitude double precision, ADD COLUMN IF NOT EXISTS accuracy double precision, ADD COLUMN IF NOT EXISTS captured_at timestamptz");
   await db.query(`CREATE TABLE IF NOT EXISTS node_medication_administrations (
     id uuid PRIMARY KEY, agency_id uuid NOT NULL, client_event_id uuid NOT NULL,
     visit_id uuid NOT NULL REFERENCES node_roster_visits(id) ON DELETE CASCADE,

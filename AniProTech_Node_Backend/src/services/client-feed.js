@@ -149,6 +149,11 @@ export function registerClientFeed({ db, repo, auth }, route) {
         [v.id],
       )
     ).rows;
+    const [attendance,locationTrail,attachments]=await Promise.all([
+      db.query("SELECT event,latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",source,created_at AS \"createdAt\" FROM node_visit_attendance WHERE visit_id=$1 ORDER BY created_at,id",[v.id]),
+      db.query("SELECT latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",recorded_at AS \"recordedAt\" FROM node_visit_locations WHERE visit_id=$1 ORDER BY recorded_at,id",[v.id]),
+      db.query("SELECT id,file_url AS url,file_name AS name,caption,latitude,longitude,accuracy,captured_at AS \"capturedAt\",created_at AS \"createdAt\" FROM node_visit_attachments WHERE visit_id=$1 ORDER BY created_at,id",[v.id]),
+    ]);
     const addresses = await repo.find("UserPrimaryAddressEntity", {
       user: req.params.id,
     });
@@ -168,6 +173,9 @@ export function registerClientFeed({ db, repo, auth }, route) {
       visit: v,
       entries,
       events,
+      attendance:attendance.rows,
+      locationTrail:locationTrail.rows,
+      attachments:attachments.rows,
       addresses,
       careTeam: carers,
       canManage: req.user.role !== "CAREGIVER",

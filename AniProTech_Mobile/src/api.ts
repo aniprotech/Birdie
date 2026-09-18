@@ -143,9 +143,15 @@ export async function flushPendingMutations(ownerId: string) {
   return summary;
 }
 
-export async function upload(path: string, uri: string, caption = "") {
+export async function upload(path: string, uri: string, caption = "", metadata?: { latitude:number|null; longitude:number|null; accuracy:number|null; capturedAt:string }) {
   const form = new FormData();
   form.append("caption", caption);
+  if(metadata){
+    if(metadata.latitude!=null)form.append("latitude",String(metadata.latitude));
+    if(metadata.longitude!=null)form.append("longitude",String(metadata.longitude));
+    if(metadata.accuracy!=null)form.append("accuracy",String(metadata.accuracy));
+    form.append("capturedAt",metadata.capturedAt);
+  }
   form.append("photo", { uri, name: `care-photo-${Date.now()}.jpg`, type: "image/jpeg" } as any);
   const response = await fetch(API_URL + path, {
     method: "POST",

@@ -249,9 +249,6 @@ export default function App() {
                 }}
               >
                 <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: 150, height: 44 }} accessibilityLabel="AniProTech" />
-                <Text style={styles.muted}>
-                  {user.firstName} {user.lastName}
-                </Text>
               </View>
               <View style={{ flex: 1 }}>
                 {tab === "Visits" ? (

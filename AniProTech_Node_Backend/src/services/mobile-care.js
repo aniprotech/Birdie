@@ -38,6 +38,13 @@ const minutes = (value) => {
   return match ? Number(match[1]) * 60 + Number(match[2]) : null;
 };
 const periods = { Morning: [300, 720], Lunch: [660, 840], Afternoon: [780, 1080], Evening: [1020, 1440] };
+function proximity(latitude, longitude, address) {
+  if (address?.latitude == null || address?.longitude == null) return { distanceMetres:null, withinRadius:null };
+  const rad=(value)=>value*Math.PI/180,dLat=rad(latitude-address.latitude),dLon=rad(longitude-address.longitude);
+  const value=Math.sin(dLat/2)**2+Math.cos(rad(address.latitude))*Math.cos(rad(latitude))*Math.sin(dLon/2)**2;
+  const distanceMetres=Math.round(6371000*2*Math.atan2(Math.sqrt(value),Math.sqrt(1-value)));
+  return { distanceMetres, withinRadius:distanceMetres<=Math.max(25,address.checkinRadius||150) };
+}
 function medicationDueSlots(medication, visit) {
   if (String(medication.type || "").toUpperCase() === "PRN" || medication.frequencyType !== "DAILY") return [];
   if (medication.firstDoseDate && visit.date < medication.firstDoseDate) return [];
@@ -63,10 +70,11 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
 
   route("GET", "/api/mobile/visits/:id", async (req, res) => {
     const v = await visit(req);
-    const [entries, attendance, attachments, administrations, addresses, witnesses] = await Promise.all([
+    const [entries, attendance, locations, attachments, administrations, addresses, witnesses] = await Promise.all([
       db.query("SELECT id,kind,title,body,category,status,revision,created_at FROM node_client_entries WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query("SELECT id,event,latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",source,created_at FROM node_visit_attendance WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
-      db.query("SELECT id,file_url AS url,file_name AS name,mime_type AS mime,caption,created_at FROM node_visit_attachments WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
+      db.query("SELECT id,latitude,longitude,accuracy,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\",recorded_at AS \"recordedAt\" FROM node_visit_locations WHERE visit_id=$1 ORDER BY recorded_at,id", [v.id]),
+      db.query("SELECT id,file_url AS url,file_name AS name,mime_type AS mime,caption,latitude,longitude,accuracy,captured_at AS \"capturedAt\",created_at FROM node_visit_attachments WHERE visit_id=$1 ORDER BY created_at,id", [v.id]),
       db.query(`SELECT a.id,a.client_event_id AS "clientEventId",a.medication_id AS "medicationId",a.outcome,a.slot,
         a.dose_given AS "doseGiven",a.reason,a.note,a.prn_effect AS "prnEffect",a.witnessed_by AS "witnessedBy",
         a.quantity_given AS "quantityGiven",a.stock_before AS "stockBefore",a.stock_after AS "stockAfter",
@@ -87,7 +95,7 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     }
     const medication = await repo.find("ClientMedicationSchedulingEntity", { user: v.client_id });
     const medicationProfile=(await repo.find("ClientMedicationEntity",{user:v.client_id}))[0];
-    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, allergyInformation:String(medicationProfile?.allergies||"").trim(), medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), isControlledDrug:!!m.isControlledDrug, requiresWitness:!!m.requiresWitness, stockTrackingEnabled:!!m.stockTrackingEnabled, stockQuantity:Number(m.stockQuantity||0), stockUnit:m.stockUnit||"", lowStockThreshold:Number(m.lowStockThreshold||0), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, witnesses:witnesses.rows, entries: entries.rows, attendance: attendance.rows, attachments: attachments.rows });
+    return reply(res, { visit: v, address: addresses.find((a) => a.isPrimary) || addresses[0] || null, tasks, allergyInformation:String(medicationProfile?.allergies||"").trim(), medication: medication.filter((m) => !m.isStopped && !m.deletedAt).map((m) => ({ id:m.id, name:m.medicationName, type:m.type || "REGULAR", instructions:m.additionalInstructions || m.medicationDescription || m.dose || "", dose:m.dose || "", route:m.route || "", slots:m.selectedTimeSlots || [], exactTimes:m.exactTimes || {}, dueSlots:medicationDueSlots(m,v), isControlledDrug:!!m.isControlledDrug, requiresWitness:!!m.requiresWitness, stockTrackingEnabled:!!m.stockTrackingEnabled, stockQuantity:Number(m.stockQuantity||0), stockUnit:m.stockUnit||"", lowStockThreshold:Number(m.lowStockThreshold||0), timeBetweenDoses:m.timeBetweenDoses || "", timeBetweenUnit:m.timeBetweenUnit || "", maxDoseCount:m.maxDoseCount || "", maxDosePeriod:m.maxDosePeriod || "", maxDoseUnit:m.maxDoseUnit || "" })), medicationAdministrations: administrations.rows, witnesses:witnesses.rows, entries: entries.rows, attendance: attendance.rows, locationTrail: locations.rows, attachments: attachments.rows });
   });
 
   route("POST", "/api/mobile/visits/:id/medication-administrations", async (req, res) => {
@@ -212,6 +220,25 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     return reply(res,{ status:b.event === "CHECK_IN" ? "IN_PROGRESS" : "COMPLETED",distanceMetres:distance,withinRadius:within },b.event === "CHECK_IN" ? "Checked in" : "Checked out");
   });
 
+  route("POST", "/api/mobile/visits/:id/locations", async (req,res) => {
+    const v=await visit(req);
+    const parsed=z.object({clientEventId:z.uuid(),latitude:z.number().min(-90).max(90),longitude:z.number().min(-180).max(180),accuracy:z.number().nonnegative().max(10000).nullable().default(null),recordedAt:z.iso.datetime({offset:true})}).safeParse(req.body);
+    if(!parsed.success)fail(400,"Provide a valid active-visit location sample");
+    const b=parsed.data,recordedAt=new Date(b.recordedAt);
+    if(Math.abs(Date.now()-recordedAt.valueOf())>36*60*60*1000)fail(400,"Location sample time is outside the allowed visit window");
+    if(!["IN_PROGRESS","COMPLETED"].includes(v.status))fail(409,"Check in before sharing active-visit location");
+    if(v.actual_start&&recordedAt<new Date(v.actual_start))fail(409,"Location sample predates check-in");
+    if(v.actual_end&&recordedAt>new Date(new Date(v.actual_end).valueOf()+15*60*1000))fail(409,"Location tracking ended at checkout");
+    const existing=(await db.query("SELECT id,distance_metres AS \"distanceMetres\",within_radius AS \"withinRadius\" FROM node_visit_locations WHERE agency_id=$1 AND client_event_id=$2",[req.user.agencyId,b.clientEventId])).rows[0];
+    if(existing)return reply(res,existing,"Location sample already recorded");
+    const address=(await repo.find("UserPrimaryAddressEntity",{user:v.client_id})).find((item)=>item.isPrimary);
+    const nearby=proximity(b.latitude,b.longitude,address);
+    const row=(await db.query(`INSERT INTO node_visit_locations(id,agency_id,visit_id,actor_id,client_event_id,latitude,longitude,accuracy,distance_metres,within_radius,recorded_at)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id,distance_metres AS "distanceMetres",within_radius AS "withinRadius"`,
+      [randomUUID(),req.user.agencyId,v.id,req.user.id,b.clientEventId,b.latitude,b.longitude,b.accuracy,nearby.distanceMetres,nearby.withinRadius,b.recordedAt])).rows[0];
+    return reply(res,row,"Active-visit location recorded",201);
+  });
+
   route("POST", "/api/mobile/visits/:id/entries", async (req,res) => {
     const v=await visit(req);
     const parsed=entryInput.safeParse(req.body); if(!parsed.success) fail(400,"Enter valid care record details");
@@ -231,10 +258,12 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
     const file=req.files?.[0]; if(!file) fail(400,"Choose a photo");
     const saved=await files.save(file); if(!saved.mime.startsWith("image/")) fail(400,"Only PNG and JPEG photos are allowed");
     const caption=String(req.body.caption||"").trim(); if(caption.length>500) fail(400,"Caption is too long");
+    const metadata=z.object({latitude:z.coerce.number().min(-90).max(90).nullable().default(null),longitude:z.coerce.number().min(-180).max(180).nullable().default(null),accuracy:z.coerce.number().nonnegative().max(10000).nullable().default(null),capturedAt:z.iso.datetime({offset:true}).nullable().default(null)}).safeParse({latitude:req.body.latitude||null,longitude:req.body.longitude||null,accuracy:req.body.accuracy||null,capturedAt:req.body.capturedAt||null});
+    if(!metadata.success)fail(400,"Photo location metadata is invalid");
     const id=randomUUID();
-    await db.query("INSERT INTO node_visit_attachments(id,agency_id,visit_id,client_id,file_url,file_name,mime_type,caption,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",[id,req.user.agencyId,v.id,v.client_id,saved.url,saved.filename,saved.mime,caption,req.user.id]);
+    await db.query("INSERT INTO node_visit_attachments(id,agency_id,visit_id,client_id,file_url,file_name,mime_type,caption,created_by,latitude,longitude,accuracy,captured_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",[id,req.user.agencyId,v.id,v.client_id,saved.url,saved.filename,saved.mime,caption,req.user.id,metadata.data.latitude,metadata.data.longitude,metadata.data.accuracy,metadata.data.capturedAt]);
     await visitEvent(db,v.id,req.user.id,"Photo added from the mobile app");
-    return reply(res,{id,url:saved.url,name:saved.filename,caption},"Photo uploaded",201);
+    return reply(res,{id,url:saved.url,name:saved.filename,caption,...metadata.data},"Photo uploaded",201);
   },{multipart:true});
 
   route("POST", "/api/mobile/note-assist", async (req,res) => {

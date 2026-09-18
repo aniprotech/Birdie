@@ -19,6 +19,7 @@ AniProTech_Node_Backend/data/
 *.zip
 cloudflared.exe
 mobile-preview-qr.png
+**/expo-go*-qr.png
 expo-config-check.json
 mobile-audit.json
 test-login.html

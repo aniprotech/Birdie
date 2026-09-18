@@ -709,6 +709,20 @@ export default function LiveClientFeed({ team = false, visitRecord = null, onVis
                                                 <button onClick={() => setAttendance(true)}>Correct check-out time</button>
                                             )}
                                         </article>
+                                        <article>
+                                            <h3>Mobile location audit</h3>
+                                            <p>{detail.locationTrail?.length || 0} active-visit samples</p>
+                                            {detail.locationTrail?.length > 0 && (() => {
+                                                const latest = detail.locationTrail[detail.locationTrail.length - 1];
+                                                return <><p className="cf-muted">Latest: {time(latest.recordedAt)} · accuracy {Math.round(latest.accuracy || 0)} m</p><a className="underline" target="_blank" rel="noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${latest.latitude},${latest.longitude}`}>View latest verified position</a></>;
+                                            })()}
+                                            {!detail.locationTrail?.length && <p className="cf-muted">No active-visit trail recorded.</p>}
+                                        </article>
+                                        <article>
+                                            <h3>Mobile photo evidence</h3>
+                                            <p>{detail.attachments?.length || 0} photos</p>
+                                            {detail.attachments?.slice(-3).map((photo) => <p key={photo.id} className="cf-muted">{photo.caption || photo.name}{photo.latitude != null ? " · location recorded" : ""}</p>)}
+                                        </article>
                                     </div>
                                     <article className="cf-entry">
                                         <h3>Visit instructions</h3>

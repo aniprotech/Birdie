@@ -216,6 +216,7 @@ export function Visits({user}:{user:User}) {
       <View style={styles.row}>
         <Button
           title="Previous"
+          variant="secondary"
           onPress={() => {
             setDate(addDays(date, -1));
             setSelected(null);
@@ -223,6 +224,8 @@ export function Visits({user}:{user:User}) {
         />
         <Button
           title="Today"
+          variant="secondary"
+          selected={date===today()}
           onPress={() => {
             setDate(today());
             setSelected(null);
@@ -230,6 +233,7 @@ export function Visits({user}:{user:User}) {
         />
         <Button
           title="Next"
+          variant="secondary"
           onPress={() => {
             setDate(addDays(date, 1));
             setSelected(null);
@@ -241,7 +245,7 @@ export function Visits({user}:{user:User}) {
       {!selected&&user.role==="CAREGIVER"&&!!openShifts.data?.visits.length&&<><Text style={styles.heading}>Available open shifts</Text>{openShifts.data.visits.map(v=><Card key={v.id}><Text style={styles.badge}>{v.startTime} – {v.endTime}</Text><Text style={styles.heading}>{v.clientName}</Text><Text style={styles.text}>{v.title}{v.requiredStaff>1?` · double-up position ${v.slotIndex} of ${v.requiredStaff}`:""}</Text><Button disabled={busy} title="Claim shift" onPress={async()=>{setBusy(true);try{await api(`/api/roster/visits/${v.id}/claim`,"POST",{});Alert.alert("Shift assigned","The visit is now in your schedule.");openShifts.refresh();refresh()}catch(e){Alert.alert("Shift could not be assigned",(e as Error).message)}finally{setBusy(false)}}}/></Card>)}</>}
       {selected ? (
         <>
-          <Button title="Back to visits" onPress={() => {void stopLocationTracking();setSelected(null);setDetail(null)}} />
+          <Button title="Back to visits" variant="secondary" onPress={() => {void stopLocationTracking();setSelected(null);setDetail(null)}} />
           {(syncSummary.pending>0||syncSummary.lastSyncAt)&&<Card><Text style={styles.heading}>Offline sync status</Text><Text style={syncSummary.blocked?styles.error:styles.badge}>{syncSummary.pending?`${syncSummary.pending} pending · ${syncSummary.blocked} need attention`:`Up to date${syncSummary.lastSyncAt?` · ${timestamp(syncSummary.lastSyncAt)}`:""}`}</Text>{syncSummary.items.slice(0,5).map(item=><Text key={item.id} style={item.lastError?styles.error:styles.muted}>{item.label||"Visit record"} · {item.lastError||"Waiting to send"}</Text>)}<Button disabled={busy} title={busy?"Synchronising…":"Synchronise now"} onPress={()=>void synchroniseNow()}/></Card>}
           <Card>
           <Text style={styles.heading}>{selected.clientName}</Text>
@@ -284,14 +288,14 @@ export function Visits({user}:{user:User}) {
           {selectedMedication&&<Card>
             <Text style={styles.heading}>Record {selectedMedication.name}</Text>
             <Text style={styles.muted}>Select one outcome. Exceptions automatically create an alert for review.</Text>
-            {!!detail?.allergyInformation&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<Card><Text style={styles.error}>Recorded allergy information: {detail.allergyInformation}</Text><Button title={`${medicationAllergyAcknowledged?"✓ ":""}I reviewed this allergy information`} onPress={()=>setMedicationAllergyAcknowledged(value=>!value)}/></Card>}
-            <View style={styles.row}>{(selectedMedication.type==="PRN"?["PRN_ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]:["ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]).map(outcome=><Button key={outcome} title={`${medicationOutcome===outcome?"✓ ":""}${outcome.replaceAll("_"," ")}`} onPress={()=>setMedicationOutcome(outcome)}/>)}</View>
+            {!!detail?.allergyInformation&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<Card><Text style={styles.error}>Recorded allergy information: {detail.allergyInformation}</Text><Button variant="secondary" selected={medicationAllergyAcknowledged} title={`${medicationAllergyAcknowledged?"✓ ":""}I reviewed this allergy information`} onPress={()=>setMedicationAllergyAcknowledged(value=>!value)}/></Card>}
+            <View style={styles.row}>{(selectedMedication.type==="PRN"?["PRN_ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]:["ADMINISTERED","REFUSED","NOT_AVAILABLE","OMITTED"]).map(outcome=><Button key={outcome} variant="secondary" selected={medicationOutcome===outcome} title={`${medicationOutcome===outcome?"✓ ":""}${outcome.replaceAll("_"," ")}`} onPress={()=>setMedicationOutcome(outcome)}/>)}</View>
             <Input label="MAR time slot" value={medicationSlot} onChangeText={setMedicationSlot} maxLength={80}/>
             {!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<Input label="Reason (required)" value={medicationReason} onChangeText={setMedicationReason} maxLength={500}/>}
             <Input label={medicationOutcome==="PRN_ADMINISTERED"?"Why was PRN medication needed?":"Medication note (optional)"} value={medicationNote} onChangeText={setMedicationNote} multiline maxLength={2000}/>
             {selectedMedication.stockTrackingEnabled&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&<><Text style={styles.badge}>Recorded stock: {selectedMedication.stockQuantity} {selectedMedication.stockUnit}</Text><Input label={`Quantity given (${selectedMedication.stockUnit})`} keyboardType="decimal-pad" value={medicationQuantity} onChangeText={setMedicationQuantity}/></>}
             {(selectedMedication.isControlledDrug||selectedMedication.requiresWitness)&&<><Text style={styles.muted}>A second active team member must witness this record.</Text>{detail?.witnesses?.map((witness:Row)=><Card key={witness.id} onPress={()=>setMedicationWitness(witness.id)}><Text style={styles.text}>{medicationWitness===witness.id?"✓ ":""}{witness.name}</Text></Card>)}</>}
-            <View style={styles.row}><Button title="Cancel" onPress={()=>{setSelectedMedication(null);setMedicationAllergyAcknowledged(false)}}/><Button disabled={busy||(!!detail?.allergyInformation&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!medicationAllergyAcknowledged)||(!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&medicationReason.trim().length<3)||(medicationOutcome==="PRN_ADMINISTERED"&&medicationNote.trim().length<3)||(selectedMedication.stockTrackingEnabled&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!(Number(medicationQuantity)>0))||((selectedMedication.isControlledDrug||selectedMedication.requiresWitness)&&!medicationWitness)} title={busy?"Saving…":"Confirm eMAR record"} onPress={()=>void recordMedication()}/></View>
+            <View style={styles.row}><Button title="Cancel" variant="secondary" onPress={()=>{setSelectedMedication(null);setMedicationAllergyAcknowledged(false)}}/><Button disabled={busy||(!!detail?.allergyInformation&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!medicationAllergyAcknowledged)||(!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&medicationReason.trim().length<3)||(medicationOutcome==="PRN_ADMINISTERED"&&medicationNote.trim().length<3)||(selectedMedication.stockTrackingEnabled&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!(Number(medicationQuantity)>0))||((selectedMedication.isControlledDrug||selectedMedication.requiresWitness)&&!medicationWitness)} title={busy?"Saving…":"Confirm eMAR record"} onPress={()=>void recordMedication()}/></View>
           </Card>}
           <Text style={styles.heading}>Visit notes</Text>
           <Input label="What happened during the visit?" editable={activeVisit} multiline maxLength={10000} value={note} onChangeText={setNote}/>
@@ -416,7 +420,7 @@ export function People({ kind }: { kind: "clients" | "team" }) {
         </Card>
         <Card>
           <Text style={styles.heading}>{kind==="clients"?"Client history":"Team history"}</Text>
-          <View style={styles.row}>{(kind==="clients"?["NOTE","ALERT","ACTION"]:["NOTE","CONCERN","ACTION"]).map(k=><Button key={k} title={(feedKind===k?"✓ ":"")+k.toLowerCase()} onPress={()=>setFeedKind(k)}/>)}</View>
+          <View style={styles.row}>{(kind==="clients"?["NOTE","ALERT","ACTION"]:["NOTE","CONCERN","ACTION"]).map(k=><Button key={k} variant="secondary" selected={feedKind===k} title={(feedKind===k?"✓ ":"")+k.toLowerCase()} onPress={()=>setFeedKind(k)}/>)}</View>
           <Input label={kind==="clients"?"Add a note, concern or action":"Add a staff note, concern or action"} value={feedBody} onChangeText={setFeedBody} multiline maxLength={4000}/>
           <Button title={feedBusy?"Saving…":"Add to history"} disabled={feedBusy||!feedBody.trim()} onPress={()=>void addFeed()}/>
         </Card>

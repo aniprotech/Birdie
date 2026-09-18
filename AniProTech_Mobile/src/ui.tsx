@@ -50,8 +50,17 @@ export const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 10,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colours.cyan,
   },
   buttonText: { color: "white", fontWeight: "600", fontSize: 14 },
+  buttonSecondary: { backgroundColor: "white" },
+  buttonSecondaryText: { color: colours.text },
+  buttonSelected: {
+    backgroundColor: colours.navy,
+    borderColor: colours.navy,
+  },
+  buttonPressed: { opacity: 0.72, transform: [{ scale: 0.98 }] },
   error: {
     color: "#a02a2a",
     backgroundColor: "#fff0f0",
@@ -72,20 +81,37 @@ export function Button({
   title,
   onPress,
   disabled = false,
+  variant = "primary",
+  selected = false,
 }: {
   title: string;
   onPress: () => void;
   disabled?: boolean;
+  variant?: "primary" | "secondary";
+  selected?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, selected }}
       disabled={disabled}
       onPress={onPress}
-      style={[styles.button, disabled && { opacity: 0.45 }]}
+      style={({ pressed }) => [
+        styles.button,
+        variant === "secondary" && styles.buttonSecondary,
+        selected && styles.buttonSelected,
+        pressed && !disabled && styles.buttonPressed,
+        disabled && { opacity: 0.45 },
+      ]}
     >
-      <Text style={styles.buttonText}>{title}</Text>
+      <Text
+        style={[
+          styles.buttonText,
+          variant === "secondary" && !selected && styles.buttonSecondaryText,
+        ]}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 }

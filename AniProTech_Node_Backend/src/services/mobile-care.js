@@ -241,6 +241,7 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
 
   route("POST", "/api/mobile/visits/:id/entries", async (req,res) => {
     const v=await visit(req);
+    if(v.status!=="IN_PROGRESS")fail(409,"Check in before recording or changing care information");
     const parsed=entryInput.safeParse(req.body); if(!parsed.success) fail(400,"Enter valid care record details");
     const b=parsed.data;
     const duplicate=(await db.query("SELECT id,visit_id FROM node_client_entries WHERE agency_id=$1 AND client_event_id=$2",[req.user.agencyId,b.clientEventId])).rows[0];
@@ -255,6 +256,7 @@ export function registerMobileCare({ db, repo, auth, files, mail }, route) {
 
   route("POST", "/api/mobile/visits/:id/photos", async (req,res) => {
     const v=await visit(req);
+    if(v.status!=="IN_PROGRESS")fail(409,"Check in before adding visit evidence");
     const file=req.files?.[0]; if(!file) fail(400,"Choose a photo");
     const saved=await files.save(file); if(!saved.mime.startsWith("image/")) fail(400,"Only PNG and JPEG photos are allowed");
     const caption=String(req.body.caption||"").trim(); if(caption.length>500) fail(400,"Caption is too long");

@@ -87,6 +87,7 @@ export function Visits({user}:{user:User}) {
     [medicationAllergyAcknowledged,setMedicationAllergyAcknowledged]=useState(false),
     [tracking,setTracking]=useState(false),
     [lastLocationAt,setLastLocationAt]=useState<string|null>(null),
+    [clock,setClock]=useState(Date.now()),
     [syncSummary,setSyncSummary]=useState<SyncSummary>({pending:0,blocked:0,sent:0,lastSyncAt:null,items:[]});
   const locationSubscription=useRef<Location.LocationSubscription|null>(null);
   const { data, error, loading, refresh } = useData<{ visits: Row[] }>(
@@ -96,6 +97,7 @@ export function Visits({user}:{user:User}) {
   const options=useData<{canManage:boolean;clients:Row[];staff:Row[]}>("/api/roster/options");
   useEffect(()=>{void pendingMutationSummary(user.id).then(setSyncSummary)},[user.id]);
   useEffect(()=>()=>{locationSubscription.current?.remove();locationSubscription.current=null},[]);
+  useEffect(()=>{if(detail?.visit?.status!=="IN_PROGRESS")return;const timer=setInterval(()=>setClock(Date.now()),1000);return()=>clearInterval(timer)},[detail?.visit?.status]);
   async function stopLocationTracking(){locationSubscription.current?.remove();locationSubscription.current=null;setTracking(false)}
   async function startLocationTracking(visitId:string){
     if(locationSubscription.current)return;
@@ -186,6 +188,9 @@ export function Visits({user}:{user:User}) {
       ExpoSpeechRecognitionModule.start({lang:"en-GB",interimResults:false,continuous:false,contextualStrings:["medication","care plan","check in","check out","wellbeing","hydration"]});
     } catch(e) { setListening(null); Alert.alert("Voice dictation unavailable",(e as Error).message+" A development build is required; the phone keyboard's dictation remains available in Expo Go."); }
   }
+  const visitStatus=detail?.visit?.status;
+  const activeVisit=visitStatus==="IN_PROGRESS";
+  const visitMinutes=detail?.visit?.actual_start?Math.max(0,Math.floor(((detail.visit.actual_end?new Date(detail.visit.actual_end).valueOf():clock)-new Date(detail.visit.actual_start).valueOf())/60000)):0;
   return (
     <ScrollView
       contentContainerStyle={styles.page}
@@ -193,8 +198,8 @@ export function Visits({user}:{user:User}) {
         <RefreshControl refreshing={loading} onRefresh={refresh} />
       }
     >
-      <Text style={styles.title}>Visits</Text>
-      <Text style={styles.muted}>All visit times are Europe/London.</Text>
+      <Text style={styles.title}>Assigned client visits</Text>
+      <Text style={styles.muted}>Select an assigned client visit, check in, record care, then check out. All visit times are Europe/London.</Text>
       {user.role!=="CAREGIVER"&&!selected&&<Button title={creating?"Cancel new visit":"Add visit"} onPress={()=>setCreating(v=>!v)}/>} 
       {creating&&<Card>
         <Text style={styles.heading}>New scheduled visit</Text>
@@ -248,9 +253,9 @@ export function Visits({user}:{user:User}) {
             {selected.staffName || "Unassigned"} ·{" "}
             {selected.status.replaceAll("_", " ")}
           </Text>
-          <Text style={styles.text}>{selected.notes || "No visit notes."}</Text>
-          {detail?.address && <Text style={styles.text}>{[detail.address.addressLine1,detail.address.city,detail.address.postCode].filter(Boolean).join(", ")}</Text>}
-          {detail?.visit?.clientPhone && <Text style={styles.text}>Phone: {detail.visit.clientPhone}</Text>}
+          {visitStatus!=="SCHEDULED"&&<Text style={styles.text}>{selected.notes || "No visit instructions."}</Text>}
+          {visitStatus!=="SCHEDULED"&&detail?.address && <Text style={styles.text}>{[detail.address.addressLine1,detail.address.city,detail.address.postCode].filter(Boolean).join(", ")}</Text>}
+          {visitStatus!=="SCHEDULED"&&detail?.visit?.clientPhone && <Text style={styles.text}>Phone: {detail.visit.clientPhone}</Text>}
           {detail?.visit?.status === "SCHEDULED" && (
             <Button
               disabled={busy}
@@ -265,9 +270,13 @@ export function Visits({user}:{user:User}) {
               onPress={() => void attendance("CHECK_OUT")}
             /></>
           )}
+          {visitStatus==="DRAFT"&&<Text style={styles.muted}>This visit is awaiting schedule confirmation and cannot be started yet.</Text>}
           </Card>
+          {visitStatus==="SCHEDULED"&&<Card><Text style={styles.heading}>Care record locked</Text><Text style={styles.muted}>Verify your location and check in to unlock the client care plan, tasks, medication, notes, incidents and photo evidence.</Text></Card>}
+          {["IN_PROGRESS","COMPLETED"].includes(visitStatus)&&<>
+          <Card><Text style={styles.heading}>{activeVisit?"Visit in progress":"Completed visit"}</Text><Text style={styles.badge}>{visitMinutes} minute{visitMinutes===1?"":"s"} recorded</Text><Text style={styles.muted}>{activeVisit?"The timer started at verified check-in and will stop at checkout.":"This actual duration is available for authorised invoice and staff-pay review."}</Text></Card>
           <Text style={styles.heading}>Care tasks</Text>
-          {detail?.tasks?.map((t:Row)=><Card key={t.id}><Text style={styles.heading}>{t.essential?"Essential · ":""}{t.name}</Text><Text style={styles.muted}>{t.details||"No additional instructions"}</Text><Text style={styles.badge}>{t.status.replaceAll("_"," ")}</Text>{t.status==="PENDING"&&<View style={styles.row}><Button disabled={busy} title="Done" onPress={()=>void record("ACTIVITY",t.name,"Completed during visit","COMPLETED",t.id)}/><Button disabled={busy} title="Not done" onPress={()=>void record("ACTIVITY",t.name,"Not completed during visit","NOT_COMPLETED",t.id)}/></View>}</Card>)}
+          {detail?.tasks?.map((t:Row)=><Card key={t.id}><Text style={styles.heading}>{t.essential?"Essential · ":""}{t.name}</Text><Text style={styles.muted}>{t.details||"No additional instructions"}</Text><Text style={styles.badge}>{t.status.replaceAll("_"," ")}</Text>{t.status==="PENDING"&&activeVisit&&<View style={styles.row}><Button disabled={busy} title="Done" onPress={()=>void record("ACTIVITY",t.name,"Completed during visit","COMPLETED",t.id)}/><Button disabled={busy} title="Not done" onPress={()=>void record("ACTIVITY",t.name,"Not completed during visit","NOT_COMPLETED",t.id)}/></View>}</Card>)}
           {!detail?.tasks?.length&&<Empty text="No care tasks are due for this visit."/>}
           <Text style={styles.heading}>Medication checklist</Text>
           {detail?.medication?.map((m:Row)=>{const records=(detail.medicationAdministrations||[]).filter((a:Row)=>a.medicationId===m.id),pending=(m.dueSlots||[]).filter((slot:string)=>!records.some((a:Row)=>a.slot===slot)),complete=m.dueSlots?.length?pending.length===0:records.length>0;return <Card key={m.id}><Text style={styles.heading}>{m.name}</Text>{m.dose&&<Text style={styles.text}>Dose: {m.dose}</Text>}{m.route&&<Text style={styles.text}>Route: {m.route}</Text>}<Text style={styles.muted}>{m.instructions||"Follow the medication record instructions."}</Text>{m.type==="PRN"&&<Text style={styles.badge}>PRN · Minimum interval {m.timeBetweenDoses||"as prescribed"} {m.timeBetweenUnit||""}</Text>}{m.dueSlots?.length>0&&<Text style={styles.badge}>Due during visit: {m.dueSlots.join(", ")}</Text>}{records.map((record:Row)=><Text key={record.id} style={styles.badge}>Recorded: {record.outcome.replaceAll("_"," ")} · {record.slot}</Text>)}{!complete&&detail?.visit?.status==="IN_PROGRESS"?<Button disabled={busy} title="Record medication" onPress={()=>{setSelectedMedication(m);setMedicationAllergyAcknowledged(false);setMedicationOutcome(m.type==="PRN"?"PRN_ADMINISTERED":"ADMINISTERED");setMedicationSlot(pending[0]||m.slots?.[0]||"")}}/>:!complete?<Text style={styles.muted}>Check in before recording administration.</Text>:null}</Card>})}
@@ -285,19 +294,20 @@ export function Visits({user}:{user:User}) {
             <View style={styles.row}><Button title="Cancel" onPress={()=>{setSelectedMedication(null);setMedicationAllergyAcknowledged(false)}}/><Button disabled={busy||(!!detail?.allergyInformation&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!medicationAllergyAcknowledged)||(!['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&medicationReason.trim().length<3)||(medicationOutcome==="PRN_ADMINISTERED"&&medicationNote.trim().length<3)||(selectedMedication.stockTrackingEnabled&&['ADMINISTERED','PRN_ADMINISTERED'].includes(medicationOutcome)&&!(Number(medicationQuantity)>0))||((selectedMedication.isControlledDrug||selectedMedication.requiresWitness)&&!medicationWitness)} title={busy?"Saving…":"Confirm eMAR record"} onPress={()=>void recordMedication()}/></View>
           </Card>}
           <Text style={styles.heading}>Visit notes</Text>
-          <Input label="What happened during the visit?" multiline maxLength={10000} value={note} onChangeText={setNote}/>
-          <Button disabled={!!listening} title={listening==="note"?"Listening…":"Dictate visit note"} onPress={()=>void dictate("note")}/>
-          <View style={styles.row}><Button disabled={busy||note.trim().length<2} title="Save note" onPress={()=>void record("NOTE","Visit note",note,"RECORDED")}/><Button disabled={busy||note.trim().length<10} title="Assist summary" onPress={async()=>{try{const x=await api<Row>("/api/mobile/note-assist","POST",{text:note});Alert.alert("Review this summary",x.summary+(x.attention?.length?"\n\nNeeds attention:\n"+x.attention.join("\n"):""));}catch(e){Alert.alert("Summary unavailable",(e as Error).message)}}}/></View>
+          <Input label="What happened during the visit?" editable={activeVisit} multiline maxLength={10000} value={note} onChangeText={setNote}/>
+          <Button disabled={!activeVisit||!!listening} title={listening==="note"?"Listening…":"Dictate visit note"} onPress={()=>void dictate("note")}/>
+          <View style={styles.row}><Button disabled={!activeVisit||busy||note.trim().length<2} title="Save note" onPress={()=>void record("NOTE","Visit note",note,"RECORDED")}/><Button disabled={!activeVisit||busy||note.trim().length<10} title="Assist summary" onPress={async()=>{try{const x=await api<Row>("/api/mobile/note-assist","POST",{text:note});Alert.alert("Review this summary",x.summary+(x.attention?.length?"\n\nNeeds attention:\n"+x.attention.join("\n"):""));}catch(e){Alert.alert("Summary unavailable",(e as Error).message)}}}/></View>
           <Text style={styles.heading}>Report an incident</Text>
-          <Input label="Incident details" multiline maxLength={10000} value={incident} onChangeText={setIncident}/>
-          <Button disabled={!!listening} title={listening==="incident"?"Listening…":"Dictate incident details"} onPress={()=>void dictate("incident")}/>
-          <Button disabled={busy||incident.trim().length<2} title="Submit incident alert" onPress={()=>void record("ALERT","Incident reported",incident,"OPEN","INCIDENT")}/>
+          <Input label="Incident details" editable={activeVisit} multiline maxLength={10000} value={incident} onChangeText={setIncident}/>
+          <Button disabled={!activeVisit||!!listening} title={listening==="incident"?"Listening…":"Dictate incident details"} onPress={()=>void dictate("incident")}/>
+          <Button disabled={!activeVisit||busy||incident.trim().length<2} title="Submit incident alert" onPress={()=>void record("ALERT","Incident reported",incident,"OPEN","INCIDENT")}/>
           <Text style={styles.heading}>Photos</Text>
-          <Input label="Photo caption (optional)" maxLength={500} value={caption} onChangeText={setCaption}/><Button disabled={busy} title="Take and upload photo" onPress={()=>void addPhoto()}/>
+          <Input label="Photo caption (optional)" editable={activeVisit} maxLength={500} value={caption} onChangeText={setCaption}/><Button disabled={!activeVisit||busy} title="Take and upload photo" onPress={()=>void addPhoto()}/>
           {detail?.attachments?.map((a:Row)=><Card key={a.id}><Text style={styles.text}>{a.caption||a.name}</Text><Text style={styles.muted}>{timestamp(a.capturedAt||a.created_at)}{a.latitude!=null?" · location recorded":""}</Text></Card>)}
           {!!detail?.locationTrail?.length&&<Card><Text style={styles.heading}>Location audit</Text><Text style={styles.badge}>{detail.locationTrail.length} active-visit sample{detail.locationTrail.length===1?"":"s"}</Text><Text style={styles.muted}>Visible to authorised administrators in the web visit record.</Text></Card>}
           <Text style={styles.heading}>Recorded activity</Text>
           {detail?.entries?.map((e:Row)=><Card key={e.id}><Text style={styles.badge}>{e.kind} · {e.status}</Text><Text style={styles.heading}>{e.title}</Text>{e.body?<Text style={styles.text}>{e.body}</Text>:null}</Card>)}
+          </>}
         </>
       ) : data?.visits.length ? (
         data.visits.map((v) => (

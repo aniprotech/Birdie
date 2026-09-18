@@ -67,6 +67,7 @@ import EditClientsInfo from "./pages/Clients/ViewClients/ClientsInfo/Edit/EditCl
 import ClientCarerFeedIndex from "./pages/Clients/ViewClients/CarerFeed/CarerFeedIndex";
 import ClientsCalendarIndex from "./pages/Clients/ViewClients/Calendar/ClientsCalendarIndex";
 import ClientPortal from "./pages/Portal/ClientPortal";
+import PublicInfoPage from "./pages/Public/PublicInfoPage";
 import ClientsCareTeamIndex from "./pages/Clients/ViewClients/Clients/ClientsCareTeamIndex";
 import CarePlanIndex from "./pages/Clients/ViewClients/CarePlan/CarePlanIndex";
 import SocialSupportAssessment from "./pages/Clients/ViewClients/CarePlan/InitialAssessments/SocialSupportAssessment";
@@ -116,6 +117,8 @@ import CreateCareCircle from "./pages/Clients/ViewClients/CareCircle/CreateCareC
 import AddMedicationForm from "./pages/Clients/ViewClients/Medication/AddMedicationForm";
 
 const router = createBrowserRouter([
+    { path: "/privacy", element: <PublicInfoPage kind="privacy" /> },
+    { path: "/support", element: <PublicInfoPage kind="support" /> },
     {
         path: "/login",
         element: <AuthIndex />,

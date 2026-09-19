@@ -12,6 +12,7 @@ import { decryptData, encryptData } from "../../utils/cryptoHelpers";
 import { waitFor } from "../../utils/debounce";
 import DotLoader from "../../components/Loader/DotLoader";
 import useAuthStore from "../../stores/authStore";
+import SeoMeta from "../../components/Common/SeoMeta";
 
 const AuthIndex = () => {
     const [activeComponent, setActiveComponent] = useState("Login");
@@ -125,6 +126,7 @@ const AuthIndex = () => {
 
     return (
         <div className="relative">
+            <SeoMeta title="Sign in | Caremonitor by Aniprotech" description="Secure sign in for authorised Caremonitor users." path="/login" index={false} />
             <div>{loading ? <DotLoader loading={loading} /> : ""}</div>
             <SwitchComponents active={activeComponent}>
                 <Login

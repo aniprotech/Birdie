@@ -68,6 +68,7 @@ import ClientCarerFeedIndex from "./pages/Clients/ViewClients/CarerFeed/CarerFee
 import ClientsCalendarIndex from "./pages/Clients/ViewClients/Calendar/ClientsCalendarIndex";
 import ClientPortal from "./pages/Portal/ClientPortal";
 import PublicInfoPage from "./pages/Public/PublicInfoPage";
+import PublicHomePage from "./pages/Public/PublicHomePage";
 import ClientsCareTeamIndex from "./pages/Clients/ViewClients/Clients/ClientsCareTeamIndex";
 import CarePlanIndex from "./pages/Clients/ViewClients/CarePlan/CarePlanIndex";
 import SocialSupportAssessment from "./pages/Clients/ViewClients/CarePlan/InitialAssessments/SocialSupportAssessment";
@@ -117,6 +118,7 @@ import CreateCareCircle from "./pages/Clients/ViewClients/CareCircle/CreateCareC
 import AddMedicationForm from "./pages/Clients/ViewClients/Medication/AddMedicationForm";
 
 const router = createBrowserRouter([
+    { path: "/", element: <PublicHomePage /> },
     { path: "/privacy", element: <PublicInfoPage kind="privacy" /> },
     { path: "/terms", element: <PublicInfoPage kind="terms" /> },
     { path: "/account-deletion", element: <PublicInfoPage kind="deletion" /> },
@@ -129,15 +131,6 @@ const router = createBrowserRouter([
     {
         path: "*",
         element: <NotFound />,
-    },
-    {
-        path: "/",
-        element: (
-            <Navigate
-                to="/login"
-                replace
-            />
-        ),
     },
     {
         path: "/admin",

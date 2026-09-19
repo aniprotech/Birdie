@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import SeoMeta from "../../components/Common/SeoMeta";
 
 const updated = "19 September 2026";
 
@@ -64,9 +65,18 @@ const pages = {
 
 const publicLinks = [["Privacy", "/privacy"], ["Terms", "/terms"], ["Account deletion", "/account-deletion"], ["Support", "/support"]];
 
+const seo = {
+    privacy: ["Privacy Notice | Caremonitor by Aniprotech", "How Caremonitor processes care, workforce, visit, location, camera and account information.", "/privacy"],
+    terms: ["Terms of Service | Caremonitor by Aniprotech", "Terms governing authorised organisational and professional use of the Caremonitor service.", "/terms"],
+    deletion: ["Account and Data Deletion | Caremonitor", "How to request deletion of a Caremonitor account and understand required care-record retention.", "/account-deletion"],
+    support: ["Support and Safety | Caremonitor by Aniprotech", "Technical support, account access, security reporting and emergency guidance for Caremonitor users.", "/support"],
+};
+
 export default function PublicInfoPage({ kind }) {
     const page = pages[kind] || pages.support;
+    const [title, description, path] = seo[kind] || seo.support;
     return <main className="min-h-screen bg-[#071A33] px-4 py-8 text-[#0B2447] md:px-6 md:py-12">
+        <SeoMeta title={title} description={description} path={path} />
         <article className="mx-auto max-w-4xl rounded-2xl bg-white p-6 shadow-xl md:p-12">
             <p className="font-semibold text-[#008DBD]">Caremonitor by Aniprotech</p>
             <h1 className="mt-2 text-3xl font-bold md:text-4xl">{page.title}</h1>
@@ -80,6 +90,7 @@ export default function PublicInfoPage({ kind }) {
                 </section>)}
             </div>
             <nav aria-label="Legal and support" className="mt-12 flex flex-wrap gap-x-5 gap-y-3 border-t pt-6 text-sm font-semibold text-[#007FAE]">
+                <Link to="/">Home</Link>
                 {publicLinks.map(([label, to]) => <Link key={to} to={to}>{label}</Link>)}
                 <Link to="/login">Sign in</Link>
             </nav>

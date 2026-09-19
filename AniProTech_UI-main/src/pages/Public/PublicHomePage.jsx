@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import { ArrowRight, BarChart3, BellRing, CalendarDays, Check, CheckCircle2, ClipboardCheck, HeartPulse, MapPin, ShieldCheck, Sparkles, Smartphone, UsersRound, WalletCards } from "lucide-react";
 import SeoMeta from "../../components/Common/SeoMeta";
 
 const siteUrl = "https://caremonitor.aniprotech.com";
-const description = "Caremonitor by Aniprotech helps care providers coordinate visits, verify attendance, manage care records, eMAR, safeguarding, staff and reporting.";
+const description = "Caremonitor by Aniprotech brings visits, care records, eMAR, rostering, finance, workforce and quality oversight into one connected care platform.";
 const publicAddress = {
     streetAddress: import.meta.env.VITE_PUBLIC_STREET_ADDRESS,
     addressLocality: import.meta.env.VITE_PUBLIC_CITY,
@@ -28,73 +29,169 @@ const schema = {
     "@context": "https://schema.org",
     "@graph": [
         organization,
-        {
-            "@type": "SoftwareApplication",
-            "@id": `${siteUrl}/#software`,
-            name: "Caremonitor by Aniprotech",
-            url: siteUrl,
-            applicationCategory: "BusinessApplication",
-            operatingSystem: "Web, Android, iOS",
-            description,
-            publisher: { "@id": `${siteUrl}/#organization` },
-            offers: { "@type": "Offer", category: "Business care management software" },
-        },
-        {
-            "@type": "WebSite",
-            "@id": `${siteUrl}/#website`,
-            name: "Caremonitor by Aniprotech",
-            url: siteUrl,
-            publisher: { "@id": `${siteUrl}/#organization` },
-            inLanguage: "en",
-        },
+        { "@type": "SoftwareApplication", "@id": `${siteUrl}/#software`, name: "Caremonitor by Aniprotech", url: siteUrl, applicationCategory: "BusinessApplication", operatingSystem: "Web, Android, iOS", description, publisher: { "@id": `${siteUrl}/#organization` }, offers: { "@type": "Offer", category: "Business care management software" } },
+        { "@type": "WebSite", "@id": `${siteUrl}/#website`, name: "Caremonitor by Aniprotech", url: siteUrl, publisher: { "@id": `${siteUrl}/#organization` }, inLanguage: "en" },
     ],
 };
 
-const features = [
-    ["Verified visits", "Mobile check-in, check-out, location evidence and actual visit timing for operational and billing review."],
-    ["Care records and eMAR", "Assigned care tasks, medication outcomes, notes, incidents, observations and photo evidence in one governed record."],
-    ["Workforce operations", "Client management, rosters, teams, inbox, finance, reporting and quality governance for authorised organisations."],
-    ["Human-reviewed assistance", "Rules-assisted note summaries and risk signals that remain subject to qualified human review."],
+const modules = [
+    { icon: HeartPulse, title: "Care management", text: "Person-centred profiles, assessments, care plans, tasks, observations, incidents and a complete client timeline.", color: "bg-cyan-50 text-cyan-700" },
+    { icon: CalendarDays, title: "Rostering", text: "Plan visits, assign caregivers and keep schedules connected to the care that must be delivered.", color: "bg-violet-50 text-violet-700" },
+    { icon: Smartphone, title: "Carer mobile app", text: "Give caregivers assigned visits, secure client context, eMAR, notes, evidence and visit actions in their pocket.", color: "bg-blue-50 text-blue-700" },
+    { icon: WalletCards, title: "Finance", text: "Move completed and confirmed visit time into invoicing and staff-pay review with a clear evidence trail.", color: "bg-emerald-50 text-emerald-700" },
+    { icon: UsersRound, title: "Workforce", text: "Manage team profiles, availability, onboarding, skills, time off and operational history in one workspace.", color: "bg-amber-50 text-amber-700" },
+    { icon: ClipboardCheck, title: "Quality & governance", text: "Bring policies, credentials, privacy requests, audit evidence and release controls into everyday operations.", color: "bg-rose-50 text-rose-700" },
 ];
 
+const journeys = [
+    { number: "01", title: "Plan with context", text: "Build the care record, medication support and visit tasks around the person—not around disconnected paperwork." },
+    { number: "02", title: "Deliver with confidence", text: "Caregivers check in, follow the assigned plan, capture outcomes and escalate concerns from the mobile app." },
+    { number: "03", title: "See what needs attention", text: "Office teams receive live records, alerts and evidence so they can review exceptions while they still matter." },
+    { number: "04", title: "Confirm and improve", text: "Approved actual time supports finance, while reporting and governance turn activity into accountable improvement." },
+];
+
+const audiences = [
+    ["Care managers", "See visits, risks, records and actions across your service without chasing paper or switching systems.", BarChart3],
+    ["Care professionals", "Start each visit with the right client context and finish with a clear, complete record.", Smartphone],
+    ["Operations & finance", "Connect rosters and verified actuals to review, invoicing and staff-pay workflows.", WalletCards],
+];
+
+function SectionLabel({ children }) {
+    return <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#008dbd]">{children}</p>;
+}
+
 export default function PublicHomePage() {
-    return <main className="min-h-screen bg-[#071A33] text-white">
-        <SeoMeta title="Caremonitor by Aniprotech | Care management software" description={description} path="/" schema={schema} />
-        <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
-            <img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-44 rounded-lg" />
-            <Link to="/login" className="rounded-lg bg-[#00AEEB] px-5 py-3 font-semibold text-[#071A33]">Sign in</Link>
+    return <main className="min-h-screen overflow-hidden bg-white font-poppins text-[#071A33]">
+        <SeoMeta title="Caremonitor by Aniprotech | Connected care management" description={description} path="/" schema={schema} />
+
+        <header className="relative z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+                <Link to="/" aria-label="Caremonitor home"><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-40 rounded-lg md:w-48" /></Link>
+                <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-semibold text-slate-700 lg:flex">
+                    <a href="#platform" className="transition hover:text-[#008dbd]">Platform</a>
+                    <a href="#workflow" className="transition hover:text-[#008dbd]">How it works</a>
+                    <a href="#teams" className="transition hover:text-[#008dbd]">For your team</a>
+                    <a href="#trust" className="transition hover:text-[#008dbd]">Trust & safety</a>
+                </nav>
+                <div className="flex items-center gap-3">
+                    <Link to="/support" className="hidden px-3 py-2 text-sm font-semibold text-slate-700 sm:block">Talk to us</Link>
+                    <Link to="/login" className="inline-flex items-center gap-2 rounded-full bg-[#071A33] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b315d]">Sign in <ArrowRight size={16} /></Link>
+                </div>
+            </div>
         </header>
-        <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[1.2fr_0.8fr] md:py-24">
-            <div>
-                <p className="font-semibold uppercase tracking-[0.2em] text-[#00D4FF]">Connected care operations</p>
-                <h1 className="mt-5 text-4xl font-bold leading-tight md:text-6xl">Safer visits, clearer records and accountable care delivery.</h1>
-                <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-200">{description}</p>
-                <div className="mt-8 flex flex-wrap gap-4">
-                    <Link to="/login" className="rounded-lg bg-[#00AEEB] px-6 py-3 font-semibold text-[#071A33]">Open Caremonitor</Link>
-                    <Link to="/support" className="rounded-lg border border-cyan-300 px-6 py-3 font-semibold">Contact support</Link>
+
+        <section className="relative bg-[#eefbff]">
+            <div aria-hidden="true" className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-cyan-200/40 blur-3xl" />
+            <div aria-hidden="true" className="absolute -right-24 bottom-0 h-96 w-96 rounded-full bg-blue-200/40 blur-3xl" />
+            <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 py-16 lg:grid-cols-[0.93fr_1.07fr] lg:px-8 lg:py-24">
+                <div>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-[#087b9d] shadow-sm"><Sparkles size={16} /> One connected platform for modern care</div>
+                    <h1 className="mt-7 max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-[#071A33] sm:text-5xl lg:text-[4.25rem]">Make every care visit <span className="text-[#00aeeB]">clear, connected</span> and accountable.</h1>
+                    <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">Bring care plans, rostering, mobile visit delivery, medication records, alerts, finance and quality oversight together—so your team spends less time piecing information together and more time acting on it.</p>
+                    <div className="mt-8 flex flex-wrap gap-4">
+                        <Link to="/login" className="inline-flex items-center gap-2 rounded-full bg-[#00b8e9] px-6 py-3.5 font-bold text-[#071A33] shadow-lg shadow-cyan-500/20 transition hover:-translate-y-0.5 hover:bg-[#20c9f2]">Open Caremonitor <ArrowRight size={18} /></Link>
+                        <a href="#platform" className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3.5 font-bold text-[#071A33] transition hover:border-cyan-400">Explore the platform</a>
+                    </div>
+                    <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-600">
+                        {["Role-based access", "Auditable records", "Human-reviewed assistance"].map((item) => <span key={item} className="inline-flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-600" />{item}</span>)}
+                    </div>
+                </div>
+
+                <div className="relative min-h-[540px] lg:min-h-[620px]">
+                    <div className="absolute inset-x-0 top-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_30px_80px_rgba(15,57,85,0.18)] sm:p-7">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+                            <div><p className="text-xs font-bold uppercase tracking-widest text-[#008dbd]">Live operations</p><h2 className="mt-1 text-xl font-bold">Today at a glance</h2></div>
+                            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Service connected</span>
+                        </div>
+                        <div className="mt-5 grid grid-cols-3 gap-3">
+                            {[["18", "Visits"], ["14", "Completed"], ["2", "Need review"]].map(([value, label], index) => <div key={label} className={`rounded-2xl p-4 ${index === 2 ? "bg-amber-50" : "bg-slate-50"}`}><p className="text-2xl font-bold">{value}</p><p className="mt-1 text-xs font-medium text-slate-500">{label}</p></div>)}
+                        </div>
+                        <div className="mt-4 space-y-3">
+                            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 p-4"><span className="grid h-11 w-11 place-items-center rounded-xl bg-cyan-50 text-cyan-700"><MapPin size={21} /></span><div className="min-w-0 flex-1"><p className="font-semibold">Visit attendance verified</p><p className="text-sm text-slate-500">Location and actual time recorded</p></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Complete</span></div>
+                            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 p-4"><span className="grid h-11 w-11 place-items-center rounded-xl bg-amber-50 text-amber-700"><BellRing size={21} /></span><div className="min-w-0 flex-1"><p className="font-semibold">Medication outcome needs review</p><p className="text-sm text-slate-500">Assigned to the care manager</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">Action</span></div>
+                        </div>
+                        <div className="mt-5 h-20 rounded-2xl bg-gradient-to-r from-[#071A33] to-[#0c5780] p-4 text-white"><p className="text-xs text-cyan-100">Connected workflow</p><p className="mt-2 font-semibold">Roster → Visit → Evidence → Finance</p></div>
+                    </div>
+                    <div className="absolute -bottom-2 right-5 w-[168px] overflow-hidden rounded-[2rem] border-[6px] border-[#071A33] bg-white shadow-2xl sm:right-10 sm:w-[205px]"><img src="/caremonitor-mobile-visit.png" alt="Caremonitor mobile verified visit screen" className="h-auto w-full" /></div>
+                    <div className="absolute bottom-16 left-0 hidden max-w-[220px] rounded-2xl border border-cyan-100 bg-white p-4 shadow-xl sm:block"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-cyan-50 text-cyan-700"><ShieldCheck size={20} /></span><div><p className="text-sm font-bold">Evidence connected</p><p className="text-xs text-slate-500">Ready for authorised review</p></div></div></div>
                 </div>
             </div>
-            <div className="rounded-3xl border border-cyan-300/30 bg-white/10 p-7 shadow-2xl backdrop-blur">
-                <h2 className="text-2xl font-semibold">Designed for authorised care teams</h2>
-                <ul className="mt-5 space-y-4 text-slate-200">
-                    <li>Role-based access and organisation separation</li>
-                    <li>Auditable care and attendance records</li>
-                    <li>Android, iOS and secure web workflows</li>
-                    <li>Privacy, retention and governance controls</li>
-                </ul>
+        </section>
+
+        <section className="border-y border-slate-200 bg-white py-7">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-12 gap-y-4 px-5 text-sm font-semibold text-slate-500">
+                <span className="text-[#071A33]">Built around the whole care journey</span>
+                {["Care delivery", "Rostering", "Workforce", "Finance", "Quality"].map((item) => <span key={item}>{item}</span>)}
             </div>
         </section>
-        <section className="bg-slate-50 py-16 text-[#0B2447]">
-            <div className="mx-auto max-w-6xl px-5">
-                <h2 className="text-3xl font-bold">One operational view of care</h2>
-                <div className="mt-8 grid gap-6 md:grid-cols-2">
-                    {features.map(([title, body]) => <article key={title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h3 className="text-xl font-semibold">{title}</h3><p className="mt-2 leading-7 text-slate-600">{body}</p></article>)}
+
+        <section id="platform" className="bg-white py-20 lg:py-28">
+            <div className="mx-auto max-w-7xl px-5 lg:px-8">
+                <div className="max-w-3xl"><SectionLabel>The Caremonitor platform</SectionLabel><h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Everything your care operation needs to work as one.</h2><p className="mt-5 text-lg leading-8 text-slate-600">Information entered once can support the people who plan, deliver, review and account for care—without losing the context around the person.</p></div>
+                <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    {modules.map(({ icon: Icon, title, text, color }) => <article key={title} className="group rounded-3xl border border-slate-200 bg-white p-7 transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-xl"><span className={`grid h-12 w-12 place-items-center rounded-2xl ${color}`}><Icon size={23} /></span><h3 className="mt-6 text-xl font-bold">{title}</h3><p className="mt-3 leading-7 text-slate-600">{text}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#008dbd]">Connected by design <ArrowRight size={15} className="transition group-hover:translate-x-1" /></span></article>)}
                 </div>
             </div>
         </section>
-        <footer className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-3 px-5 py-9 text-sm text-slate-300">
-            <span>© {new Date().getFullYear()} Aniprotech</span>
-            <Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/account-deletion">Account deletion</Link><Link to="/support">Support</Link>
+
+        <section id="workflow" className="bg-[#071A33] py-20 text-white lg:py-28">
+            <div className="mx-auto max-w-7xl px-5 lg:px-8">
+                <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]">
+                    <div><p className="text-sm font-bold uppercase tracking-[0.18em] text-cyan-300">One connected workflow</p><h2 className="mt-4 text-3xl font-bold sm:text-5xl">From the care plan to the completed visit.</h2><p className="mt-5 text-lg leading-8 text-slate-300">Keep operational decisions attached to the records and evidence that explain them.</p></div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {journeys.map(({ number, title, text }) => <article key={number} className="rounded-3xl border border-white/10 bg-white/[0.06] p-6"><p className="text-sm font-bold text-cyan-300">{number}</p><h3 className="mt-5 text-xl font-bold">{title}</h3><p className="mt-3 leading-7 text-slate-300">{text}</p></article>)}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="teams" className="bg-[#f6fbfd] py-20 lg:py-28">
+            <div className="mx-auto max-w-7xl px-5 lg:px-8">
+                <div className="text-center"><SectionLabel>Useful for every role</SectionLabel><h2 className="mx-auto mt-4 max-w-3xl text-3xl font-bold sm:text-5xl">The right view for the work in front of you.</h2></div>
+                <div className="mt-12 grid gap-6 lg:grid-cols-3">
+                    {audiences.map(([title, text, Icon]) => <article key={title} className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-200"><Icon className="text-[#00aeeB]" size={30} /><h3 className="mt-7 text-2xl font-bold">{title}</h3><p className="mt-4 leading-7 text-slate-600">{text}</p><Link to="/login" className="mt-7 inline-flex items-center gap-2 font-bold text-[#008dbd]">Go to Caremonitor <ArrowRight size={17} /></Link></article>)}
+                </div>
+            </div>
+        </section>
+
+        <section className="bg-white py-20 lg:py-28">
+            <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 lg:grid-cols-2 lg:px-8">
+                <div className="relative mx-auto max-w-sm">
+                    <div className="absolute -inset-8 rounded-full bg-cyan-100 blur-3xl" />
+                    <div className="relative grid grid-cols-2 gap-4">
+                        <img src="/caremonitor-mobile-visit.png" alt="Caremonitor visit attendance workflow" className="mt-12 rounded-[2rem] border-4 border-[#071A33] shadow-2xl" />
+                        <img src="/caremonitor-mobile-inbox.png" alt="Caremonitor mobile team inbox" className="rounded-[2rem] border-4 border-[#071A33] shadow-2xl" />
+                    </div>
+                </div>
+                <div><SectionLabel>Made for care in motion</SectionLabel><h2 className="mt-4 text-3xl font-bold sm:text-5xl">A professional mobile workflow, not a smaller office screen.</h2><p className="mt-5 text-lg leading-8 text-slate-600">Caregivers see the assigned visit first, verify arrival, complete the plan and record outcomes before checking out. The web application receives the same visit evidence for authorised follow-up.</p><ul className="mt-7 space-y-4">{["Assigned client context appears after visit selection", "Check-in and check-out create actual service time", "Care tasks, eMAR, notes, incidents and photos stay with the visit", "Offline retry and clear verification states reduce uncertainty"].map((item) => <li key={item} className="flex gap-3 text-slate-700"><span className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-full bg-emerald-100 text-emerald-700"><Check size={15} /></span>{item}</li>)}</ul></div>
+            </div>
+        </section>
+
+        <section id="trust" className="bg-[#e9f9fd] py-20 lg:py-24">
+            <div className="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+                <div className="rounded-3xl bg-[#00b8e9] p-8 text-[#071A33] lg:p-10"><ShieldCheck size={38} /><h2 className="mt-6 text-3xl font-bold">Responsible by design.</h2><p className="mt-4 leading-7 text-[#083a52]">Caremonitor combines operational visibility with controls for access, privacy, evidence and human accountability.</p></div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                    {[["Role-based access", "Users see the functions and records permitted for their role and organisation."], ["Auditable actions", "Important operational and governance actions retain an accountable history."], ["Human-reviewed assistance", "Suggestions support qualified review; they do not replace care judgement."], ["Privacy controls", "Retention, export, correction, erasure and legal-hold workflows support governed handling."]].map(([title, text]) => <article key={title} className="rounded-3xl bg-white p-6 ring-1 ring-cyan-100"><h3 className="font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></article>)}
+                </div>
+            </div>
+        </section>
+
+        <section className="bg-white px-5 py-20 lg:py-28">
+            <div className="mx-auto max-w-6xl overflow-hidden rounded-[2.5rem] bg-[#071A33] px-6 py-14 text-center text-white shadow-2xl md:px-12 md:py-20">
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-cyan-300">Ready when your team is</p>
+                <h2 className="mx-auto mt-5 max-w-3xl text-3xl font-bold sm:text-5xl">Connect the work around every visit.</h2>
+                <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-300">Open your secure workspace or contact Aniprotech to discuss Caremonitor for your organisation.</p>
+                <div className="mt-8 flex flex-wrap justify-center gap-4"><Link to="/login" className="inline-flex items-center gap-2 rounded-full bg-[#00b8e9] px-6 py-3.5 font-bold text-[#071A33]">Sign in to Caremonitor <ArrowRight size={18} /></Link><Link to="/support" className="rounded-full border border-white/30 px-6 py-3.5 font-bold">Contact support</Link></div>
+            </div>
+        </section>
+
+        <footer className="border-t border-slate-200 bg-slate-50">
+            <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.2fr_0.8fr_0.8fr] lg:px-8">
+                <div><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-44 rounded-lg" /><p className="mt-4 max-w-sm text-sm leading-6 text-slate-600">Connected care management for authorised organisations, care professionals and operational teams.</p></div>
+                <div><h2 className="text-sm font-bold uppercase tracking-wider">Product</h2><div className="mt-4 flex flex-col gap-3 text-sm text-slate-600"><a href="#platform">Platform</a><a href="#workflow">How it works</a><a href="#teams">For your team</a><Link to="/login">Sign in</Link></div></div>
+                <div><h2 className="text-sm font-bold uppercase tracking-wider">Trust & support</h2><div className="mt-4 flex flex-col gap-3 text-sm text-slate-600"><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/account-deletion">Account deletion</Link><Link to="/support">Support</Link></div></div>
+            </div>
+            <div className="border-t border-slate-200"><div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 px-5 py-5 text-xs text-slate-500 lg:px-8"><span>© {new Date().getFullYear()} Aniprotech. All rights reserved.</span><span>Caremonitor is not an emergency or clinical advice service.</span></div></div>
         </footer>
     </main>;
 }

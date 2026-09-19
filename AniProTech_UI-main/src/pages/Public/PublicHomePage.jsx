@@ -64,18 +64,18 @@ export default function PublicHomePage() {
     return <main className="min-h-screen overflow-hidden bg-white font-poppins text-[#071A33]">
         <SeoMeta title="Caremonitor by Aniprotech | Connected care management" description={description} path="/" schema={schema} />
 
-        <header className="relative z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+        <header className="relative z-50 border-b border-white/10 bg-[#071A33] shadow-lg shadow-slate-950/10">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
                 <Link to="/" aria-label="Caremonitor home"><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-40 rounded-lg md:w-48" /></Link>
-                <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-semibold text-slate-700 lg:flex">
-                    <a href="#platform" className="transition hover:text-[#008dbd]">Platform</a>
-                    <a href="#workflow" className="transition hover:text-[#008dbd]">How it works</a>
-                    <a href="#teams" className="transition hover:text-[#008dbd]">For your team</a>
-                    <a href="#trust" className="transition hover:text-[#008dbd]">Trust & safety</a>
+                <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-semibold text-slate-200 lg:flex">
+                    <a href="#platform" className="transition hover:text-[#45dcff]">Platform</a>
+                    <a href="#workflow" className="transition hover:text-[#45dcff]">How it works</a>
+                    <a href="#teams" className="transition hover:text-[#45dcff]">For your team</a>
+                    <a href="#trust" className="transition hover:text-[#45dcff]">Trust & safety</a>
                 </nav>
                 <div className="flex items-center gap-3">
-                    <Link to="/support" className="hidden px-3 py-2 text-sm font-semibold text-slate-700 sm:block">Talk to us</Link>
-                    <Link to="/login" className="inline-flex items-center gap-2 rounded-full bg-[#071A33] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b315d]">Sign in <ArrowRight size={16} /></Link>
+                    <Link to="/support" className="hidden px-3 py-2 text-sm font-semibold text-slate-200 transition hover:text-white sm:block">Talk to us</Link>
+                    <Link to="/login" className="inline-flex items-center gap-2 rounded-full bg-[#00b8e9] px-5 py-3 text-sm font-bold text-[#071A33] transition hover:bg-[#45dcff]">Sign in <ArrowRight size={16} /></Link>
                 </div>
             </div>
         </header>

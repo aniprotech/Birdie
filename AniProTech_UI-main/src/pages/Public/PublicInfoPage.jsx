@@ -1,40 +1,88 @@
 import { Link } from "react-router-dom";
 
-const sections = {
+const updated = "19 September 2026";
+
+const pages = {
     privacy: {
-        title: "Caremonitor privacy notice",
-        intro: "Caremonitor by Aniprotech helps authorised care providers schedule, document and review care services. This notice explains how the service handles information.",
-        items: [
-            ["Information processed", "Account and contact information, assigned client and care records, visit attendance, foreground location used during an active visit, photographs deliberately attached as care evidence, messages, audit history and device session information."],
-            ["How information is used", "To authenticate users, provide assigned care information, verify attendance, maintain care and medication records, support safeguarding, notify authorised people, calculate approved service hours, secure the service and meet legal or contractual record-keeping duties."],
-            ["Location, camera and microphone", "Location is requested for check-in, check-out, photo evidence and the active visit trail while Caremonitor is open. The camera is used only when a caregiver chooses to attach evidence. Speech recognition converts speech into editable text; Caremonitor does not store the audio recording."],
-            ["Sharing", "Information is available only to authorised users within the relevant care organisation and its approved recipients. Service providers may process limited information to host the platform, deliver authentication email or operate required infrastructure. Caremonitor does not sell personal information or use it for advertising."],
-            ["Security and retention", "Information is encrypted in transit. Mobile authentication tokens use the device keychain or keystore. Access is role-based and audited. Retention and deletion are managed by the care organisation according to its legal, safeguarding and contractual obligations."],
-            ["Your choices and rights", "Contact the care organisation responsible for your record to request access, correction, restriction, export or deletion where applicable. Caremonitor includes governed privacy-request tools for authorised administrators."],
-            ["Contact", "Privacy questions and app account requests can be sent to info@aniprotech.com."],
+        title: "Privacy notice",
+        intro: "This notice explains how Caremonitor by Aniprotech processes personal information when organisations, care professionals, clients and authorised contacts use our web and mobile services.",
+        sections: [
+            { heading: "Who is responsible for your information?", paragraphs: ["The care organisation providing or arranging care normally decides why and how client, caregiver and visit information is used and is the data controller. Aniprotech provides Caremonitor to that organisation and normally acts as its data processor. Aniprotech is independently responsible for limited information used to operate, secure and support the service. Contact your care organisation first about a care record; contact info@aniprotech.com about the Caremonitor service."] },
+            { heading: "Information we process", bullets: ["Account, identity, role, organisation and contact details.", "Client profiles, care plans, assessments, medication and task records, visit notes, incidents, concerns and safeguarding records.", "Rosters, assigned visits, check-in and check-out times, attendance history and approved service hours.", "Foreground location and accuracy data supplied during active visit actions, including check-in, check-out and evidence capture.", "Photographs that a user deliberately attaches as care evidence, including associated time and visit details.", "Speech converted into editable text. Caremonitor does not intentionally retain the audio recording after transcription.", "Messages, notifications, preferences, support requests, security events, device sessions and audit history.", "Technical data needed for service reliability and security, such as app version, device type, IP address and diagnostic events."] },
+            { heading: "Why information is used", paragraphs: ["Information is used to provide assigned care information, coordinate and evidence care, verify attendance, maintain medication and care records, support safeguarding, communicate with authorised people, calculate approved service hours, administer accounts, investigate incidents, secure the platform, prevent misuse, support users and meet legal, regulatory and contractual record-keeping duties."], bullets: ["The care organisation determines the appropriate lawful basis for care processing, which may include performance of a contract, legal obligation, vital interests, public task, legitimate interests and the health or social care conditions permitted by applicable law.", "Consent is used where it is the appropriate legal basis and may be withdrawn without affecting earlier lawful processing."] },
+            { heading: "Location, camera and microphone", paragraphs: ["Caremonitor requests these device permissions only for relevant features. Location supports attendance and visit evidence; the camera supports deliberate photo attachments; microphone access supports speech-to-text. Permission can be refused or changed in device settings, although the related feature may then be unavailable. Caremonitor does not use precise location for advertising or sell location data."] },
+            { heading: "Sharing and service providers", paragraphs: ["Information is available to authorised users within the relevant care organisation and to recipients that organisation approves. Limited information may be processed by vetted providers that supply hosting, databases, authentication email, mapping, push notifications, speech recognition, monitoring or technical support. Information may also be disclosed when required by law, to protect a person from serious harm, or during a properly governed business reorganisation. Caremonitor does not sell personal information or use care information for targeted advertising."] },
+            { heading: "International processing", paragraphs: ["A care organisation or an approved service provider may process information outside the country where it was collected. Where required, appropriate safeguards must be used, such as an adequacy decision, approved contractual protections and security controls. Your care organisation can provide details relevant to its deployment."] },
+            { heading: "Retention and deletion", paragraphs: ["Records are kept only for as long as needed for care, safeguarding, audit, financial, legal and contractual purposes. Each care organisation controls its retention schedule. Deleting an account does not always permit immediate deletion of every care, audit or financial record; records that must be preserved are restricted and retained for the required period. Identifiers that are no longer needed may be erased or anonymised. See the Account deletion page for the request process."] },
+            { heading: "Security", paragraphs: ["Caremonitor uses encrypted transport, role-based access, organisation separation, audit records, secure mobile token storage, session controls and administrative security features. No service can guarantee absolute security. Users must protect their devices and accounts and report suspected misuse promptly."] },
+            { heading: "Your rights", paragraphs: ["Depending on applicable law and the processing involved, you may have rights to be informed, access information, correct inaccurate information, request erasure or restriction, object, receive portable information, withdraw consent and complain to a supervisory authority. Rights may be limited where care, safeguarding, legal or public-interest duties require records to be retained. Contact the responsible care organisation to exercise rights concerning a care record. UK users may also contact the Information Commissioner's Office at ico.org.uk."] },
+            { heading: "Children and vulnerable people", paragraphs: ["Caremonitor is a professional care service and is not offered directly to children as a consumer app. An authorised organisation is responsible for ensuring it has the authority and safeguards required to process information about children or people who cannot provide consent themselves."] },
+            { heading: "Changes and contact", paragraphs: ["We may update this notice when the service, law or processing arrangements change. Material changes will be communicated through the service or the relevant organisation. Privacy, security and account questions can be sent to info@aniprotech.com. Do not include sensitive care information in ordinary email."] },
+        ],
+    },
+    terms: {
+        title: "Terms of Service",
+        intro: "These terms govern access to Caremonitor by Aniprotech. By creating an organisation, accepting an invitation or using the service, you agree to these terms and confirm that you are authorised to do so.",
+        sections: [
+            { heading: "1. The service", paragraphs: ["Caremonitor provides tools for care scheduling, authorised records, visit attendance, care tasks, medication documentation, communications, reporting and administration. Features may vary by plan, organisation configuration, device and country. Caremonitor is a record and workflow service; it is not an emergency service and does not replace professional judgement, clinical supervision or statutory reporting."] },
+            { heading: "2. Organisations and authorised users", paragraphs: ["An organisation is responsible for its account, configuration, lawful instructions, assigned users and the accuracy of information entered into the service. Each user must provide accurate details, use only their own account, keep access secure and act within their role. Organisation administrators may manage access and view relevant activity."] },
+            { heading: "3. Acceptable use", bullets: ["Use Caremonitor only for lawful, authorised care and business purposes.", "Do not access records without a legitimate role, share credentials, bypass safeguards or attempt to test vulnerabilities without written permission.", "Do not upload unlawful, misleading, malicious or unnecessary sensitive material.", "Do not use the service to harass, discriminate, surveil people outside authorised care, or make solely automated decisions that have legal or similarly significant effects.", "Report suspected security incidents, incorrect access and safeguarding concerns promptly."] },
+            { heading: "4. Care, medication and emergency responsibility", paragraphs: ["Users and organisations remain responsible for care decisions, medication administration, professional competence, consent, safeguarding and compliance with applicable standards. Information in Caremonitor must be checked against the person's current instructions and condition. In an emergency, contact the appropriate emergency service and follow the organisation's emergency procedure."] },
+            { heading: "5. Location, photos and speech-to-text", paragraphs: ["Location and media features must be used transparently, proportionately and only for authorised care purposes. The organisation is responsible for notices, consent or other lawful authority required for monitoring and evidence. Speech-to-text output must be reviewed and corrected before it becomes a care record."] },
+            { heading: "6. Data protection and confidentiality", paragraphs: ["Each party must comply with applicable privacy, confidentiality and security law. The organisation determines why client and workforce data is used and instructs Aniprotech as service provider, except where Aniprotech processes limited information for its own security, support or legal duties. The Privacy Notice forms part of these terms. Additional contractual data-processing terms may apply to business customers."] },
+            { heading: "7. Availability and changes", paragraphs: ["We aim to provide a reliable service but uninterrupted or error-free availability is not guaranteed. Maintenance, security events, third-party failures or circumstances outside reasonable control may affect access. Features may be updated to improve security, compliance or operation. We will use reasonable efforts to communicate material service changes."] },
+            { heading: "8. Charges and payment", paragraphs: ["Where an organisation purchases a paid plan, charges, billing periods, taxes, renewal, cancellation and any service levels are governed by its order or separate agreement. App users are not charged merely for accepting an organisation invitation unless a separate purchase is clearly offered and accepted."] },
+            { heading: "9. Intellectual property", paragraphs: ["Aniprotech and its licensors retain rights in Caremonitor, its software, branding and documentation. The organisation retains rights in its records and content. It grants Aniprotech the limited permission needed to host, process, protect and transmit that content to provide the service. Feedback may be used to improve Caremonitor without identifying confidential information."] },
+            { heading: "10. Suspension and termination", paragraphs: ["Access may be restricted or suspended where reasonably necessary to protect people, records or the service; address suspected unlawful use; respond to non-payment under a business agreement; or comply with law. Organisations may request closure subject to their contract and record-retention duties. Users may request account deletion through the published process."] },
+            { heading: "11. Responsibility and liability", paragraphs: ["Nothing in these terms excludes liability that cannot legally be excluded, including liability for fraud or for death or personal injury caused by negligence where applicable. Subject to that, responsibility between Aniprotech and a business customer is governed by the applicable order or business agreement. Caremonitor is provided for professional operational support, and users remain responsible for reviewing records and acting safely."] },
+            { heading: "12. General terms", paragraphs: ["If part of these terms is unenforceable, the remaining terms continue. Delay in enforcing a term is not a waiver. An organisation may not transfer its agreement without permission except as allowed by its business contract. Applicable law and dispute arrangements are those stated in the organisation's order or agreement; where none is stated, mandatory consumer or local laws remain unaffected."] },
+            { heading: "13. Contact and changes", paragraphs: ["We may update these terms for legal, security or service reasons. Material changes will be notified before they take effect where reasonably possible. Questions may be sent to info@aniprotech.com."] },
+        ],
+    },
+    deletion: {
+        title: "Account and data deletion",
+        intro: "Caremonitor users can request deletion without reinstalling the app or signing in. This page explains the process and what may need to be retained.",
+        sections: [
+            { heading: "How to request deletion", bullets: ["Email info@aniprotech.com from the address associated with your account.", "Use the subject: Caremonitor account deletion request.", "Include your name and organisation name. Do not include client records, medication details or other sensitive care information.", "You may also ask your organisation administrator, who can create a governed erasure request in Caremonitor."] },
+            { heading: "Verification and processing", paragraphs: ["We or the responsible care organisation will verify identity and authority before acting. The request will be recorded, reviewed for legal or safeguarding restrictions, and completed within the period required by applicable law. We may contact you securely if more information is needed."] },
+            { heading: "What is deleted", paragraphs: ["When deletion is approved, direct account identifiers, active sessions, authentication settings and information that is no longer required are deleted or irreversibly anonymised. Access to the account is removed."] },
+            { heading: "What may be retained", paragraphs: ["Care, medication, incident, safeguarding, audit and financial records may need to be retained by the care organisation to protect clients, establish an accurate care history, meet regulatory duties, resolve disputes or comply with law. Retained information is restricted, protected and removed or anonymised when the applicable retention period ends. We will explain any relevant retention in the response to your request."] },
+            { heading: "Questions", paragraphs: ["Contact info@aniprotech.com for questions about this process. For records controlled by a care organisation, that organisation remains the primary contact."] },
         ],
     },
     support: {
-        title: "Caremonitor support",
+        title: "Support and safety",
         intro: "For account access, assigned visits, permissions or care-record questions, contact your care organisation first.",
-        items: [
-            ["Technical support", "Email info@aniprotech.com and include your organisation name, device type, app version and a description of the problem. Do not include sensitive client information in ordinary email."],
-            ["Urgent care or safeguarding", "Do not use technical support for an emergency. Follow your organisation's emergency and safeguarding procedure and contact the appropriate emergency service."],
-            ["Account deletion", "Ask your organisation administrator to deactivate your account. Privacy or deletion requests can also be sent to info@aniprotech.com and will be routed to the responsible organisation."],
+        sections: [
+            { heading: "Technical support", paragraphs: ["Email info@aniprotech.com and include your organisation name, device type, app version and a description of the problem. Do not send client names, photographs, medication information or other sensitive care records in ordinary email."] },
+            { heading: "Urgent care or safeguarding", paragraphs: ["Caremonitor support is not an emergency or clinical advice service. Contact the appropriate emergency service and follow your organisation's safeguarding, medication and incident procedures."] },
+            { heading: "Access and deletion", paragraphs: ["Ask your organisation administrator to correct access or deactivate an account. To request deletion, use the Account deletion page. Suspected unauthorised access or a lost device should be reported immediately to your organisation and info@aniprotech.com."] },
+            { heading: "Service information", paragraphs: ["Website: caremonitor.aniprotech.com. API service: backend.aniprotech.com. Android package: com.aniprotech.care."] },
         ],
     },
 };
 
+const publicLinks = [["Privacy", "/privacy"], ["Terms", "/terms"], ["Account deletion", "/account-deletion"], ["Support", "/support"]];
+
 export default function PublicInfoPage({ kind }) {
-    const page = sections[kind];
-    return <main className="min-h-screen bg-[#071A33] px-5 py-12 text-[#0B2447]">
-        <article className="mx-auto max-w-3xl rounded-2xl bg-white p-7 shadow-xl md:p-12">
-            <p className="font-semibold text-[#00AEEB]">Caremonitor by Aniprotech</p>
-            <h1 className="mt-2 text-3xl font-bold">{page.title}</h1>
-            <p className="mt-4 leading-7 text-slate-600">{page.intro}</p>
-            <p className="mt-2 text-sm text-slate-500">Effective 18 September 2026</p>
-            <div className="mt-8 space-y-7">{page.items.map(([heading, body]) => <section key={heading}><h2 className="text-xl font-semibold">{heading}</h2><p className="mt-2 leading-7 text-slate-600">{body}</p></section>)}</div>
-            <nav className="mt-10 flex gap-5 border-t pt-6 text-sm font-semibold text-[#007FAE]"><Link to="/privacy">Privacy</Link><Link to="/support">Support</Link><Link to="/login">Sign in</Link></nav>
+    const page = pages[kind] || pages.support;
+    return <main className="min-h-screen bg-[#071A33] px-4 py-8 text-[#0B2447] md:px-6 md:py-12">
+        <article className="mx-auto max-w-4xl rounded-2xl bg-white p-6 shadow-xl md:p-12">
+            <p className="font-semibold text-[#008DBD]">Caremonitor by Aniprotech</p>
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl">{page.title}</h1>
+            <p className="mt-4 max-w-3xl leading-7 text-slate-600">{page.intro}</p>
+            <p className="mt-2 text-sm text-slate-500">Effective and last updated: {updated}</p>
+            <div className="mt-9 space-y-8">
+                {page.sections.map(({ heading, paragraphs = [], bullets = [] }) => <section key={heading}>
+                    <h2 className="text-xl font-semibold">{heading}</h2>
+                    {paragraphs.map((paragraph) => <p key={paragraph} className="mt-2 leading-7 text-slate-600">{paragraph}</p>)}
+                    {bullets.length > 0 && <ul className="mt-3 list-disc space-y-2 pl-6 leading-7 text-slate-600">{bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul>}
+                </section>)}
+            </div>
+            <nav aria-label="Legal and support" className="mt-12 flex flex-wrap gap-x-5 gap-y-3 border-t pt-6 text-sm font-semibold text-[#007FAE]">
+                {publicLinks.map(([label, to]) => <Link key={to} to={to}>{label}</Link>)}
+                <Link to="/login">Sign in</Link>
+            </nav>
         </article>
     </main>;
 }

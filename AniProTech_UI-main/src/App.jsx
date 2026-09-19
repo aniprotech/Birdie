@@ -118,6 +118,8 @@ import AddMedicationForm from "./pages/Clients/ViewClients/Medication/AddMedicat
 
 const router = createBrowserRouter([
     { path: "/privacy", element: <PublicInfoPage kind="privacy" /> },
+    { path: "/terms", element: <PublicInfoPage kind="terms" /> },
+    { path: "/account-deletion", element: <PublicInfoPage kind="deletion" /> },
     { path: "/support", element: <PublicInfoPage kind="support" /> },
     {
         path: "/login",

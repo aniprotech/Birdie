@@ -69,6 +69,7 @@ import ClientsCalendarIndex from "./pages/Clients/ViewClients/Calendar/ClientsCa
 import ClientPortal from "./pages/Portal/ClientPortal";
 import PublicInfoPage from "./pages/Public/PublicInfoPage";
 import PublicHomePage from "./pages/Public/PublicHomePage";
+import PublicPlatformPage from "./pages/Public/PublicPlatformPage";
 import ClientsCareTeamIndex from "./pages/Clients/ViewClients/Clients/ClientsCareTeamIndex";
 import CarePlanIndex from "./pages/Clients/ViewClients/CarePlan/CarePlanIndex";
 import SocialSupportAssessment from "./pages/Clients/ViewClients/CarePlan/InitialAssessments/SocialSupportAssessment";
@@ -119,6 +120,7 @@ import AddMedicationForm from "./pages/Clients/ViewClients/Medication/AddMedicat
 
 const router = createBrowserRouter([
     { path: "/", element: <PublicHomePage /> },
+    { path: "/platform/:product", element: <PublicPlatformPage /> },
     { path: "/privacy", element: <PublicInfoPage kind="privacy" /> },
     { path: "/terms", element: <PublicInfoPage kind="terms" /> },
     { path: "/account-deletion", element: <PublicInfoPage kind="deletion" /> },

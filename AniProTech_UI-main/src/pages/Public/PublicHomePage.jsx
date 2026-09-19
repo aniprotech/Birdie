@@ -36,12 +36,12 @@ const schema = {
 };
 
 const modules = [
-    { icon: HeartPulse, title: "Care management", text: "Person-centred profiles, assessments, care plans, tasks, observations, incidents and a complete client timeline.", color: "bg-cyan-50 text-cyan-700" },
-    { icon: CalendarDays, title: "Rostering", text: "Plan visits, assign caregivers and keep schedules connected to the care that must be delivered.", color: "bg-violet-50 text-violet-700" },
-    { icon: Smartphone, title: "Carer mobile app", text: "Give caregivers assigned visits, secure client context, eMAR, notes, evidence and visit actions in their pocket.", color: "bg-blue-50 text-blue-700" },
-    { icon: WalletCards, title: "Finance", text: "Move completed and confirmed visit time into invoicing and staff-pay review with a clear evidence trail.", color: "bg-emerald-50 text-emerald-700" },
-    { icon: UsersRound, title: "Workforce", text: "Manage team profiles, availability, onboarding, skills, time off and operational history in one workspace.", color: "bg-amber-50 text-amber-700" },
-    { icon: ClipboardCheck, title: "Quality & governance", text: "Bring policies, credentials, privacy requests, audit evidence and release controls into everyday operations.", color: "bg-rose-50 text-rose-700" },
+    { icon: HeartPulse, title: "Care management", path: "/platform/care-management", text: "Person-centred profiles, assessments, care plans, tasks, observations, incidents and a complete client timeline.", color: "bg-cyan-50 text-cyan-700" },
+    { icon: CalendarDays, title: "Rostering", path: "/platform/rostering", text: "Plan visits, assign caregivers and keep schedules connected to the care that must be delivered.", color: "bg-violet-50 text-violet-700" },
+    { icon: Smartphone, title: "Carer mobile app", path: "/platform/carer-mobile-app", text: "Give caregivers assigned visits, secure client context, eMAR, notes, evidence and visit actions in their pocket.", color: "bg-blue-50 text-blue-700" },
+    { icon: WalletCards, title: "Finance", path: "/platform/finance", text: "Move completed and confirmed visit time into invoicing and staff-pay review with a clear evidence trail.", color: "bg-emerald-50 text-emerald-700" },
+    { icon: UsersRound, title: "Workforce", path: "/platform/workforce", text: "Manage team profiles, availability, onboarding, skills, time off and operational history in one workspace.", color: "bg-amber-50 text-amber-700" },
+    { icon: ClipboardCheck, title: "Quality & governance", path: "/platform/quality-governance", text: "Bring policies, credentials, privacy requests, audit evidence and release controls into everyday operations.", color: "bg-rose-50 text-rose-700" },
 ];
 
 const journeys = [
@@ -139,7 +139,7 @@ export default function PublicHomePage() {
             <div className="mx-auto max-w-7xl px-5 lg:px-8">
                 <div className="max-w-3xl"><SectionLabel>The Caremonitor platform</SectionLabel><h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Everything your care operation needs to work as one.</h2><p className="mt-5 text-lg leading-8 text-slate-600">Information entered once can support the people who plan, deliver, review and account for care—without losing the context around the person.</p></div>
                 <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                    {modules.map(({ icon: Icon, title, text, color }) => <article key={title} className="group rounded-3xl border border-slate-200 bg-white p-7 transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-xl"><span className={`grid h-12 w-12 place-items-center rounded-2xl ${color}`}><Icon size={23} /></span><h3 className="mt-6 text-xl font-bold">{title}</h3><p className="mt-3 leading-7 text-slate-600">{text}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#008dbd]">Connected by design <ArrowRight size={15} className="transition group-hover:translate-x-1" /></span></article>)}
+                    {modules.map(({ icon: Icon, title, path, text, color }) => <article key={title} className="group flex flex-col rounded-3xl border border-slate-200 bg-white p-7 transition duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-xl"><span className={`grid h-12 w-12 place-items-center rounded-2xl ${color}`}><Icon size={23} /></span><h3 className="mt-6 text-xl font-bold">{title}</h3><p className="mt-3 flex-1 leading-7 text-slate-600">{text}</p><Link to={path} aria-label={`Learn more about ${title}`} className="mt-5 inline-flex w-fit items-center gap-2 rounded-lg py-2 text-sm font-bold text-[#008dbd] transition hover:text-[#006d93] focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2">Explore {title} <ArrowRight size={15} className="transition group-hover:translate-x-1" /></Link></article>)}
                 </div>
             </div>
         </section>

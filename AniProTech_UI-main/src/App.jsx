@@ -70,6 +70,7 @@ import ClientPortal from "./pages/Portal/ClientPortal";
 import PublicInfoPage from "./pages/Public/PublicInfoPage";
 import PublicHomePage from "./pages/Public/PublicHomePage";
 import PublicPlatformPage from "./pages/Public/PublicPlatformPage";
+import PublicContentPage from "./pages/Public/PublicContentPage";
 import ClientsCareTeamIndex from "./pages/Clients/ViewClients/Clients/ClientsCareTeamIndex";
 import CarePlanIndex from "./pages/Clients/ViewClients/CarePlan/CarePlanIndex";
 import SocialSupportAssessment from "./pages/Clients/ViewClients/CarePlan/InitialAssessments/SocialSupportAssessment";
@@ -121,6 +122,11 @@ import AddMedicationForm from "./pages/Clients/ViewClients/Medication/AddMedicat
 const router = createBrowserRouter([
     { path: "/", element: <PublicHomePage /> },
     { path: "/platform/:product", element: <PublicPlatformPage /> },
+    { path: "/products", element: <PublicContentPage page="products" /> },
+    { path: "/solutions", element: <PublicContentPage page="solutions" /> },
+    { path: "/case-studies", element: <PublicContentPage page="case-studies" /> },
+    { path: "/resources", element: <PublicContentPage page="resources" /> },
+    { path: "/about", element: <PublicContentPage page="about" /> },
     { path: "/privacy", element: <PublicInfoPage kind="privacy" /> },
     { path: "/terms", element: <PublicInfoPage kind="terms" /> },
     { path: "/account-deletion", element: <PublicInfoPage kind="deletion" /> },

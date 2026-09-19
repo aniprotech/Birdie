@@ -69,11 +69,12 @@ export default function PublicHomePage() {
         <header className="sticky top-0 z-50 border-b border-white/10 bg-[#071A33] shadow-lg shadow-slate-950/10">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
                 <Link to="/" aria-label="Caremonitor home"><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-32 rounded-lg sm:w-40 md:w-48" /></Link>
-                <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-semibold text-slate-200 lg:flex">
-                    <a href="#platform" className="transition hover:text-[#45dcff]">Platform</a>
-                    <a href="#workflow" className="transition hover:text-[#45dcff]">How it works</a>
-                    <a href="#teams" className="transition hover:text-[#45dcff]">For your team</a>
-                    <a href="#trust" className="transition hover:text-[#45dcff]">Trust & safety</a>
+                <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 lg:flex">
+                    <Link to="/products" className="transition hover:text-[#45dcff]">Products</Link>
+                    <Link to="/solutions" className="transition hover:text-[#45dcff]">Solutions</Link>
+                    <Link to="/case-studies" className="transition hover:text-[#45dcff]">Case studies</Link>
+                    <Link to="/resources" className="transition hover:text-[#45dcff]">Resources</Link>
+                    <Link to="/about" className="transition hover:text-[#45dcff]">About us</Link>
                 </nav>
                 <div className="flex items-center gap-3">
                     <Link to="/support" className="hidden px-3 py-2 text-sm font-semibold text-slate-200 transition hover:text-white sm:block">Talk to us</Link>
@@ -83,7 +84,7 @@ export default function PublicHomePage() {
             </div>
             {mobileMenuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="border-t border-white/10 bg-[#071A33] px-5 pb-5 pt-3 text-white lg:hidden">
                 <div className="mx-auto flex max-w-7xl flex-col gap-1">
-                    {[['Platform', '#platform'], ['How it works', '#workflow'], ['For your team', '#teams'], ['Trust & safety', '#trust']].map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 font-semibold transition hover:bg-white/10 hover:text-cyan-300">{label}</a>)}
+                    {[['Products', '/products'], ['Solutions', '/solutions'], ['Case studies', '/case-studies'], ['Resources', '/resources'], ['About us', '/about']].map(([label, to]) => <Link key={to} to={to} onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 font-semibold transition hover:bg-white/10 hover:text-cyan-300">{label}</Link>)}
                     <Link to="/support" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 font-semibold transition hover:bg-white/10 hover:text-cyan-300">Talk to us</Link>
                     <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#00b8e9] px-5 py-3 font-bold text-[#071A33] min-[390px]:hidden">Sign in <ArrowRight size={16} /></Link>
                 </div>
@@ -198,8 +199,8 @@ export default function PublicHomePage() {
         <footer className="border-t border-slate-200 bg-slate-50">
             <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.2fr_0.8fr_0.8fr] lg:px-8">
                 <div><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-44 rounded-lg" /><p className="mt-4 max-w-sm text-sm leading-6 text-slate-600">Connected care management for authorised organisations, care professionals and operational teams.</p></div>
-                <div><h2 className="text-sm font-bold uppercase tracking-wider">Product</h2><div className="mt-4 flex flex-col gap-3 text-sm text-slate-600"><a href="#platform">Platform</a><a href="#workflow">How it works</a><a href="#teams">For your team</a><Link to="/login">Sign in</Link></div></div>
-                <div><h2 className="text-sm font-bold uppercase tracking-wider">Trust & support</h2><div className="mt-4 flex flex-col gap-3 text-sm text-slate-600"><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/account-deletion">Account deletion</Link><Link to="/support">Support</Link></div></div>
+                <div><h2 className="text-sm font-bold uppercase tracking-wider">Explore</h2><div className="mt-4 flex flex-col gap-3 text-sm text-slate-600"><Link to="/products">Products</Link><Link to="/solutions">Solutions</Link><Link to="/case-studies">Case studies</Link><Link to="/resources">Resources</Link><Link to="/about">About us</Link></div></div>
+                <div><h2 className="text-sm font-bold uppercase tracking-wider">Trust & support</h2><div className="mt-4 flex flex-col gap-3 text-sm text-slate-600"><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link><Link to="/account-deletion">Account deletion</Link><Link to="/support">Support</Link><Link to="/login">Sign in</Link></div></div>
             </div>
             <div className="border-t border-slate-200"><div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-3 px-5 py-5 text-xs text-slate-500 lg:px-8"><span>© {new Date().getFullYear()} Aniprotech. All rights reserved.</span><span>Caremonitor is not an emergency or clinical advice service.</span></div></div>
         </footer>

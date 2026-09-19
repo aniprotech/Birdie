@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, BellRing, CalendarDays, Check, CheckCircle2, ClipboardCheck, HeartPulse, MapPin, ShieldCheck, Sparkles, Smartphone, UsersRound, WalletCards } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, BarChart3, BellRing, CalendarDays, Check, CheckCircle2, ClipboardCheck, HeartPulse, MapPin, Menu, ShieldCheck, Sparkles, Smartphone, UsersRound, WalletCards, X } from "lucide-react";
 import SeoMeta from "../../components/Common/SeoMeta";
 
 const siteUrl = "https://caremonitor.aniprotech.com";
@@ -61,12 +62,13 @@ function SectionLabel({ children }) {
 }
 
 export default function PublicHomePage() {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     return <main className="min-h-screen overflow-hidden bg-white font-poppins text-[#071A33]">
         <SeoMeta title="Caremonitor by Aniprotech | Connected care management" description={description} path="/" schema={schema} />
 
-        <header className="relative z-50 border-b border-white/10 bg-[#071A33] shadow-lg shadow-slate-950/10">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-[#071A33] shadow-lg shadow-slate-950/10">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-                <Link to="/" aria-label="Caremonitor home"><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-40 rounded-lg md:w-48" /></Link>
+                <Link to="/" aria-label="Caremonitor home"><img src="/brand-logo.png" alt="Caremonitor by Aniprotech" className="w-32 rounded-lg sm:w-40 md:w-48" /></Link>
                 <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm font-semibold text-slate-200 lg:flex">
                     <a href="#platform" className="transition hover:text-[#45dcff]">Platform</a>
                     <a href="#workflow" className="transition hover:text-[#45dcff]">How it works</a>
@@ -75,9 +77,17 @@ export default function PublicHomePage() {
                 </nav>
                 <div className="flex items-center gap-3">
                     <Link to="/support" className="hidden px-3 py-2 text-sm font-semibold text-slate-200 transition hover:text-white sm:block">Talk to us</Link>
-                    <Link to="/login" className="inline-flex items-center gap-2 rounded-full bg-[#00b8e9] px-5 py-3 text-sm font-bold text-[#071A33] transition hover:bg-[#45dcff]">Sign in <ArrowRight size={16} /></Link>
+                    <button type="button" aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-navigation" onClick={() => setMobileMenuOpen((open) => !open)} className="grid h-11 w-11 place-items-center rounded-full border border-white/20 text-white transition hover:border-cyan-300 hover:text-cyan-300 lg:hidden">{mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}</button>
+                    <Link to="/login" className="hidden items-center gap-2 rounded-full bg-[#00b8e9] px-5 py-3 text-sm font-bold text-[#071A33] transition hover:bg-[#45dcff] min-[390px]:inline-flex">Sign in <ArrowRight size={16} /></Link>
                 </div>
             </div>
+            {mobileMenuOpen && <nav id="mobile-navigation" aria-label="Mobile navigation" className="border-t border-white/10 bg-[#071A33] px-5 pb-5 pt-3 text-white lg:hidden">
+                <div className="mx-auto flex max-w-7xl flex-col gap-1">
+                    {[['Platform', '#platform'], ['How it works', '#workflow'], ['For your team', '#teams'], ['Trust & safety', '#trust']].map(([label, href]) => <a key={href} href={href} onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 font-semibold transition hover:bg-white/10 hover:text-cyan-300">{label}</a>)}
+                    <Link to="/support" onClick={() => setMobileMenuOpen(false)} className="rounded-xl px-4 py-3 font-semibold transition hover:bg-white/10 hover:text-cyan-300">Talk to us</Link>
+                    <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#00b8e9] px-5 py-3 font-bold text-[#071A33] min-[390px]:hidden">Sign in <ArrowRight size={16} /></Link>
+                </div>
+            </nav>}
         </header>
 
         <section className="relative bg-[#eefbff]">
@@ -125,7 +135,7 @@ export default function PublicHomePage() {
             </div>
         </section>
 
-        <section id="platform" className="bg-white py-20 lg:py-28">
+        <section id="platform" className="scroll-mt-24 bg-white py-20 lg:py-28">
             <div className="mx-auto max-w-7xl px-5 lg:px-8">
                 <div className="max-w-3xl"><SectionLabel>The Caremonitor platform</SectionLabel><h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Everything your care operation needs to work as one.</h2><p className="mt-5 text-lg leading-8 text-slate-600">Information entered once can support the people who plan, deliver, review and account for care—without losing the context around the person.</p></div>
                 <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -134,7 +144,7 @@ export default function PublicHomePage() {
             </div>
         </section>
 
-        <section id="workflow" className="bg-[#071A33] py-20 text-white lg:py-28">
+        <section id="workflow" className="scroll-mt-24 bg-[#071A33] py-20 text-white lg:py-28">
             <div className="mx-auto max-w-7xl px-5 lg:px-8">
                 <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]">
                     <div><p className="text-sm font-bold uppercase tracking-[0.18em] text-cyan-300">One connected workflow</p><h2 className="mt-4 text-3xl font-bold sm:text-5xl">From the care plan to the completed visit.</h2><p className="mt-5 text-lg leading-8 text-slate-300">Keep operational decisions attached to the records and evidence that explain them.</p></div>
@@ -145,7 +155,7 @@ export default function PublicHomePage() {
             </div>
         </section>
 
-        <section id="teams" className="bg-[#f6fbfd] py-20 lg:py-28">
+        <section id="teams" className="scroll-mt-24 bg-[#f6fbfd] py-20 lg:py-28">
             <div className="mx-auto max-w-7xl px-5 lg:px-8">
                 <div className="text-center"><SectionLabel>Useful for every role</SectionLabel><h2 className="mx-auto mt-4 max-w-3xl text-3xl font-bold sm:text-5xl">The right view for the work in front of you.</h2></div>
                 <div className="mt-12 grid gap-6 lg:grid-cols-3">
@@ -167,7 +177,7 @@ export default function PublicHomePage() {
             </div>
         </section>
 
-        <section id="trust" className="bg-[#e9f9fd] py-20 lg:py-24">
+        <section id="trust" className="scroll-mt-24 bg-[#e9f9fd] py-20 lg:py-24">
             <div className="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
                 <div className="rounded-3xl bg-[#00b8e9] p-8 text-[#071A33] lg:p-10"><ShieldCheck size={38} /><h2 className="mt-6 text-3xl font-bold">Responsible by design.</h2><p className="mt-4 leading-7 text-[#083a52]">Caremonitor combines operational visibility with controls for access, privacy, evidence and human accountability.</p></div>
                 <div className="grid gap-4 sm:grid-cols-2">

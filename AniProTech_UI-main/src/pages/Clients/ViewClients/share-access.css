@@ -196,6 +196,77 @@
     color: #738196;
     margin-top: 5px;
 }
+.sa-care-circle {
+    padding: 26px;
+    border-radius: 10px;
+    background: #f2fbfd;
+}
+.sa-care-circle-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+.sa-care-circle-heading p {
+    margin-bottom: 0;
+    color: #60758a;
+}
+.share-access .sa-create-member {
+    flex-shrink: 0;
+    padding: 14px 20px;
+    background: white;
+    font-weight: 600;
+}
+.sa-care-circle-table {
+    overflow-x: auto;
+    border: 1px solid #dce5eb;
+    border-radius: 8px;
+    background: white;
+}
+.sa-care-circle-table table {
+    width: 100%;
+    min-width: 780px;
+    border-collapse: collapse;
+}
+.sa-care-circle-table th,
+.sa-care-circle-table td {
+    padding: 16px 18px;
+    text-align: left;
+    border-bottom: 1px solid #e5eaee;
+    vertical-align: top;
+}
+.sa-care-circle-table th {
+    color: #64788b;
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+.sa-care-circle-table tr:last-child td {
+    border-bottom: 0;
+}
+.sa-care-circle-table .sa-empty-circle {
+    padding: 54px 20px;
+    text-align: center;
+    color: #60758a;
+    font-size: 17px;
+}
+.sa-invite-opened,
+.sa-invite-pending {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: #e8f6ed;
+    color: #2b6b47;
+    font-size: 12px;
+}
+.sa-invite-pending {
+    background: #fff4d9;
+    color: #805d12;
+}
+.share-access .sa-member-dialog {
+    width: min(680px, 100%);
+}
 .sa-overlay {
     position: fixed;
     inset: 0;
@@ -236,6 +307,15 @@
     .sa-cards article {
         padding: 16px;
         min-width: 100%;
+    }
+    .sa-care-circle {
+        padding: 18px;
+    }
+    .sa-care-circle-heading {
+        flex-direction: column;
+    }
+    .share-access .sa-create-member {
+        width: 100%;
     }
     .sa-cards code {
         font-size: 14px;

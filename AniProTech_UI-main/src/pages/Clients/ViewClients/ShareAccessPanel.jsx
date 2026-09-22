@@ -27,6 +27,7 @@ export default function ShareAccessPanel() {
         [busy, setBusy] = useState(false),
         [error, setError] = useState(""),
         [notice, setNotice] = useState(""),
+        [showInvite, setShowInvite] = useState(false),
         [recipient, setRecipient] = useState({ name: "", email: "", accessLevel: "LIMITED", scopes: ["VISITS", "CARE_PLANS", "FEEDBACK"], days: 7, acknowledged: false }),
         [confirm, setConfirm] = useState(null);
     const load = async () => {
@@ -88,6 +89,7 @@ export default function ShareAccessPanel() {
             const r = await _post("/api/client-share-access/invite", payload);
             setInfo(r.data.results.data);
             setRecipient({ name: "", email: "", accessLevel: "LIMITED", scopes: ["VISITS", "CARE_PLANS", "FEEDBACK"], days: 7, acknowledged: false });
+            setShowInvite(false);
             setNotice(r.data.message);
         } catch (e) { setError(e.response?.data?.message || "Unable to send invitation"); }
         finally { setBusy(false); }
@@ -239,20 +241,22 @@ export default function ShareAccessPanel() {
                             Send magic link
                         </button>
                     </section>
-                    <section>
-                        <h2>Invite family or an authorised person</h2>
-                        <p>Add their details and choose full or limited access. They receive a one-time secure sign-in link.</p>
-                        <form onSubmit={invite}>
-                            <label>Recipient name<input required minLength={2} maxLength={100} value={recipient.name} onChange={(e) => setRecipient({...recipient,name:e.target.value})}/></label>
-                            <label>Email address<input required type="email" maxLength={254} value={recipient.email} onChange={(e) => setRecipient({...recipient,email:e.target.value})}/></label>
-                            <label>Permission level<select value={recipient.accessLevel} onChange={(e) => setRecipient({...recipient,accessLevel:e.target.value})}><option value="FULL">Full access</option><option value="LIMITED">Limited access</option></select></label>
-                            {recipient.accessLevel === "LIMITED" && <fieldset><legend>What they can access</legend>{Object.entries(scopes).map(([key,label])=><label className="sa-check" key={key}><input type="checkbox" checked={recipient.scopes.includes(key)} onChange={(e)=>setRecipient({...recipient,scopes:e.target.checked?[...recipient.scopes,key]:recipient.scopes.filter(x=>x!==key)})}/>{label}</label>)}</fieldset>}
-                            <label className="sa-expiry">Invitation expires after<select value={recipient.days} onChange={(e)=>setRecipient({...recipient,days:Number(e.target.value)})}>{[1,3,7,14,30].map(d=><option key={d} value={d}>{d} day{d===1?"":"s"}</option>)}</select></label>
-                            <label className="sa-check"><input type="checkbox" checked={recipient.acknowledged} onChange={(e)=>setRecipient({...recipient,acknowledged:e.target.checked})}/>I confirm this person is authorised to access the selected information.</label>
-                            <button className="sa-primary" disabled={busy || !info.active || !recipient.acknowledged || (recipient.accessLevel === "LIMITED" && !recipient.scopes.length)}>Send secure invitation</button>
-                            {!info.active && <p className="sa-muted">Enable shared access first to send invitations.</p>}
-                        </form>
-                        {!!info.recipients?.length && <div className="sa-history"><table><thead><tr><th>Recipient</th><th>Access</th><th>Expires</th></tr></thead><tbody>{info.recipients.map(r=><tr key={r.id}><td>{r.name}<small>{r.email}</small></td><td>{r.accessLevel === "FULL" ? "Full" : r.scopes.map(s=>scopes[s]).join(", ")}</td><td>{date(r.expiresAt)}{r.usedAt ? " · Opened" : " · Not opened"}</td></tr>)}</tbody></table></div>}
+                    <section className="sa-care-circle">
+                        <div className="sa-care-circle-heading">
+                            <div>
+                                <h2>{info.clientName}’s care circle</h2>
+                                <p>Care circle members can securely view the parts of {info.clientName}’s care record you choose to share.</p>
+                            </div>
+                            <button className="sa-create-member" disabled={!info.active} onClick={() => setShowInvite(true)}>+ Create new care circle member</button>
+                        </div>
+                        {!info.active && <p className="sa-muted">Enable shared access first to add a care circle member.</p>}
+                        <div className="sa-care-circle-table">
+                            <table>
+                                <thead><tr><th>Name</th><th>Invite</th><th>Access</th><th>Email</th><th>Expires</th></tr></thead>
+                                <tbody>{info.recipients?.length ? info.recipients.map(r=><tr key={r.id}><td><strong>{r.name}</strong></td><td><span className={r.usedAt ? "sa-invite-opened" : "sa-invite-pending"}>{r.usedAt ? "Accepted" : "Invited"}</span></td><td>{r.accessLevel === "FULL" ? "Full access" : r.scopes.map(s=>scopes[s]).join(", ")}</td><td>{r.email}</td><td>{date(r.expiresAt)}</td></tr>) : <tr><td className="sa-empty-circle" colSpan={5}>No one has been added to {info.clientName}’s care circle yet.</td></tr>}</tbody>
+                            </table>
+                        </div>
+                        {showInvite && <div className="sa-overlay"><section role="dialog" aria-modal="true" aria-label="Create care circle member" className="sa-dialog sa-member-dialog"><h2>Create new care circle member</h2><p>Add their details and choose full or limited access. They will receive a one-time secure sign-in link.</p><form onSubmit={invite}><label>Recipient name<input autoFocus required minLength={2} maxLength={100} value={recipient.name} onChange={(e) => setRecipient({...recipient,name:e.target.value})}/></label><label>Email address<input required type="email" maxLength={254} value={recipient.email} onChange={(e) => setRecipient({...recipient,email:e.target.value})}/></label><label>Permission level<select value={recipient.accessLevel} onChange={(e) => setRecipient({...recipient,accessLevel:e.target.value})}><option value="FULL">Full access</option><option value="LIMITED">Limited access</option></select></label>{recipient.accessLevel === "LIMITED" && <fieldset><legend>What they can access</legend>{Object.entries(scopes).map(([key,label])=><label className="sa-check" key={key}><input type="checkbox" checked={recipient.scopes.includes(key)} onChange={(e)=>setRecipient({...recipient,scopes:e.target.checked?[...recipient.scopes,key]:recipient.scopes.filter(x=>x!==key)})}/>{label}</label>)}</fieldset>}<label className="sa-expiry">Invitation expires after<select value={recipient.days} onChange={(e)=>setRecipient({...recipient,days:Number(e.target.value)})}>{[1,3,7,14,30].map(d=><option key={d} value={d}>{d} day{d===1?"":"s"}</option>)}</select></label><label className="sa-check"><input type="checkbox" checked={recipient.acknowledged} onChange={(e)=>setRecipient({...recipient,acknowledged:e.target.checked})}/>I confirm this person is authorised to access the selected information.</label><footer><button type="button" disabled={busy} onClick={()=>setShowInvite(false)}>Cancel</button><button className="sa-primary" disabled={busy || !recipient.acknowledged || (recipient.accessLevel === "LIMITED" && !recipient.scopes.length)}>{busy ? "Sending…" : "Send secure invitation"}</button></footer></form></section></div>}
                     </section>
                     <section>
                         <h2>Portal feedback</h2>

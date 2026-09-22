@@ -8,9 +8,12 @@ import { STATIC_ADDITIONAL_INFO_LIST } from "../../../../constants/clientMedicat
 import { _get } from "../../../../utils/ApiService";
 import APIConfig from "../../../../utils/ApiConfig";
 import DotLoader from "../../../../components/Loader/DotLoader";
+import { useGlobalStore } from "../../../../stores/useGlobalStore";
 
 const MedicationIndex = () => {
     const { id, navigate } = useNavigationHelpers();
+    const { clientsPersonalDetailData } = useGlobalStore();
+    const clientName = clientsPersonalDetailData?.firstName || "the client";
     const [isPersonalDetails, setIsPersonalDetails] = useState(false);
     const handleNavigate = (route) => {
         navigate(`/admin/clients/${id}/medication/${route}`);
@@ -90,18 +93,20 @@ const MedicationIndex = () => {
     return (
         <div className="min-h-screen bg-customBgLightBlue px-2 pb-10 md:px-10 md:pb-20 lg:px-36">
             {/* Top Banner */}
-            <div
-                onClick={() => handleNavigate("personal-details")}
-                className="poppins-semibold mb-6 flex cursor-pointer items-center justify-between border border-customTextLightNavy bg-customBgSandal p-3 px-5 text-sm text-customBlack md:px-10 xl:px-24"
-            >
-                <span>We do not provide David medicine support. Update their details to begin recording medication events</span>
-                <button className="ml-2 whitespace-nowrap text-customTextLightNavy">
-                    <ChevronRight />
-                </button>
-            </div>
+            {!data?.isMedicineSupportProvided && (
+                <div
+                    onClick={() => handleNavigate("personal-details")}
+                    className="poppins-semibold mb-6 flex cursor-pointer items-center justify-between border border-customTextLightNavy bg-customBgSandal p-3 px-5 text-sm text-customBlack md:px-10 xl:px-24"
+                >
+                    <span>We do not provide {clientName}&apos;s medicine support. Update their details to begin recording medication events</span>
+                    <button className="ml-2 whitespace-nowrap text-customTextLightNavy">
+                        <ChevronRight />
+                    </button>
+                </div>
+            )}
 
             {/* Header */}
-            <h1 className="poppins-medium mb-1 text-xl font-semibold text-customBlack">Manage David&apos;s medication</h1>
+            <h1 className="poppins-medium mb-1 text-xl font-semibold text-customBlack">Manage {clientName}&apos;s medication</h1>
             <p className="mb-6 text-sm text-customGrey1">Select from the options below.</p>
 
             {/* Add Medication Search */}
@@ -137,7 +142,7 @@ const MedicationIndex = () => {
                             strokeWidth={1.25}
                         />
                         <h3 className="poppins-medium text-xl text-customBlack">Medication scheduling</h3>
-                        <p className="mb-2 text-sm text-customGrey1">View and update David&apos;s medications.</p>
+                        <p className="mb-2 text-sm text-customGrey1">View and update {clientName}&apos;s medications.</p>
                         <button className="cursor-pointer text-sm text-customTextLightNavy">View schedule →</button>
                     </div>
                 </div>
@@ -153,7 +158,7 @@ const MedicationIndex = () => {
                             strokeWidth={1.25}
                         />
                         <h3 className="poppins-medium text-xl text-customBlack">Medication monitoring</h3>
-                        <p className="mb-2 text-sm text-customGrey1">Monitor David&apos;s MAR chart in real-time.</p>
+                        <p className="mb-2 text-sm text-customGrey1">Monitor {clientName}&apos;s MAR chart in real-time.</p>
                         <button className="cursor-pointer text-sm text-customTextLightNavy">View MAR chart →</button>
                     </div>
                 </div>
@@ -169,7 +174,7 @@ const MedicationIndex = () => {
                             strokeWidth={1.25}
                         />
                         <h3 className="poppins-medium text-xl text-customBlack">Personal details</h3>
-                        <p className="mb-2 text-sm text-customGrey1">Update David&apos;s medical information, including allergies.</p>
+                        <p className="mb-2 text-sm text-customGrey1">Update {clientName}&apos;s medical information, including allergies.</p>
                         <button className="cursor-pointer text-sm text-customTextLightNavy">Update details →</button>
                     </div>
                 </div>

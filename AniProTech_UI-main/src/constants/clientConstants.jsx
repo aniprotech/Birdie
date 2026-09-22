@@ -267,9 +267,9 @@ export const clientsRiskLevelOptions = [
     { label: "Green", value: "GREEN" },
 ];
 
-export const clientsClinicalMedicalSupportOptions = [
-    { label: "We provide David's medicine support", value: true },
-    { label: "We do not provide David's medicine support", value: false },
+export const getClientsClinicalMedicalSupportOptions = (clientName = "the client") => [
+    { label: `We provide ${clientName}'s medicine support`, value: true },
+    { label: `We do not provide ${clientName}'s medicine support`, value: false },
 ];
 
 export const clientsFamilyInvolvementOptions = [
@@ -336,12 +336,12 @@ export const enumMappings = {
     DONT_KNOW: "Not Known",
 };
 
-export const medicationPrivacyOptions = [
-    { label: "We provide David’s medicine support", value: true, description: "Carers must record each time they help with medication" },
+export const getMedicationPrivacyOptions = (clientName = "the client") => [
+    { label: `We provide ${clientName}’s medicine support`, value: true, description: "Carers must record each time they help with medication" },
     {
-        label: "We do not provide David’s medicine support",
+        label: `We do not provide ${clientName}’s medicine support`,
         value: false,
-        description: "Carers are not required to record David taking medication",
+        description: `Carers are not required to record ${clientName} taking medication`,
     },
 ];
 

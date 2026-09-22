@@ -6,7 +6,7 @@ import useScrollToTop from "../../../../../hooks/useScrollToTop";
 import SearchableDropdown from "../../../../../components/DropdownInput/SearchableDropdown";
 import RadioButtonGroup from "../../../../../components/TextInput/RadioButtonGroup";
 import PhoneNumberField from "../../../../../components/DropdownInput/PhoneNumberDropdown";
-import { clientsClinicalMedicalSupportOptions } from "../../../../../constants/clientConstants";
+import { getClientsClinicalMedicalSupportOptions } from "../../../../../constants/clientConstants";
 import { useGlobalStore } from "../../../../../stores/useGlobalStore";
 
 const EditClinicalDetails = () => {
@@ -57,7 +57,7 @@ const EditClinicalDetails = () => {
                     label={`Does ${clientName} require medical support?`}
                     name="clinicalDetails.medicalSupport"
                     value={clinicalDetails.medicalSupport || false}
-                    options={clientsClinicalMedicalSupportOptions}
+                    options={getClientsClinicalMedicalSupportOptions(clientName)}
                     valueChange={(e) => setFieldValue("clinicalDetails.medicalSupport", e.target.value)}
                 />
             </div>

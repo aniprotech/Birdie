@@ -3,7 +3,7 @@ import { Formik, Form } from "formik";
 import TextAreaField from "../../../../components/TextInput/TextAreaField";
 import TextField from "../../../../components/TextInput/TextInput";
 import RadioButtonGroup from "../../../../components/TextInput/RadioButtonGroup";
-import { medicationPrivacyOptions } from "../../../../constants/clientConstants";
+import { getMedicationPrivacyOptions } from "../../../../constants/clientConstants";
 import { useGlobalStore } from "../../../../stores/useGlobalStore";
 import { useNavigationHelpers } from "../../../../hooks/useNavigationHelpers";
 import { fetchData } from "../../../../utils/FetchData";
@@ -181,7 +181,7 @@ const MedicationPersonalDetails = ({ setIsPersonalDetails }) => {
                                     value={values?.isMedicineSupportProvided}
                                     valueChange={handleChange}
                                     error={errors.isMedicineSupportProvided}
-                                    options={medicationPrivacyOptions}
+                                    options={getMedicationPrivacyOptions(clientName)}
                                 />
                             </div>
 

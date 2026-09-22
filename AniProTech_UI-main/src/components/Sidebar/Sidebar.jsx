@@ -61,7 +61,7 @@ export default function Sidebar({ children, data }) {
                 </div>
 
                 {/* Sidebar Items */}
-                <SidebarContext.Provider value={{ expanded }}>
+                <SidebarContext.Provider value={{ expanded, data }}>
                     <ul className="custom-scrollbar my-3 flex-1 space-y-2 overflow-y-auto overflow-x-hidden px-3">{children}</ul>
                 </SidebarContext.Provider>
 

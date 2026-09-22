@@ -4,7 +4,7 @@ import { SidebarContext } from "./Sidebar";
 import DownloadInfoModal from "../DownloadInfoModal";
 
 export function SidebarItem({ icon, text, alert, to }) {
-    const { expanded } = useContext(SidebarContext);
+    const { expanded, data } = useContext(SidebarContext);
     const isDownloadInfo = text === "Download Info";
     const location = useLocation();
     const isActive = location.pathname === to || location.pathname.startsWith(to);
@@ -89,7 +89,7 @@ export function SidebarItem({ icon, text, alert, to }) {
                 <DownloadInfoModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
-                    clientName="David"
+                    clientName={data?.firstName || "the client"}
                     onDownload={() => {
                         // Handle PDF download logic
                         setIsModalOpen(false);

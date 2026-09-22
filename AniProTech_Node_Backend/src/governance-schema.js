@@ -64,6 +64,7 @@ export async function initializeGovernance(db) {
     agency_id uuid NOT NULL, client_id uuid NOT NULL REFERENCES users(id), rating integer NOT NULL CHECK(rating BETWEEN 1 AND 5),
     comment text, consented_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
+  await db.query("ALTER TABLE node_portal_feedback ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'QUALITY_FEEDBACK'");
   await db.query(`CREATE TABLE IF NOT EXISTS node_governance_settings (
     agency_id uuid PRIMARY KEY, critical_escalation_minutes integer NOT NULL DEFAULT 30,
     high_escalation_minutes integer NOT NULL DEFAULT 240, family_response_hours integer NOT NULL DEFAULT 24,

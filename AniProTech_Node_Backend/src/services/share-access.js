@@ -13,7 +13,8 @@ import { reply, fail } from "../http.js";
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const actor = (u) => [u.firstName, u.lastName].filter(Boolean).join(" ");
 const reserved = (email) => !email || /\.(test|invalid)$/i.test(email);
-const scopeNames = ["BASIC", "MEDICAL", "CARE_LOG", "MESSAGES", "FEEDBACK"];
+const scopeNames = ["BASIC", "MEDICAL", "CARE_LOG", "VISITS", "CARE_PLANS", "MESSAGES", "FEEDBACK"];
+const feedbackKinds = ["QUALITY_FEEDBACK", "CONCERN", "COMPLAINT", "COMPLIMENT"];
 function crypt(config, value, decrypt = false) {
   const key = createHash("sha256")
     .update("aniprotech-share-code:" + config.jwtSecret)
@@ -79,6 +80,12 @@ export function registerShareAccess(ctx, route) {
           )
         ).rows
       : [];
+    const recipients = grant
+      ? (await db.query(`SELECT id,recipient_name AS "name",email,access_level AS "accessLevel",scopes,expires_at AS "expiresAt",used_at AS "usedAt" FROM node_share_links WHERE grant_id=$1 AND recipient_name IS NOT NULL ORDER BY expires_at DESC LIMIT 100`, [grant.id])).rows
+      : [];
+    const feedback = grant
+      ? (await db.query(`SELECT id,kind,rating,comment,created_at AS "createdAt" FROM node_portal_feedback WHERE grant_id=$1 ORDER BY created_at DESC LIMIT 100`, [grant.id])).rows
+      : [];
     return {
       clientId: c.id,
       clientName: actor(c),
@@ -94,6 +101,8 @@ export function registerShareAccess(ctx, route) {
       revision: grant?.revision || 0,
       canSendMagicLink: active && !reserved(c.email),
       history,
+      recipients,
+      feedback,
     };
   }
   route("GET", "/api/client-share-access/:clientId", async (req, res) =>
@@ -233,6 +242,30 @@ export function registerShareAccess(ctx, route) {
       return reply(res, {}, "Client access email queued");
     },
   );
+  route("POST", "/api/client-share-access/invite", async (req, res) => {
+    const c = await client(req);
+    const parsed = z.object({
+      name: z.string().trim().min(2).max(100),
+      email: z.email().max(254),
+      accessLevel: z.enum(["FULL", "LIMITED"]),
+      scopes: z.array(z.enum(scopeNames)).min(1).max(scopeNames.length),
+      days: z.number().int().min(1).max(30).default(7),
+      acknowledged: z.literal(true),
+      revision: z.number().int().nonnegative(),
+    }).safeParse(req.body);
+    if (!parsed.success) fail(400, "Enter the recipient, permission level, shared sections and confirm authorisation");
+    const g = (await db.query("SELECT * FROM node_share_grants WHERE client_id=$1 AND agency_id=$2 FOR UPDATE", [c.id, c.agencyId])).rows[0];
+    if (!g || g.revoked_at || new Date(g.expires_at) <= new Date()) fail(400, "Enable shared access before inviting a recipient");
+    if (parsed.data.revision !== g.revision) fail(409, "Sharing settings changed. Refresh before inviting");
+    const b = parsed.data;
+    const inviteScopes = b.accessLevel === "FULL" ? scopeNames : [...new Set(b.scopes)];
+    const secret = randomBytes(32).toString("base64url");
+    const expiresAt = new Date(Math.min(Date.now() + b.days * 86400000, new Date(g.expires_at).getTime())).toISOString();
+    await db.query(`INSERT INTO node_share_links(id,grant_id,revision,secret_hash,email,expires_at,recipient_name,access_level,scopes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [randomUUID(), g.id, g.revision, hash(secret), b.email.toLowerCase(), expiresAt, b.name, b.accessLevel, JSON.stringify(inviteScopes)]);
+    await mail.send({to:b.email,subject:`Access to ${actor(c)}'s care information`,text:`Hello ${b.name},\n\nThe care team has shared ${b.accessLevel === "FULL" ? "full" : "limited"} access with you. This one-time sign-in link expires ${new Date(expiresAt).toLocaleString("en-GB", {timeZone:"Europe/London"})}.\n${portalUrl(config,g.id,secret)}`,actionUrl:portalUrl(config,g.id,secret),actionLabel:"Open shared care information"});
+    await audit(db,g.id,"RECIPIENT_INVITED",actor(req.user),b.email);
+    return reply(res,await info(c),"Recipient invitation sent",201);
+  });
   route("GET", "/api/client-share-access/:clientId/messages", async (req, res) => {
     const c = await client(req);
     const grant = (await db.query("SELECT id,scopes FROM node_share_grants WHERE client_id=$1 AND agency_id=$2", [c.id, c.agencyId])).rows[0];
@@ -343,15 +376,16 @@ export function createPortal(ctx) {
         );
       const token = randomBytes(32).toString("base64url"),
         name = link
-          ? [g.first_name, g.last_name].filter(Boolean).join(" ")
+          ? link.recipient_name || [g.first_name, g.last_name].filter(Boolean).join(" ")
           : b.name,
         email = link ? link.email : b.email,
-        method = link ? "CLIENT_EMAIL" : "ACCESS_CODE",
+        method = link ? (link.recipient_name ? "RECIPIENT_EMAIL" : "CLIENT_EMAIL") : "ACCESS_CODE",
+        sessionScopes = link?.scopes || g.scopes,
         expiresAt = new Date(
           Math.min(Date.now() + 3600000, new Date(g.expires_at).getTime()),
         ).toISOString();
       await db.query(
-        "INSERT INTO node_share_sessions(id,grant_id,revision,secret_hash,viewer_name,viewer_email,method,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
+        "INSERT INTO node_share_sessions(id,grant_id,revision,secret_hash,viewer_name,viewer_email,method,expires_at,scopes) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
         [
           randomUUID(),
           g.id,
@@ -361,6 +395,7 @@ export function createPortal(ctx) {
           email,
           method,
           expiresAt,
+          JSON.stringify(sessionScopes),
         ],
       );
       await db.query(
@@ -370,7 +405,7 @@ export function createPortal(ctx) {
       await audit(
         db,
         g.id,
-        method === "CLIENT_EMAIL" ? "CLIENT_SIGNED_IN" : "CODE_SIGNED_IN",
+        method === "CLIENT_EMAIL" ? "CLIENT_SIGNED_IN" : method === "RECIPIENT_EMAIL" ? "RECIPIENT_SIGNED_IN" : "CODE_SIGNED_IN",
         name,
         email,
       );
@@ -387,7 +422,7 @@ export function createPortal(ctx) {
     if (!token) fail(401, "Sign in to view the shared record");
     const session = (
       await db.query(
-        `SELECT s.*,g.client_id,g.agency_id,g.scopes FROM node_share_sessions s JOIN node_share_grants g ON g.id=s.grant_id JOIN users u ON u.id=g.client_id
+        `SELECT s.*,g.client_id,g.agency_id,COALESCE(s.scopes,g.scopes) AS scopes FROM node_share_sessions s JOIN node_share_grants g ON g.id=s.grant_id JOIN users u ON u.id=g.client_id
    WHERE s.secret_hash=$1 AND s.revoked_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP AND g.revoked_at IS NULL AND g.expires_at>CURRENT_TIMESTAMP AND g.revision=s.revision AND u.is_active=true AND u.deleted_at IS NULL AND u.role='USER' AND u.agency_id=g.agency_id`,
         [hash(token)],
       )
@@ -452,6 +487,17 @@ export function createPortal(ctx) {
         )
       ).rows[0].n;
     }
+    if (s.scopes.includes("VISITS")) {
+      out.upcomingVisits = (await db.query(`SELECT v.id,v.visit_date AS "visitDate",v.start_time AS "startTime",v.end_time AS "endTime",v.title,v.status,concat_ws(' ',u.first_name,u.last_name) AS "caregiverName" FROM node_roster_visits v LEFT JOIN users u ON u.id=v.staff_id WHERE v.client_id=$1 AND v.agency_id=$2 AND v.visit_date>=CURRENT_DATE AND v.status IN ('SCHEDULED','IN_PROGRESS') ORDER BY v.visit_date,v.start_time LIMIT 50`,[c.id,s.agency_id])).rows;
+    }
+    if (s.scopes.includes("CARE_PLANS")) {
+      const planTypes = [["Medication","CarePlanMedicationEntity"],["Behaviour","ClientBehaviourEntity"],["Communication","ClientCommunicationEntity"],["Condition specific","ClientConditionSpecificEntity"],["End of life","ClientEndOfLifeEntity"],["Everyday activities","ClientEveryDayActivityEntity"],["Mental capacity","ClientMentalCapacityEntity"],["Nutrition and hydration","ClientNutritionHydrationEntity"],["Personal care","ClientPersonalCareEntity"],["Psychological","ClientPsychologicalEntity"],["Social support","ClientSocialSupportEntity"]];
+      out.carePlans = [];
+      for (const [label,entity] of planTypes) {
+        const plan = await repo.one(entity,{user:c.id});
+        if (plan && !plan.deletedAt) out.carePlans.push({type:label,updatedAt:plan.updatedAt || plan.createdAt || null});
+      }
+    }
     await audit(db, s.grant_id, "RECORD_VIEWED", s.viewer_name, s.viewer_email);
     return reply(res, out);
   });
@@ -479,10 +525,10 @@ export function createPortal(ctx) {
   router.post("/feedback", async (req,res)=>{
     const s=req.portal;
     if(!s.scopes.includes("FEEDBACK")) fail(403,"Feedback is not included in this shared access");
-    const parsed=z.object({rating:z.number().int().min(1).max(5),comment:z.string().trim().max(2000).optional(),consent:z.literal(true)}).safeParse(req.body);
-    if(!parsed.success) fail(400,"Choose a rating and confirm consent");
+    const parsed=z.object({kind:z.enum(feedbackKinds).default("QUALITY_FEEDBACK"),rating:z.number().int().min(1).max(5),comment:z.string().trim().min(1).max(2000),consent:z.literal(true)}).safeParse(req.body);
+    if(!parsed.success) fail(400,"Choose a feedback type and rating, enter details, and confirm consent");
     const id=randomUUID();
-    await db.query("INSERT INTO node_portal_feedback(id,grant_id,agency_id,client_id,rating,comment,consented_at) VALUES($1,$2,$3,$4,$5,$6,CURRENT_TIMESTAMP)",[id,s.grant_id,s.agency_id,s.client_id,parsed.data.rating,parsed.data.comment||null]);
+    await db.query("INSERT INTO node_portal_feedback(id,grant_id,agency_id,client_id,kind,rating,comment,consented_at) VALUES($1,$2,$3,$4,$5,$6,$7,CURRENT_TIMESTAMP)",[id,s.grant_id,s.agency_id,s.client_id,parsed.data.kind,parsed.data.rating,parsed.data.comment]);
     await audit(db,s.grant_id,"FEEDBACK_SUBMITTED",s.viewer_name,s.viewer_email);
     const pref=(await db.query("SELECT feedback_email FROM node_portal_preferences WHERE grant_id=$1",[s.grant_id])).rows[0];
     if(pref?.feedback_email){const admins=(await db.query("SELECT email FROM users WHERE agency_id=$1 AND role IN ('ADMIN','SUPERADMIN') AND is_active=true AND deleted_at IS NULL",[s.agency_id])).rows;await Promise.allSettled(admins.map(a=>mail.send({to:a.email,subject:"New Caremonitor feedback",text:"New consented feedback is available in Caremonitor. Sign in to review it.",actionUrl:config.frontendUrl,actionLabel:"Open Caremonitor"})))}

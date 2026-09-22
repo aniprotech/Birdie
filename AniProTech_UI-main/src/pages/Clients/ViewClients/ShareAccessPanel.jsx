@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { _get, _post } from "../../../utils/ApiService";
 import "./share-access.css";
-const scopes = { BASIC: "Basic information", MEDICAL: "Medical history and allergies", CARE_LOG: "Care notes, observations and activities", MESSAGES: "Secure messages", FEEDBACK: "Consent-based feedback" };
+const scopes = { BASIC: "Basic information", MEDICAL: "Medical history and allergies", CARE_LOG: "Care notes, observations and activities", VISITS: "Upcoming visits and caregivers", CARE_PLANS: "Care plan overview", MESSAGES: "Secure messages", FEEDBACK: "Quality feedback, concerns, complaints and compliments" };
+const allScopes = Object.keys(scopes);
 const date = (v) =>
     v ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/London" }).format(new Date(v)) : "Not enabled";
 const actions = {
@@ -13,6 +14,8 @@ const actions = {
     CLIENT_SIGNED_IN: "Client signed in by email link",
     CODE_SIGNED_IN: "Access code used (self-reported identity)",
     RECORD_VIEWED: "Shared record viewed",
+    RECIPIENT_INVITED: "Recipient invitation sent",
+    RECIPIENT_SIGNED_IN: "Invited recipient signed in",
     SIGNED_OUT: "Portal signed out",
 };
 export default function ShareAccessPanel() {
@@ -24,6 +27,7 @@ export default function ShareAccessPanel() {
         [busy, setBusy] = useState(false),
         [error, setError] = useState(""),
         [notice, setNotice] = useState(""),
+        [recipient, setRecipient] = useState({ name: "", email: "", accessLevel: "LIMITED", scopes: ["VISITS", "CARE_PLANS", "FEEDBACK"], days: 7, acknowledged: false }),
         [confirm, setConfirm] = useState(null);
     const load = async () => {
         const data = (await _get(`/api/client-share-access/${id}`)).data.results.data;
@@ -75,6 +79,18 @@ export default function ShareAccessPanel() {
         } finally {
             setBusy(false);
         }
+    };
+    const invite = async (e) => {
+        e.preventDefault();
+        setBusy(true); setError("");
+        try {
+            const payload = { ...recipient, clientId: id, revision: info.revision, scopes: recipient.accessLevel === "FULL" ? allScopes : recipient.scopes };
+            const r = await _post("/api/client-share-access/invite", payload);
+            setInfo(r.data.results.data);
+            setRecipient({ name: "", email: "", accessLevel: "LIMITED", scopes: ["VISITS", "CARE_PLANS", "FEEDBACK"], days: 7, acknowledged: false });
+            setNotice(r.data.message);
+        } catch (e) { setError(e.response?.data?.message || "Unable to send invitation"); }
+        finally { setBusy(false); }
     };
     return (
         <main className="share-access">
@@ -222,6 +238,26 @@ export default function ShareAccessPanel() {
                         >
                             Send magic link
                         </button>
+                    </section>
+                    <section>
+                        <h2>Invite family or an authorised person</h2>
+                        <p>Add their details and choose full or limited access. They receive a one-time secure sign-in link.</p>
+                        <form onSubmit={invite}>
+                            <label>Recipient name<input required minLength={2} maxLength={100} value={recipient.name} onChange={(e) => setRecipient({...recipient,name:e.target.value})}/></label>
+                            <label>Email address<input required type="email" maxLength={254} value={recipient.email} onChange={(e) => setRecipient({...recipient,email:e.target.value})}/></label>
+                            <label>Permission level<select value={recipient.accessLevel} onChange={(e) => setRecipient({...recipient,accessLevel:e.target.value})}><option value="FULL">Full access</option><option value="LIMITED">Limited access</option></select></label>
+                            {recipient.accessLevel === "LIMITED" && <fieldset><legend>What they can access</legend>{Object.entries(scopes).map(([key,label])=><label className="sa-check" key={key}><input type="checkbox" checked={recipient.scopes.includes(key)} onChange={(e)=>setRecipient({...recipient,scopes:e.target.checked?[...recipient.scopes,key]:recipient.scopes.filter(x=>x!==key)})}/>{label}</label>)}</fieldset>}
+                            <label className="sa-expiry">Invitation expires after<select value={recipient.days} onChange={(e)=>setRecipient({...recipient,days:Number(e.target.value)})}>{[1,3,7,14,30].map(d=><option key={d} value={d}>{d} day{d===1?"":"s"}</option>)}</select></label>
+                            <label className="sa-check"><input type="checkbox" checked={recipient.acknowledged} onChange={(e)=>setRecipient({...recipient,acknowledged:e.target.checked})}/>I confirm this person is authorised to access the selected information.</label>
+                            <button className="sa-primary" disabled={busy || !info.active || !recipient.acknowledged || (recipient.accessLevel === "LIMITED" && !recipient.scopes.length)}>Send secure invitation</button>
+                            {!info.active && <p className="sa-muted">Enable shared access first to send invitations.</p>}
+                        </form>
+                        {!!info.recipients?.length && <div className="sa-history"><table><thead><tr><th>Recipient</th><th>Access</th><th>Expires</th></tr></thead><tbody>{info.recipients.map(r=><tr key={r.id}><td>{r.name}<small>{r.email}</small></td><td>{r.accessLevel === "FULL" ? "Full" : r.scopes.map(s=>scopes[s]).join(", ")}</td><td>{date(r.expiresAt)}{r.usedAt ? " · Opened" : " · Not opened"}</td></tr>)}</tbody></table></div>}
+                    </section>
+                    <section>
+                        <h2>Portal feedback</h2>
+                        <p className="sa-muted">Quality feedback, concerns, complaints and compliments submitted through shared access.</p>
+                        {info.feedback?.length ? <div className="sa-history"><table><thead><tr><th>When</th><th>Type</th><th>Details</th></tr></thead><tbody>{info.feedback.map(f=><tr key={f.id}><td>{date(f.createdAt)}</td><td>{f.kind.replaceAll("_"," ")} · {f.rating}/5</td><td>{f.comment}</td></tr>)}</tbody></table></div> : <p>No portal feedback submitted yet.</p>}
                     </section>
                     <section>
                         <h2>Revoke access anytime</h2>

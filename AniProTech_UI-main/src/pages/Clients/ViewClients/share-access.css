@@ -41,6 +41,22 @@
     opacity: 0.5;
     cursor: default;
 }
+.share-access form > label:not(.sa-check) {
+    display: block;
+    margin: 16px 0;
+    font-weight: 500;
+}
+.share-access form input:not([type="checkbox"]),
+.share-access form select {
+    display: block;
+    width: min(100%, 560px);
+    border: 1px solid #bdcad7;
+    border-radius: 4px;
+    background: white;
+    padding: 10px;
+    margin-top: 7px;
+    font: inherit;
+}
 .share-access .sa-primary {
     background: #168580;
     border-color: #168580;

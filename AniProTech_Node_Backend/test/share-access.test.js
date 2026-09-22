@@ -30,6 +30,15 @@ test('Read-only shared client portal',async t=>{
    const stored=(await db.query('SELECT * FROM node_share_grants WHERE id=$1',[grant.shareId])).rows[0];assert.notEqual(stored.code_hash,grant.accessCode);assert.ok(!stored.code_cipher.includes(grant.accessCode));
    assert.equal(data(await call('get',`/api/client-share-access/${client.id}`)).accessCode,grant.accessCode);
   });
+  await t.test('Named recipients receive their own permission-limited email link',async()=>{
+   const invited=await call('post','/api/client-share-access/invite',{clientId:client.id,revision:grant.revision,name:'Family Viewer',email:'family@example.com',accessLevel:'LIMITED',scopes:['VISITS','FEEDBACK'],days:3,acknowledged:true});
+   assert.equal(invited.status,201);assert.equal(data(invited).recipients[0].name,'Family Viewer');assert.deepEqual(data(invited).recipients[0].scopes,['VISITS','FEEDBACK']);
+   const params=new URLSearchParams(new URL(sent.at(-1).text.match(/http[^\s]+/)[0]).hash.slice(1));
+   const signed=await request(app).post('/api/portal/exchange').send({shareId:params.get('share'),token:params.get('token')});assert.equal(signed.status,200);
+   const limited=data(await call('get','/api/portal/record',undefined,data(signed).token));assert.deepEqual(limited.scopes,['VISITS','FEEDBACK']);assert.ok(Array.isArray(limited.upcomingVisits));assert.equal(limited.basic,undefined);
+   const feedback=await call('post','/api/portal/feedback',{kind:'COMPLIMENT',rating:5,comment:'The care team was kind.',consent:true},data(signed).token);assert.equal(feedback.status,201);
+   assert.equal(data(await call('get',`/api/client-share-access/${client.id}`)).feedback[0].kind,'COMPLIMENT');
+  });
   await t.test('Codes sign into a limited portal; staff routes reject portal sessions',async()=>{
    assert.equal((await exchange(grant,'WRONG')).status,401);const r=await exchange(grant);assert.equal(r.status,200);session=data(r).token;
    const record=data(await call('get','/api/portal/record',undefined,session));assert.equal(record.clientName,'client Test');assert.ok(record.basic);assert.ok(!record.medical);assert.ok(!record.careLog);assert.ok(!JSON.stringify(record).includes('PRIVATE DOOR CODE'));
@@ -40,7 +49,7 @@ test('Read-only shared client portal',async t=>{
   await t.test('Replacing a code revokes active sessions and previous email links',async()=>{
    let r=await call('post','/api/client-share-access/send-magic-link',{clientId:client.id,revision:grant.revision});assert.equal(r.status,200);
    oldMagic=new URLSearchParams(new URL(sent.at(-1).text.match(/http[^\s]+/)[0]).hash.slice(1));
-   const old=grant;grant=data(await generate(grant.revision,['BASIC','MEDICAL','CARE_LOG']));
+   const old=grant;grant=data(await generate(grant.revision,['BASIC','MEDICAL','CARE_LOG','VISITS','CARE_PLANS']));
    assert.equal((await exchange(old)).status,401);assert.equal((await call('get','/api/portal/record',undefined,session)).status,401);
    assert.equal((await request(app).post('/api/portal/exchange').send({shareId:oldMagic.get('share'),token:oldMagic.get('token')})).status,401);
    assert.equal((await generate(old.revision)).status,409);
@@ -48,7 +57,7 @@ test('Read-only shared client portal',async t=>{
   await t.test('Shared medical/care sections are allowlisted and isolated to one client',async()=>{
    session=data(await exchange(grant)).token;
    const r=await call('get','/api/portal/record',undefined,session);assert.equal(r.status,200);const record=data(r);
-   assert.deepEqual(record.medical.medicalHistory,['Example medical history']);assert.equal(record.careLog.length,1);assert.equal(record.careLog[0].title,'Shared note');assert.ok(!JSON.stringify(record).includes('Internal alert'));assert.ok(!JSON.stringify(record).includes('Other client note'));
+   assert.deepEqual(record.medical.medicalHistory,['Example medical history']);assert.equal(record.careLog.length,1);assert.equal(record.careLog[0].title,'Shared note');assert.ok(Array.isArray(record.upcomingVisits));assert.ok(Array.isArray(record.carePlans));assert.ok(!JSON.stringify(record).includes('Internal alert'));assert.ok(!JSON.stringify(record).includes('Other client note'));
    assert.equal((await call('get','/api/portal/record?page=-1',undefined,session)).status,400);
   });
   await t.test('Email links are single use and revocation invalidates all access',async()=>{

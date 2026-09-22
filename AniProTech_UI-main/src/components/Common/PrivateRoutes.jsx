@@ -1,19 +1,20 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { _post } from "../../utils/ApiService";
 import { showError } from "../../utils/toaster";
 import { toast } from "sonner";
 import DotLoader from "../Loader/DotLoader";
 import useAuthStore from "../../stores/authStore";
+import { encryptData } from "../../utils/cryptoHelpers";
 
-const IDLE_LIMIT_MS = 5 * 60 * 1000;
-const WARNING_MS = 30 * 1000;
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 const ProtectedRoute = ({ children }) => {
     const [isAuth, setIsAuth] = useState(null);
-    const token = localStorage.getItem("access_token");
-
+    const [refreshVersion, setRefreshVersion] = useState(0);
+    const lastInteraction = useRef(Date.now());
     useEffect(() => {
+        const token = localStorage.getItem("access_token");
         const handleValidateToken = async () => {
             if (!token) {
                 setIsAuth(false);
@@ -24,6 +25,8 @@ const ProtectedRoute = ({ children }) => {
                 const response = await _post("/api/auth/validate-token");
 
                 if (response?.data?.error === false) {
+                    const renewedToken = response?.data?.results?.data?.token;
+                    if (renewedToken) localStorage.setItem("access_token", encryptData(renewedToken));
                     setIsAuth(true);
                 } else {
                     localStorage.clear();
@@ -39,8 +42,8 @@ const ProtectedRoute = ({ children }) => {
         };
 
         handleValidateToken();
-        let lastActivity = Date.now(), warningOpen = false, ending = false;
-        const activity = () => { lastActivity = Date.now(); warningOpen = false; };
+        let ending = false;
+        const activity = () => { lastInteraction.current = Date.now(); };
         const endSession = async (message) => {
             if (ending) return;
             ending = true;
@@ -53,24 +56,34 @@ const ProtectedRoute = ({ children }) => {
         };
         const events = ["pointerdown", "keydown", "touchstart", "scroll"];
         events.forEach((event) => window.addEventListener(event, activity, { passive: true }));
-        const check = window.setInterval(async () => {
-            const idle = Date.now() - lastActivity;
-            if (idle >= IDLE_LIMIT_MS) return endSession("You were signed out after 5 minutes of inactivity. Request a new sign-in link to continue.");
-            if (idle >= IDLE_LIMIT_MS - WARNING_MS && !warningOpen) {
-                warningOpen = true;
-                if (window.confirm("Your Caremonitor session will end in 30 seconds because there has been no activity. Stay signed in?")) {
-                    activity();
-                    try { await _post("/api/auth/validate-token"); } catch { await endSession("Your session expired. Request a new sign-in link to continue."); }
-                }
+        const refresh = async () => {
+            try {
+                const response = await _post("/api/auth/validate-token");
+                const renewedToken = response?.data?.results?.data?.token;
+                if (renewedToken) localStorage.setItem("access_token", encryptData(renewedToken));
+                if (document.visibilityState === "visible" && Date.now() - lastInteraction.current >= 60000)
+                    setRefreshVersion((version) => version + 1);
+            } catch {
+                await endSession("Your session is no longer available. Please sign in again.");
             }
-        }, 1000);
-        const heartbeat = window.setInterval(() => {
-            if (Date.now() - lastActivity < 60000) _post("/api/auth/validate-token").catch(() => endSession("Your session expired. Request a new sign-in link to continue."));
-        }, 60000);
+        };
+        const heartbeat = window.setInterval(refresh, REFRESH_INTERVAL_MS);
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") void refresh();
+        };
+        const handleStorage = (event) => {
+            if (event.key === "access_token" && !event.newValue) {
+                useAuthStore.getState().setUserData(null);
+                setIsAuth(false);
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+        window.addEventListener("storage", handleStorage);
         return () => {
             events.forEach((event) => window.removeEventListener(event, activity));
-            window.clearInterval(check);
             window.clearInterval(heartbeat);
+            document.removeEventListener("visibilitychange", handleVisibility);
+            window.removeEventListener("storage", handleStorage);
         };
     }, []);
 
@@ -104,7 +117,7 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    return children;
+    return <Fragment key={refreshVersion}>{children}</Fragment>;
 };
 
 export default ProtectedRoute;

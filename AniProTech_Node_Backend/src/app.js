@@ -206,7 +206,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
       {
         id: req.sessionId,
         user: auth.publicUser(req.user),
-        token: req.accessToken,
+        token: await auth.renewSession(req.user, req.sessionId),
         isUsed: true,
       },
       "Token is valid",

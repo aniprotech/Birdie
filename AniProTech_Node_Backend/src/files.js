@@ -78,7 +78,7 @@ export function createFiles(config, db) {
     if (claims.resource !== resource) fail(403, "Invalid file permission");
     const session = (
       await db.query(
-        "SELECT s.id FROM node_sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.revoked_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP AND s.last_seen_at>CURRENT_TIMESTAMP-interval '5 minutes' AND u.is_active=true",
+        "SELECT s.id FROM node_sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.revoked_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP AND u.is_active=true",
         [claims.sid, claims.sub],
       )
     ).rows[0];

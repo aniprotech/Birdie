@@ -65,14 +65,22 @@ export function createAuth({ db, repo, config, mail }) {
     });
   }
   async function issueSession(user, device = {}, mfaVerified = false) {
-    const session = randomUUID(), expiresAt = new Date(Date.now() + 86400000).toISOString();
+    // Device sessions are intentionally long lived. Every request still checks the
+    // database record so manual sign-out, device revocation, disabled users and
+    // suspended organisations take effect immediately.
+    const session = randomUUID(), expiresAt = new Date(Date.now() + 10 * 365 * 86400000).toISOString();
     await db.query(
       `INSERT INTO node_sessions(id,user_id,expires_at,device_name,ip_address,user_agent,mfa_verified_at)
        VALUES($1,$2,$3,$4,$5,$6,CASE WHEN $7 THEN CURRENT_TIMESTAMP ELSE NULL END)`,
       [session,user.id,expiresAt,String(device.name||"Unknown device").slice(0,120),String(device.ip||"").slice(0,100)||null,String(device.userAgent||"").slice(0,500)||null,mfaVerified],
     );
-    const accessToken = jwt.sign({ email:user.email,role:user.role },config.jwtSecret,{subject:user.id,jwtid:session,expiresIn:"24h",issuer:"aniprotech",audience:"aniprotech-app",algorithm:"HS256"});
+    const accessToken = jwt.sign({ email:user.email,role:user.role },config.jwtSecret,{subject:user.id,jwtid:session,expiresIn:"3650d",issuer:"aniprotech",audience:"aniprotech-app",algorithm:"HS256"});
     return { user:publicUser(user),accessToken };
+  }
+  async function renewSession(user, sessionId) {
+    const expiresAt = new Date(Date.now() + 10 * 365 * 86400000).toISOString();
+    await db.query("UPDATE node_sessions SET expires_at=$2,last_seen_at=CURRENT_TIMESTAMP WHERE id=$1 AND revoked_at IS NULL", [sessionId, expiresAt]);
+    return jwt.sign({ email:user.email,role:user.role },config.jwtSecret,{subject:user.id,jwtid:sessionId,expiresIn:"3650d",issuer:"aniprotech",audience:"aniprotech-app",algorithm:"HS256"});
   }
   async function exchange(email, password, device = {}) {
     if (
@@ -131,7 +139,7 @@ export function createAuth({ db, repo, config, mail }) {
       }
       const session = (
         await db.query(
-          "SELECT id FROM node_sessions WHERE id=$1 AND user_id=$2 AND revoked_at IS NULL AND expires_at>CURRENT_TIMESTAMP AND last_seen_at>CURRENT_TIMESTAMP-interval '5 minutes'",
+          "SELECT id FROM node_sessions WHERE id=$1 AND user_id=$2 AND revoked_at IS NULL AND expires_at>CURRENT_TIMESTAMP",
           [claims.jti, claims.sub],
         )
       ).rows[0];
@@ -207,6 +215,7 @@ export function createAuth({ db, repo, config, mail }) {
     exchange,
     completeMfa,
     issueSession,
+    renewSession,
     authenticate,
     userAccess,
     admin,

@@ -8,7 +8,6 @@ import {
   Pressable,
   ActivityIndicator,
   AppState,
-  Alert,
   Image,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -34,10 +33,11 @@ export default function App() {
     [info, setInfo] = useState(""),
     [email, setEmail] = useState(""),
     [link, setLink] = useState(""),
-    [tab, setTab] = useState("Visits");
+    [tab, setTab] = useState("Visits"),
+    [refreshVersion, setRefreshVersion] = useState(0);
   const exchanging = useRef(false);
-  const lastActivity = useRef(Date.now()), warningShown = useRef(false), backgroundAt = useRef<number | null>(null), endingSession = useRef(false);
-  const markActivity = () => { lastActivity.current = Date.now(); warningShown.current = false; };
+  const lastActivity = useRef(Date.now()), endingSession = useRef(false);
+  const markActivity = () => { lastActivity.current = Date.now(); };
   async function signIn(url: string) {
     if (exchanging.current) return;
     exchanging.current = true;
@@ -86,10 +86,11 @@ export default function App() {
     (async () => {
       try {
         if (await restoreToken()) {
-          const result = await api<{ user: User }>(
+          const result = await api<{ user: User; token?: string }>(
             "/api/auth/validate-token",
             "POST",
           );
+          if (result.token) await saveToken(result.token);
           if (active) setUser(result.user);
         }
         const initial = await Linking.getInitialURL();
@@ -132,31 +133,24 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     markActivity();
-    const check = setInterval(() => {
-      const idle = Date.now() - lastActivity.current;
-      if (idle >= 5 * 60 * 1000) {
-        void finishLogout("You were signed out after 5 minutes of inactivity. Request a new sign-in link to continue.");
-      } else if (idle >= 4.5 * 60 * 1000 && !warningShown.current) {
-        warningShown.current = true;
-        Alert.alert("Session ending soon", "Caremonitor will sign you out in 30 seconds because there has been no activity.", [
-          { text: "Sign out", style: "destructive", onPress: () => void finishLogout("Please request a new sign-in link to continue.") },
-          { text: "Stay signed in", onPress: () => { markActivity(); void api("/api/auth/validate-token", "POST").catch(() => finishLogout("Your session expired. Request a new sign-in link to continue.")); } },
-        ], { cancelable: false });
+    const refresh = async () => {
+      try {
+        const result = await api<{ token?: string }>("/api/auth/validate-token", "POST");
+        if (result.token) await saveToken(result.token);
+        if (AppState.currentState === "active" && Date.now() - lastActivity.current >= 60000)
+          setRefreshVersion((version) => version + 1);
+      } catch {
+        await finishLogout("Your session is no longer available. Please sign in again.");
       }
-    }, 1000);
-    const heartbeat = setInterval(() => {
-      if (AppState.currentState === "active" && Date.now() - lastActivity.current < 60000)
-        void api("/api/auth/validate-token", "POST").catch(() => finishLogout("Your session expired. Request a new sign-in link to continue."));
-    }, 60000);
+    };
+    const heartbeat = setInterval(() => { void refresh(); }, 5 * 60 * 1000);
     const appState = AppState.addEventListener("change", (next) => {
-      if (next !== "active") backgroundAt.current = Date.now();
-      else if (backgroundAt.current) {
-        if (Date.now() - backgroundAt.current >= 5 * 60 * 1000) void finishLogout("You were signed out after 5 minutes away from Caremonitor. Request a new sign-in link to continue.");
-        else markActivity();
-        backgroundAt.current = null;
+      if (next === "active") {
+        lastActivity.current = 0;
+        void refresh();
       }
     });
-    return () => { clearInterval(check); clearInterval(heartbeat); appState.remove(); };
+    return () => { clearInterval(heartbeat); appState.remove(); };
   }, [user]);
   async function requestLink() {
     setBusy(true);
@@ -250,7 +244,7 @@ export default function App() {
               >
                 <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: 150, height: 44 }} accessibilityLabel="AniProTech" />
               </View>
-              <View style={{ flex: 1 }}>
+              <View key={refreshVersion} style={{ flex: 1 }}>
                 {tab === "Visits" ? (
                   <Visits user={user} />
                 ) : tab === "Clients" ? (

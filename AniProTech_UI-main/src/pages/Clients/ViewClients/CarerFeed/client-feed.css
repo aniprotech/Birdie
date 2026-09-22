@@ -243,6 +243,12 @@
 .client-live-feed .cf-primary {
     background: #153a66;
     color: white;
+    border-color: #153a66;
+}
+.client-live-feed .cf-primary:hover {
+    background: #0b2a4d;
+    color: white;
+    border-color: #0b2a4d;
 }
 .cf-timeline {
     border-left: 2px solid #becbde;

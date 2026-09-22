@@ -240,9 +240,33 @@ export default function App() {
                   paddingHorizontal: 20,
                   paddingVertical: 12,
                   backgroundColor: "white",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#D8EAF3",
                 }}
               >
                 <Image source={require("./assets/brand-logo.png")} resizeMode="contain" style={{ width: 150, height: 44 }} accessibilityLabel="AniProTech" />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign out of Caremonitor"
+                  disabled={busy}
+                  onPress={() => void logout()}
+                  style={({ pressed }) => ({
+                    paddingHorizontal: 14,
+                    paddingVertical: 9,
+                    borderRadius: 9,
+                    borderWidth: 1,
+                    borderColor: "#B9D5E3",
+                    backgroundColor: "white",
+                    opacity: busy ? 0.45 : pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text style={{ color: colours.navy, fontWeight: "700", fontSize: 14 }}>
+                    Sign out
+                  </Text>
+                </Pressable>
               </View>
               <View key={refreshVersion} style={{ flex: 1 }}>
                 {tab === "Visits" ? (

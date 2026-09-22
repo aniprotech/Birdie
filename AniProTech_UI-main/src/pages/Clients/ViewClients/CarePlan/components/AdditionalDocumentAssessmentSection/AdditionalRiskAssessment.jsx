@@ -9,7 +9,7 @@ const AdditionalRiskAssessment = ({
             <h2 className="poppins-medium text-lg text-customBlack">Risks and mitigations</h2>
             <p className="text-customFeedCardGreyText1 mb-3 text-sm">
                 Record any risks the client presents with, and the measures taken to mitigate them. If you feel the client&apos;s risk
-                level has changed, you should consider the need to review the Care Plan and RAG status in Birdie and update accordingly.
+                level has changed, you should consider the need to review the Care Plan and RAG status in Caremonitor and update accordingly.
             </p>
 
             <button
@@ -33,4 +33,4 @@ AdditionalRiskAssessment.propTypes = {
     onAddRisk: PropTypes.func.isRequired,
 };
 
-export default AdditionalRiskAssessment; 
+export default AdditionalRiskAssessment;

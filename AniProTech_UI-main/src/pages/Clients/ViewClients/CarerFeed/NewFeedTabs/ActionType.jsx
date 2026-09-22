@@ -22,7 +22,7 @@ const ClientActionType = ({ onCancel, onSave }) => {
     const assignedOptions = [
         { label: "Unassigned", value: "" },
         { label: "Bhaskar Reddy", value: "bhaskar" },
-        { label: "Birdie Team", value: "team" },
+        { label: "Caremonitor Team", value: "team" },
         { label: "Rohitha Prakash", value: "rohitha" },
         { label: "Sat (to add / edit)", value: "sat" },
         { label: "Swarnalatha Kontham", value: "swarna" },

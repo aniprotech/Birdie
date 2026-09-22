@@ -21,7 +21,7 @@ try {
  await page.getByRole('button',{name:/Generate (access|new) code/}).click();
  const generated=page.waitForResponse(r=>r.url().endsWith('/api/client-share-access/generate')&&r.request().method()==='POST');
  await page.getByRole('button',{name:'Generate code',exact:true}).click();const response=await generated;assert.equal(response.status(),200);grant=(await response.json()).results.data;
- await page.getByText('Sharing active',{exact:true}).waitFor();assert.ok(grant.websiteUrl.includes('/access#'));assert.ok(!grant.websiteUrl.includes('birdie'));
+ await page.getByText('Sharing active',{exact:true}).waitFor();assert.ok(grant.websiteUrl.includes('/access#'));assert.ok(new URL(grant.websiteUrl).hash.length>1);
  assert.equal(await page.getByRole('button',{name:'Send magic link',exact:true}).isDisabled(),true);
  const portal=await browser.newPage({viewport:{width:1280,height:900}});portal.on('pageerror',e=>errors.push(e.message));
  await portal.goto(grant.websiteUrl);await portal.getByLabel('Access code',{exact:true}).fill(grant.accessCode);await portal.getByLabel('Your name').fill('Demo Viewer');await portal.getByLabel('Your email').fill('viewer@example.test');await portal.getByRole('button',{name:'Open care record',exact:true}).click();

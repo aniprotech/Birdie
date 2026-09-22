@@ -88,7 +88,7 @@ const AdminIndex = () => {
                 <div className="flex flex-col items-start justify-between rounded-md border border-gray-400 bg-white p-4 md:flex-row md:items-center">
                     <div>
                         <h3 className="text-base font-medium">Invite caregiver</h3>
-                        <p className="text-sm text-gray-600">Sends an SMS and an email to them to invite them to download &amp; login into Birdie.</p>
+                        <p className="text-sm text-gray-600">Sends an SMS and an email inviting them to download and sign in to Caremonitor.</p>
                     </div>
                     <button
                         type="button"

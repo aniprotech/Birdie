@@ -40,7 +40,7 @@ const caregiverColumns = [
 
 const caregiverData = [
   { id: 1, name: 'Bhaskar Reddy', availability: 'Out of hours', continuity: '0%', group: 'Ungrouped' },
-  { id: 2, name: 'Birdie Team', availability: 'Out of hours', continuity: '0%', group: 'Ungrouped' },
+  { id: 2, name: 'Caremonitor Team', availability: 'Out of hours', continuity: '0%', group: 'Ungrouped' },
   { id: 3, name: 'Harika Maddi', availability: 'Out of hours', continuity: '0%', group: 'Ungrouped' },
   { id: 4, name: 'Kiran Kumar Reddy Pallela', availability: 'Out of hours', continuity: '0%', group: 'Ungrouped' },
   { id: 5, name: 'Sat (to add/ edit)', availability: 'Out of hours', continuity: '0%', group: 'Ungrouped' },

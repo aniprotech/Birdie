@@ -137,7 +137,7 @@ const ClientsSettings = () => {
                 <div className="space-y-2">
                     <h1 className="poppins-medium text-2xl text-customBlack">Client settings</h1>
                     <p className="poppins-medium text-sm text-customGrey1">
-                        Toggle certain Birdie features for this client.
+                        Manage Caremonitor features for this client.
                     </p>
                 </div>
 

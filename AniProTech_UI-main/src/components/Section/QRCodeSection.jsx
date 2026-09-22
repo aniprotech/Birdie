@@ -76,8 +76,8 @@ const QRCodeSection = ({ clientId, clientName }) => {
                         {/* Header */}
                         <div className="mb-8 flex items-start justify-between">
                             <img
-                                src="/birdie-logo.png"
-                                alt="Birdie"
+                                src="/brand-logo.png"
+                                alt="Caremonitor"
                                 className="h-6"
                             />
                             <div className="text-right">
@@ -122,7 +122,7 @@ const QRCodeSection = ({ clientId, clientName }) => {
                         {/* Instructions */}
                         <h2 className="mb-3 mt-12 text-3xl font-semibold">How to scan a QR code</h2>
                         <p className="mx-auto max-w-md text-lg leading-relaxed text-gray-600">
-                            When the QR code scanner is open in the Birdie app, hold your phone up to the QR code so it appears in the box on the
+                            When the QR code scanner is open in the Caremonitor app, hold your phone up to the QR code so it appears in the box on the
                             screen. When your phone recognises the QR code, you will see a confirmation message.
                         </p>
                     </div>

@@ -182,7 +182,7 @@ const MedicationIndex = () => {
                 {/* Help and Support */}
                 <div
                     className="cursor-pointer rounded-md border border-gray-300 bg-white p-3 md:p-4 xl:p-8"
-                    onClick={() => window.open("https://intercom.help/birdiecare/en/collections/2591330-medication-manager", "_blank")}
+                    onClick={() => window.open("/contact-us", "_blank")}
                 >
                     <div className="flex flex-col items-start">
                         <Book

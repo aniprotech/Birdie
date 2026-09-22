@@ -71,7 +71,7 @@ const SearchDropdown = ({
                                             <h3 className="mb-1 text-base font-medium text-gray-900">
                                                 Can&apos;t find what you&apos;re looking for?
                                             </h3>
-                                            <p className="text-sm text-gray-600">Contact Birdie support</p>
+                                            <p className="text-sm text-gray-600">Contact Caremonitor support</p>
                                         </div>
                                     ) : (
                                         options.map((option, index) => (
@@ -96,7 +96,7 @@ const SearchDropdown = ({
                                 {showSupportText && (
                                     <div className="border-t border-gray-100 p-4">
                                         <h3 className="mb-1 text-base font-medium text-gray-900">Can&apos;t find what you&apos;re looking for?</h3>
-                                        <p className="text-sm text-gray-600">Contact Birdie support</p>
+                                        <p className="text-sm text-gray-600">Contact Caremonitor support</p>
                                     </div>
                                 )}
                             </>

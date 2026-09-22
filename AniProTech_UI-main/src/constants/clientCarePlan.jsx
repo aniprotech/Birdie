@@ -1952,7 +1952,7 @@ export const PSYCHOLOGICAL_QUESTIONS = [
 //         section: "Incident reporting",
 //         section_id: "incident",
 //         show_details: false,
-//         placeholder: "e.g. use Birdie to raise a concern and provide as much detail as possible.",
+//         placeholder: "e.g. use Caremonitor to raise a concern and provide as much detail as possible.",
 //         dependencies: {
 //             behaviours_challenge: true,
 //         },
@@ -2313,7 +2313,7 @@ export const BEHAVIOR_QUESTIONS = [
         section: "Incident reporting",
         section_id: "incident",
         show_details: false,
-        placeholder: "e.g. use Birdie to raise a concern and provide as much detail as possible.",
+        placeholder: "e.g. use Caremonitor to raise a concern and provide as much detail as possible.",
         dependencies: {
             behaviours_challenge: true,
         },
@@ -3321,4 +3321,3 @@ export const downloadDocumentSections = [
         items: [{ id: "task-planner", label: "Task planner", icon: FileText, downloadable: true, date: "4 June 2025" }],
     },
 ];
-

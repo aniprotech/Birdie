@@ -11,6 +11,7 @@ import LogIndex from "./pages/Log/LogIndex";
 import RosterIndex from "./pages/Roster/RosterIndex";
 import InboxIndex from "./pages/Inbox/InboxIndex";
 import FinanceIndex from "./pages/Finance/FinanceIndex";
+import AccountingIndex from "./pages/Accounting/AccountingIndex";
 import AccountSettings from "./pages/Account/AccountSettings";
 import PlatformAdmin from "./pages/Platform/PlatformAdmin";
 import Settings from "./components/Settings/Settings";
@@ -705,6 +706,10 @@ const router = createBrowserRouter([
             {
                 path: "finances",
                 element: <FinanceIndex />,
+            },
+            {
+                path: "accounting",
+                element: <AccountingIndex />,
             },
             {
                 path: "account",

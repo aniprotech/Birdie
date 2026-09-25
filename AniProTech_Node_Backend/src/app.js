@@ -31,6 +31,7 @@ import { registerCareLog } from './services/care-log.js';
 import { registerActivity } from "./services/activity.js";
 import { registerFinanceReview } from './services/finance-review.js';
 import { registerFinance } from "./services/finance.js";
+import { registerAccounting } from "./services/accounting.js";
 import { registerReporting } from "./services/reporting.js";
 import {createInboxNotifications} from './inbox-notifications.js';
 import {registerNotificationDelivery} from './services/notification-delivery.js';
@@ -252,6 +253,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     registerActivity,
     registerCareLog,
     registerFinance,
+    registerAccounting,
     registerFinanceReview,
     registerReporting,
     registerNotificationDelivery,

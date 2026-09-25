@@ -10,6 +10,7 @@ import { initializePlanning } from "./planning-schema.js";
 import { initializeClientFeed } from "./client-feed-schema.js";
 import { initializeRoster } from "./roster-schema.js";
 import { initializeOperations } from "./operations-schema.js";
+import { initializeAccounting } from "./accounting-schema.js";
 import { initializeMobileCare } from "./mobile-care-schema.js";
 import { initializeRegistration } from "./registration-schema.js";
 import { initializeSecurity } from "./security-schema.js";
@@ -155,6 +156,7 @@ export async function initializeSchema(db) {
     );
     await initializeRoster(db);
     await initializeOperations(db);
+    await initializeAccounting(db);
     await initializeClientFeed(db);
       await initializeTaskLibrary(db);
       await initializeSharing(db);

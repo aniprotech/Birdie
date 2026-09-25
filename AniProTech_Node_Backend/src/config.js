@@ -41,8 +41,8 @@ export function configuration(overrides = {}) {
     microsoftRedirectUri:
       process.env.MICROSOFT_REDIRECT_URI ||
       "https://backend.aniprotech.com/api/auth/microsoft/callback",
-    trueLayerApplicationName: process.env.TRUELAYER_APPLICATION_NAME,
-    trueLayerClientId: process.env.TRUELAYER_CLIENT_ID,
+    tinkClientId: process.env.TINK_CLIENT_ID,
+    tinkClientSecret: process.env.TINK_CLIENT_SECRET,
     shareAccessUrl:
       process.env.SHARE_ACCESS_URL ||
       (production

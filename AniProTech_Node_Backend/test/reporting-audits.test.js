@@ -25,6 +25,7 @@ test("reporting audits read agency data and restrict caregiver access", async ()
     const admin = await repo.save("UserEntity", { agencyId: agency, firstName: "Report", lastName: "Admin", email: "report-admin@example.test", role: "ADMIN", isActive: true });
     const carer = await repo.save("UserEntity", { agencyId: agency, firstName: "Report", lastName: "Carer", email: "report-carer@example.test", role: "CAREGIVER", isActive: true });
     const client = await repo.save("UserEntity", { agencyId: agency, firstName: "Report", lastName: "Client", email: "report-client@example.test", role: "USER", isActive: true });
+    await db.query("INSERT INTO node_team_groups(user_id,groups) VALUES($1,$2::jsonb)", [carer.id, JSON.stringify(["North team"])]);
     const token = async (user) => { const link = await auth.createLoginLink(user.email); const [email, secret] = Buffer.from(link.link.searchParams.get("token"), "base64url").toString().split(":"); return (await auth.exchange(email, secret)).accessToken; };
     const headers = { Authorization: `Bearer ${await token(admin)}` };
     const visitId = randomUUID();
@@ -60,16 +61,20 @@ test("reporting audits read agency data and restrict caregiver access", async ()
     assert.equal(library.body.results.data.visits[0].observations, 1);
     assert.equal(library.body.results.data.visits[0].verifiedEvents, 1);
     assert.equal(library.body.results.data.visits[0].medicationExceptions, 1);
+    assert.deepEqual(library.body.results.data.groups, [{ name: "North team", staff: 1, visits: 1, completed: 1 }]);
     assert.equal((await request(app).get(libraryPath).set({ Authorization: `Bearer ${await token(carer)}` })).status, 403);
     const otherAgency = randomUUID();
     const superadmin = await repo.save("UserEntity", { agencyId: otherAgency, firstName: "Other", lastName: "Admin", email: "other-report-admin@example.test", role: "SUPERADMIN", isActive: true });
     const otherClient = await repo.save("UserEntity", { agencyId: otherAgency, firstName: "Other", lastName: "Client", email: "other-report-client@example.test", role: "USER", isActive: true });
     const otherCarer = await repo.save("UserEntity", { agencyId: otherAgency, firstName: "Other", lastName: "Carer", email: "other-report-carer@example.test", role: "CAREGIVER", isActive: true });
+    await db.query("INSERT INTO node_team_groups(user_id,groups) VALUES($1,$2::jsonb)", [otherCarer.id, JSON.stringify(["South team"])]);
     await db.query(`INSERT INTO node_roster_visits(id,agency_id,client_id,staff_id,visit_date,start_time,end_time,title,status,created_by,updated_by)
       VALUES($1,$2,$3,$4,'2026-09-25','11:00','12:00','Other organisation visit','SCHEDULED',$5,$5)`, [randomUUID(), otherAgency, otherClient.id, otherCarer.id, superadmin.id]);
     const isolated = await request(app).get(libraryPath).set({ Authorization: `Bearer ${await token(superadmin)}` });
     assert.equal(isolated.status, 200, JSON.stringify(isolated.body));
     assert.deepEqual(isolated.body.results.data.visits.map((visit) => visit.clientId), [otherClient.id]);
+    assert.deepEqual(isolated.body.results.data.groups.map((group) => group.name), ["South team"]);
     assert.deepEqual((await request(app).get(libraryPath).set(headers)).body.results.data.visits.map((visit) => visit.clientId), [client.id]);
+    assert.deepEqual((await request(app).get(libraryPath).set(headers)).body.results.data.groups.map((group) => group.name), ["North team"]);
   } finally { await db.close(); }
 });

@@ -9,7 +9,7 @@ export function registerReportingLibrary({ db, auth }, route) {
     auth.admin(req);
     const { from, to } = dateRange(req.query);
     const args = [req.user.agencyId, from, to];
-    const [visits, entries, attendance, medications, alerts] = await Promise.all([
+    const [visits, entries, attendance, medications, alerts, groups] = await Promise.all([
       db.query(`SELECT v.id,v.client_id AS "clientId",v.staff_id AS "staffId",v.visit_date::text AS date,
         v.title,v.status,concat_ws(' ',c.first_name,c.last_name) AS "clientName",
         concat_ws(' ',s.first_name,s.last_name) AS "staffName",
@@ -46,6 +46,15 @@ export function registerReportingLibrary({ db, auth }, route) {
         FROM node_client_entries e JOIN users c ON c.id=e.client_id
         WHERE e.agency_id=$1 AND e.kind='ALERT' AND (e.created_at AT TIME ZONE 'Europe/London')::date BETWEEN $2 AND $3
         ORDER BY e.created_at DESC,e.id LIMIT 10001`, args),
+      db.query(`SELECT membership.name,count(DISTINCT membership.user_id)::int AS staff,
+        count(v.id) FILTER(WHERE v.status<>'CANCELLED')::int AS visits,
+        count(v.id) FILTER(WHERE v.status='COMPLETED')::int AS completed
+        FROM (SELECT g.user_id,jsonb_array_elements_text(g.groups) AS name
+          FROM node_team_groups g JOIN users u ON u.id=g.user_id
+          WHERE u.agency_id=$1 AND u.is_active AND u.deleted_at IS NULL) membership
+        LEFT JOIN node_roster_visits v ON v.staff_id=membership.user_id AND v.agency_id=$1
+          AND v.visit_date BETWEEN $2 AND $3
+        GROUP BY membership.name ORDER BY membership.name`, args),
     ]);
     const byVisit = (rows) => new Map(rows.map((row) => [row.visitId, row]));
     const entryMap = byVisit(entries.rows), attendanceMap = byVisit(attendance.rows), medicationMap = byVisit(medications.rows);
@@ -68,6 +77,7 @@ export function registerReportingLibrary({ db, auth }, route) {
     return reply(res, {
       from, to, timezone: "Europe/London", generatedAt: new Date().toISOString(),
       visits: rows, alerts: alerts.rows.slice(0, 10000).map((a) => ({ ...a, createdAt: iso(a.createdAt), updatedAt: iso(a.updatedAt) })),
+      groups: groups.rows,
       truncated: visits.rows.length > 10000 || alerts.rows.length > 10000,
       definitions: {
         reportedVisit: "A visit marked Completed in Caremonitor",

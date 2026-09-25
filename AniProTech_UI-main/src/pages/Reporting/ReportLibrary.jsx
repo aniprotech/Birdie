@@ -40,12 +40,12 @@ const groups = [
     ] },
 ];
 
-const pending = [
-    ["Clinical history", "Risk and Waterlow score changes need versioned assessment records before trends can be calculated."],
-    ["Quality score", "Birdie's Q-Score is proprietary. Caremonitor needs an approved scoring formula and auditable inputs."],
-    ["Provider Information Return", "Regulatory return questions need verified eligibility, time periods and a review workflow."],
-    ["Scheduled task completion", "The current visit activity records do not yet prove every expected task or medication dose."],
-    ["Branch and region", "A verified organisation hierarchy is needed before branch or regional comparisons can be offered."],
+const additional = [
+    ["clinical-review", "Clinical record activity", "Recorded observations and alerts by client"],
+    ["quality-indicators", "Quality indicators", "Separate visit, attendance and care-record measures"],
+    ["pir-evidence", "Provider return evidence", "An exportable evidence summary for human review"],
+    ["recorded-tasks", "Recorded task outcomes", "Completed and incomplete visit activities"],
+    ["team-groups", "Team group comparison", "Visits and staff by existing team group"],
 ];
 
 function measure(key, visits, alerts, graceMinutes) {
@@ -164,7 +164,7 @@ export default function ReportLibrary({ from, to, graceMinutes, reportId }) {
     if (!reportId) return <div className="space-y-6">
         <div className="rounded-xl border border-teal-100 bg-teal-50 p-5"><h2 className="text-xl font-semibold text-slate-900">Caremonitor report library</h2><p className="mt-1 text-sm text-slate-600">Care delivery and quality reports calculated from your organisation’s own records. Open a card for its charts, records and export. All figures use the date range above.</p></div>
         {groups.map((group) => <section key={group.title}><h3 className="text-lg font-semibold text-slate-900">{group.title}</h3><p className="mb-3 text-sm text-slate-500">{group.description}</p><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{group.reports.map(([key, title, description]) => <Link key={key} to={`/admin/reports/${key}?${new URLSearchParams({ from, to, graceMinutes: String(graceMinutes) })}`} className="rounded-xl border bg-white p-4 text-left transition-colors hover:border-teal-500 hover:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-700"><span className="text-sm font-semibold text-slate-900">{title}</span><span className="mt-2 block text-xs text-slate-500">{description}</span><span className="mt-3 block text-xs font-medium text-teal-800">Open report →</span></Link>)}</div></section>)}
-        <section className="rounded-xl border bg-slate-50 p-5"><h3 className="font-semibold text-slate-900">Reports needing additional source data or approved definitions</h3><div className="mt-3 grid gap-3 md:grid-cols-2">{pending.map(([title, reason]) => <div key={title} className="rounded-lg border bg-white p-3"><p className="text-sm font-semibold">{title}</p><p className="mt-1 text-xs text-slate-600">{reason}</p></div>)}</div></section>
+        <section className="rounded-xl border bg-slate-50 p-5"><h3 className="font-semibold text-slate-900">Additional Caremonitor reports</h3><p className="mt-1 text-sm text-slate-600">Each report opens its own data view. Definitions and source limits are shown with the results.</p><div className="mt-3 grid gap-3 md:grid-cols-2">{additional.map(([key, title, description]) => <Link key={key} to={`/admin/reports/${key}?${new URLSearchParams({ from, to, graceMinutes: String(graceMinutes) })}`} className="rounded-lg border bg-white p-4 transition-colors hover:border-teal-500 hover:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-700"><span className="text-sm font-semibold text-slate-900">{title}</span><span className="mt-1 block text-xs text-slate-600">{description}</span><span className="mt-3 block text-xs font-medium text-teal-800">Open report →</span></Link>)}</div></section>
     </div>;
     if (!report) return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-900">Report not found. <Link className="underline" to="/admin/reports">Return to all reports</Link>.</div>;
     return <div className="space-y-6">

@@ -1,6 +1,8 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Field, inputClass, londonToday, Page } from "../../components/Operations/common";
 import ReportLibrary from "./ReportLibrary";
+import AdditionalReport from "./AdditionalReport";
+import { additionalReportIds } from "./additionalReportIds";
 
 const validDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "");
 
@@ -24,6 +26,6 @@ export default function ReportDetail() {
             <Field label="To"><input className={inputClass} type="date" value={to} onChange={(event) => update("to", event.target.value)} /></Field>
             <Field label="Late grace (minutes)"><select className={inputClass} value={graceMinutes} onChange={(event) => update("graceMinutes", event.target.value)}>{[0, 5, 10, 15, 30, 60].map((value) => <option key={value} value={value}>{value}</option>)}</select></Field>
         </section>
-        <ReportLibrary reportId={reportId} from={from} to={to} graceMinutes={graceMinutes} />
+        {additionalReportIds.has(reportId) ? <AdditionalReport reportId={reportId} from={from} to={to} graceMinutes={graceMinutes} /> : <ReportLibrary reportId={reportId} from={from} to={to} graceMinutes={graceMinutes} />}
     </Page>;
 }

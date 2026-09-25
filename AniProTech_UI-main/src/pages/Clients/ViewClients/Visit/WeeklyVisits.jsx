@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Bell, CheckSquare, Clock, ChevronLeft, ChevronRight, Plus, Download, X } from "lucide-react";
 import { _get, _post, _put } from "../../../../utils/ApiService";
 import { useGlobalStore } from "../../../../stores/useGlobalStore";
@@ -181,7 +181,11 @@ function VisitEditor({ initial, staff, onSave, onClose }) {
 export default function WeeklyVisits({ calendar = false }) {
     const { id } = useParams(),
         { clientsPersonalDetailData: client } = useGlobalStore();
-    const [week, setWeek] = useState(() => monday(londonToday())),
+    const [searchParams] = useSearchParams();
+    const requestedDate = searchParams.get("date");
+    const requestedVisit = searchParams.get("visit");
+    const openedVisit = useRef(null);
+    const [week, setWeek] = useState(() => monday(/^\d{4}-\d{2}-\d{2}$/.test(requestedDate || "") ? requestedDate : londonToday())),
         [data, setData] = useState({ visits: [], plannedTasks: [], canManage: false }),
         [staffOptions, setStaffOptions] = useState([]),
         [loading, setLoading] = useState(true),
@@ -224,6 +228,15 @@ export default function WeeklyVisits({ calendar = false }) {
             });
         return () => c.abort();
     }, [id, week, version]);
+    useEffect(() => {
+        if (requestedVisit && openedVisit.current !== `${id}:${requestedVisit}`) {
+            const matching = data.visits.find((visit) => visit.id === requestedVisit);
+            if (matching) {
+                openedVisit.current = `${id}:${requestedVisit}`;
+                setSelected(matching);
+            }
+        }
+    }, [data.visits, id, requestedVisit]);
     useEffect(() => {
         const c = new AbortController();
         _get("/api/roster/options", { signal: c.signal })

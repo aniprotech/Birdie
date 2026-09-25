@@ -14,6 +14,15 @@
 
 The user selected both organisational/funder and individual billing contacts. The person who creates an invoice is a different concept from its recipient: ADMIN and SUPERADMIN manage records for their own organisation. Accounting now has an organisation-scoped VAT settings form, but registration details are not seeded to any tenant because this local checkout cannot prove which tenant owns them. An authorised admin must enter them in the correct organisation. The number has not been independently verified and VAT charging remains disabled until the applicable tax treatment and scheme are confirmed.
 
+## Business-owner billing and bank decisions
+
+- Each approved care business is the seller on its own invoices. Caremonitor is the software provider, not the seller of that business's care services.
+- An owner/admin may invoice only care clients and billing contacts attached to their own `agency_id`. An invoice recipient may be the client, a family billing contact or an organisation/funder, but it must belong to the same agency. No cross-organisation client directory or invoice permission is allowed.
+- The client care record and the financial recipient are separate. A visit can supply an approved non-clinical quantity and amount for billing, but the recipient, address and email come from a finance contact authorised for that agency. The invoice must not expose care notes or diagnoses.
+- Bank linking is optional after the organisation has been approved and its owner has signed in. The owner chooses the bank and authorises account/transaction access through a provider consent flow. A sort code entered on the public registration form cannot reveal an account holder, account balance or transactions. Do not request online banking credentials or bank data from an unapproved applicant.
+- A bank connection belongs to one agency and must never be re-used across businesses. Imported payments can only match invoices in that agency, and only after a verified transaction is received and an auditable allocation is committed. A sort code by itself cannot establish that an invoice has been paid.
+- An admin can keep the care client as the payer or set a default billing contact. Contact types include family, insurer, local authority, individual, organisation and other. A future invoice can override the default. Assigned contacts cannot be archived or turned into supplier-only contacts until a replacement payer is chosen.
+
 ## Domain and route plan
 
 1. **Sales:** introduce quote, invoice and immutable invoice-line snapshots linked to `node_accounting_contacts`, with tenant-local, concurrency-safe numbering. For care-visit charges, map approved visit finance lines into non-clinical billing descriptions only. Keep a strict review and approval state before sending, immutable issued totals, credit notes for corrections, secure PDF generation and revocable recipient links. Add explicit `POST /api/accounting/invoices` and state/line endpoints.
@@ -33,4 +42,4 @@ The user selected both organisational/funder and individual billing contacts. Th
 
 ## Current status
 
-Foundation contacts/catalogue, VAT registration settings and navigation are implemented locally. Quotes, accounting invoices, PDFs, email delivery, purchases, payments, bank transactions, reconciliation, ledger, VAT calculation, HMRC and production deployment are **not implemented or verified** by this change.
+Foundation contacts/catalogue, VAT registration settings and navigation were deployed in release `64b193f`. Contact payer types and per-client default payer selection are implemented in this release. Quotes, accounting invoices, PDFs, email delivery, purchases, payments, bank transactions, reconciliation, ledger, VAT calculation and HMRC are **not implemented or verified**. The business-owner billing and consent-based banking decisions above are design decisions, not deployed functionality.

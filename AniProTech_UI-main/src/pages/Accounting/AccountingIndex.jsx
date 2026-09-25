@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { _get, _post, _put } from "../../utils/ApiService";
 
-const emptyContact = { displayName: "", legalName: "", contactPerson: "", email: "", phone: "", billingAddress: "", companyNumber: "", vatNumber: "", role: "CUSTOMER", paymentTermsDays: 30 };
+const emptyContact = { displayName: "", legalName: "", contactPerson: "", email: "", phone: "", billingAddress: "", companyNumber: "", vatNumber: "", role: "CUSTOMER", payerType: "OTHER", paymentTermsDays: 30 };
 const emptyItem = { name: "", description: "", unit: "each", unitPricePence: 0 };
 const read = async (path) => (await _get(path)).data.results.data;
 const money = (pence) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format((pence || 0) / 100);
@@ -10,16 +10,18 @@ const money = (pence) => new Intl.NumberFormat("en-GB", { style: "currency", cur
 export default function AccountingIndex() {
   const [tab, setTab] = useState("overview"), [summary, setSummary] = useState(null);
   const [contacts, setContacts] = useState([]), [items, setItems] = useState([]);
+  const [clientPayers, setClientPayers] = useState([]), [payerDrafts, setPayerDrafts] = useState({});
   const [contact, setContact] = useState(emptyContact), [item, setItem] = useState(emptyItem);
   const [taxSettings, setTaxSettings] = useState(null), [taxForm, setTaxForm] = useState({ vatNumber: "", vatEffectiveDate: "" });
   const [priceInput, setPriceInput] = useState("0.00");
   const [editing, setEditing] = useState(null), [error, setError] = useState(""), [notice, setNotice] = useState(""), [busy, setBusy] = useState(false);
   const refresh = async () => {
-    const [s, c, i] = await Promise.all([read("/api/accounting/summary"), read("/api/accounting/contacts"), read("/api/accounting/items")]);
-    setSummary(s); setContacts(c); setItems(i);
+    const [s, c, i, p] = await Promise.all([read("/api/accounting/summary"), read("/api/accounting/contacts"), read("/api/accounting/items"), read("/api/accounting/client-payers")]);
+    setSummary(s); setContacts(c); setItems(i); setClientPayers(p);
+    setPayerDrafts(Object.fromEntries(p.map(row => [row.clientId,row.payerContactId || ""])));
   };
-  useEffect(() => { let live = true; Promise.all([read("/api/accounting/summary"), read("/api/accounting/contacts"), read("/api/accounting/items"), read("/api/accounting/tax-settings")])
-    .then(([s,c,i,t]) => { if (live) { setSummary(s); setContacts(c); setItems(i); if (t?.vatNumber) { setTaxSettings(t); setTaxForm({vatNumber:t.vatNumber,vatEffectiveDate:t.vatEffectiveDate}); } } })
+  useEffect(() => { let live = true; Promise.all([read("/api/accounting/summary"), read("/api/accounting/contacts"), read("/api/accounting/items"), read("/api/accounting/client-payers"), read("/api/accounting/tax-settings")])
+    .then(([s,c,i,p,t]) => { if (live) { setSummary(s); setContacts(c); setItems(i); setClientPayers(p); setPayerDrafts(Object.fromEntries(p.map(row => [row.clientId,row.payerContactId || ""]))); if (t?.vatNumber) { setTaxSettings(t); setTaxForm({vatNumber:t.vatNumber,vatEffectiveDate:t.vatEffectiveDate}); } } })
     .catch(e => { if (live) setError(e.response?.data?.message || "Accounting could not be loaded"); });
     return () => { live = false; }; }, []);
   const save = async (kind) => {
@@ -54,11 +56,17 @@ export default function AccountingIndex() {
     catch (e) { setError(e.response?.data?.message || "Unable to save VAT settings"); }
     finally { setBusy(false); }
   };
+  const savePayer = async (clientId) => {
+    setBusy(true); setError(""); setNotice("");
+    try { await _put(`/api/accounting/client-payers/${clientId}`,{payerContactId:payerDrafts[clientId] || null}); await refresh(); setNotice("Default payer saved for this client."); }
+    catch (e) { setError(e.response?.data?.message || "Unable to save default payer"); }
+    finally { setBusy(false); }
+  };
   return <main className="min-h-screen bg-[#f5faff] p-4 text-[#10233f] md:p-8">
     <div className="mx-auto max-w-7xl">
       <header className="mb-6"><h1 className="text-3xl font-bold">Accounting</h1><p className="mt-2 text-slate-600">Billing contacts and service prices for your organisation.</p></header>
       <nav aria-label="Accounting sections" className="mb-6 flex flex-wrap gap-2">
-        {[["overview","Overview"],["contacts","Contacts"],["catalogue","Products and services"],["tax","VAT settings"]].map(([key,label]) =>
+        {[["overview","Overview"],["contacts","Contacts"],["payers","Client payers"],["catalogue","Products and services"],["tax","VAT settings"]].map(([key,label]) =>
           <button key={key} type="button" aria-current={tab===key?"page":undefined} onClick={() => { setTab(key); setEditing(null); setContact(emptyContact); setItem(emptyItem); setPriceInput("0.00"); setError(""); }}
             className={`rounded-lg border px-4 py-2 font-semibold transition ${tab===key?"border-[#0b294a] bg-[#0b294a] text-white":"border-slate-300 bg-white text-[#0b294a] hover:bg-cyan-50"}`}>{label}</button>)}</nav>
       {error && <p role="alert" className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">{error}</p>}
@@ -66,14 +74,18 @@ export default function AccountingIndex() {
       {tab === "overview" && <><div className="grid gap-4 md:grid-cols-3">
         {[["Billing contacts",summary?.contacts],["Catalogue items",summary?.items],["Visit invoices",summary?.visitInvoices]].map(([label,value]) => <article key={label} className="rounded-xl border bg-white p-5 shadow-sm"><p className="text-slate-600">{label}</p><strong className="mt-2 block text-3xl">{value ?? "…"}</strong></article>)}
       </div><section className="mt-5 rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">Existing visit billing</h2><p className="mt-2 text-slate-600">{summary ? money(summary.visitInvoiceTotalPence) : "…"} in active visit invoice documents. This is issued document value, not money received.</p><Link className="mt-4 inline-block rounded-lg bg-[#0b294a] px-4 py-2 font-semibold text-white hover:bg-[#14517a]" to="/admin/finances">Open visit Finance</Link></section></>}
-      {tab === "contacts" && <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"><section className="rounded-xl border bg-white p-5"><h2 className="mb-4 text-xl font-semibold">Billing contacts</h2><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-slate-600"><th className="p-2">Name</th><th className="p-2">Role</th><th className="p-2">Email</th><th className="p-2">Actions</th></tr></thead><tbody>{contacts.map(c => <tr key={c.id} className="border-b"><td className="p-2 font-medium">{c.displayName}</td><td className="p-2">{c.role.toLowerCase()}</td><td className="p-2">{c.email || "—"}</td><td className="whitespace-nowrap p-2"><button onClick={() => startContact(c)} className="mr-3 text-blue-700 underline">Edit</button><button disabled={busy} onClick={() => archive("contacts",c.id)} className="text-red-700 underline">Archive</button></td></tr>)}</tbody></table>{contacts.length===0 && <p className="p-4 text-slate-600">No billing contacts yet.</p>}</div></section>
+      {tab === "contacts" && <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"><section className="rounded-xl border bg-white p-5"><h2 className="mb-4 text-xl font-semibold">Billing contacts</h2><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-slate-600"><th className="p-2">Name</th><th className="p-2">Type</th><th className="p-2">Email</th><th className="p-2">Actions</th></tr></thead><tbody>{contacts.map(c => <tr key={c.id} className="border-b"><td className="p-2 font-medium">{c.displayName}</td><td className="p-2">{c.payerType?.toLowerCase().replaceAll("_"," ") || c.role.toLowerCase()}</td><td className="p-2">{c.email || "—"}</td><td className="whitespace-nowrap p-2"><button onClick={() => startContact(c)} className="mr-3 text-blue-700 underline">Edit</button><button disabled={busy} onClick={() => archive("contacts",c.id)} className="text-red-700 underline">Archive</button></td></tr>)}</tbody></table>{contacts.length===0 && <p className="p-4 text-slate-600">No billing contacts yet.</p>}</div></section>
       <form onSubmit={e => { e.preventDefault(); save("contact"); }} className="self-start rounded-xl border bg-white p-5"><h2 className="mb-4 text-xl font-semibold">{editing?"Edit contact":"Add contact"}</h2>
         {[["displayName","Display name",true],["legalName","Legal name"],["contactPerson","Contact person"],["email","Email"],["phone","Phone"],["companyNumber","Company number"],["vatNumber","VAT number"]].map(([key,label,required]) => <label key={key} className="mb-3 block text-sm font-medium">{label}<input className="mt-1 w-full rounded border border-slate-300 p-2" type={key==="email"?"email":"text"} required={!!required} maxLength={160} value={contact[key]} onChange={e => setContact({...contact,[key]:e.target.value})}/></label>)}
         <label className="mb-3 block text-sm font-medium">Billing address<textarea className="mt-1 w-full rounded border border-slate-300 p-2" value={contact.billingAddress} onChange={e => setContact({...contact,billingAddress:e.target.value})}/></label>
         <label className="mb-3 block text-sm font-medium">Role<select className="mt-1 w-full rounded border border-slate-300 p-2" value={contact.role} onChange={e => setContact({...contact,role:e.target.value})}><option value="CUSTOMER">Customer</option><option value="SUPPLIER">Supplier</option><option value="BOTH">Both</option></select></label>
+        <label className="mb-3 block text-sm font-medium">Billing contact type<select className="mt-1 w-full rounded border border-slate-300 p-2" value={contact.payerType} onChange={e => setContact({...contact,payerType:e.target.value})}><option value="INDIVIDUAL">Individual client</option><option value="FAMILY">Family member</option><option value="INSURER">Insurer</option><option value="LOCAL_AUTHORITY">Local authority</option><option value="ORGANISATION">Other organisation</option><option value="OTHER">Other</option></select></label>
         <label className="mb-4 block text-sm font-medium">Payment terms (days)<input className="mt-1 w-full rounded border border-slate-300 p-2" type="number" min="0" max="365" value={contact.paymentTermsDays} onChange={e => setContact({...contact,paymentTermsDays:Number(e.target.value)})}/></label>
         <button disabled={busy} type="submit" className="rounded-lg bg-[#0b294a] px-4 py-2 font-semibold text-white hover:bg-[#14517a] disabled:opacity-50">{editing?"Save changes":"Add contact"}</button>{editing && <button type="button" onClick={() => {setEditing(null);setContact(emptyContact);}} className="ml-3 underline">Cancel</button>}
       </form></div>}
+      {tab === "payers" && <section className="rounded-xl border bg-white p-5"><h2 className="text-xl font-semibold">Default payer for each client</h2><p className="mt-2 mb-5 text-sm text-slate-600">Choose the care client or one of this organisation’s billing contacts. An invoice can use a different recipient when needed.</p>
+        {clientPayers.length===0 ? <p className="text-slate-600">No care clients are recorded for this organisation.</p> : <div className="space-y-3">{clientPayers.map(row => <div key={row.clientId} className="grid gap-3 rounded-lg border border-slate-200 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] md:items-end"><strong>{row.clientName}</strong><label className="text-sm font-medium">Payer<select className="mt-1 w-full rounded border border-slate-300 p-2" value={payerDrafts[row.clientId] || ""} onChange={e => setPayerDrafts({...payerDrafts,[row.clientId]:e.target.value})}><option value="">Client pays directly</option>{contacts.filter(c => c.role!=="SUPPLIER").map(c => <option key={c.id} value={c.id}>{c.displayName} ({c.payerType?.toLowerCase().replaceAll("_"," ") || "other"})</option>)}</select></label><button disabled={busy} onClick={() => savePayer(row.clientId)} className="rounded-lg bg-[#0b294a] px-4 py-2 font-semibold text-white hover:bg-[#14517a] disabled:opacity-50">Save</button></div>)}</div>}
+      </section>}
       {tab === "catalogue" && <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"><section className="rounded-xl border bg-white p-5"><h2 className="mb-4 text-xl font-semibold">Products and services</h2><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-slate-600"><th className="p-2">Name</th><th className="p-2">Unit</th><th className="p-2">Price</th><th className="p-2">Actions</th></tr></thead><tbody>{items.map(i => <tr key={i.id} className="border-b"><td className="p-2 font-medium">{i.name}</td><td className="p-2">{i.unit}</td><td className="p-2">{money(i.unitPricePence)}</td><td className="whitespace-nowrap p-2"><button onClick={() => startItem(i)} className="mr-3 text-blue-700 underline">Edit</button><button disabled={busy} onClick={() => archive("items",i.id)} className="text-red-700 underline">Archive</button></td></tr>)}</tbody></table>{items.length===0 && <p className="p-4 text-slate-600">No catalogue items yet.</p>}</div></section>
       <form onSubmit={e => { e.preventDefault(); save("item"); }} className="self-start rounded-xl border bg-white p-5"><h2 className="mb-4 text-xl font-semibold">{editing?"Edit item":"Add item"}</h2>
         <label className="mb-3 block text-sm font-medium">Name<input required maxLength="160" className="mt-1 w-full rounded border border-slate-300 p-2" value={item.name} onChange={e => setItem({...item,name:e.target.value})}/></label>

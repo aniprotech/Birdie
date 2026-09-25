@@ -38,6 +38,10 @@ test("reporting audits read agency data and restrict caregiver access", async ()
       VALUES($1,$2,'2026-09-25','MORNING','ADMINISTERED','Historical record',$3)`, [randomUUID(), medicationId, admin.id]);
     await db.query(`INSERT INTO node_medication_administrations(id,agency_id,client_event_id,visit_id,client_id,medication_id,actor_id,outcome,slot,occurred_at)
       VALUES($1,$2,$3,$4,$5,$6,$7,'REFUSED','EVENING','2026-09-25T18:00:00Z')`, [randomUUID(), agency, randomUUID(), visitId, client.id, medicationId, carer.id]);
+    await db.query(`INSERT INTO node_client_entries(id,agency_id,client_id,visit_id,kind,title,body,category,status,created_by,updated_by)
+      VALUES($1,$2,$3,$4,'OBSERVATION','Wellbeing','Observed','GENERAL','OPEN',$5,$5)`, [randomUUID(), agency, client.id, visitId, carer.id]);
+    await db.query(`INSERT INTO node_visit_attendance(id,visit_id,actor_id,event,within_radius,source)
+      VALUES($1,$2,$3,'CHECK_IN',true,'MOBILE')`, [randomUUID(), visitId, carer.id]);
     const path = "/api/reports/audits?from=2026-09-25&to=2026-09-25&graceMinutes=5";
     const response = await request(app).get(path).set(headers);
     assert.equal(response.status, 200, JSON.stringify(response.body));
@@ -49,5 +53,23 @@ test("reporting audits read agency data and restrict caregiver access", async ()
     assert.equal(data.medication.rows.length, 2);
     assert.deepEqual(new Set(data.medication.rows.map((row) => row.source)), new Set(["VISIT", "HISTORICAL"]));
     assert.equal((await request(app).get(path).set({ Authorization: `Bearer ${await token(carer)}` })).status, 403);
+    const libraryPath = "/api/reports/library?from=2026-09-25&to=2026-09-25";
+    const library = await request(app).get(libraryPath).set(headers);
+    assert.equal(library.status, 200, JSON.stringify(library.body));
+    assert.equal(library.body.results.data.visits.length, 1);
+    assert.equal(library.body.results.data.visits[0].observations, 1);
+    assert.equal(library.body.results.data.visits[0].verifiedEvents, 1);
+    assert.equal(library.body.results.data.visits[0].medicationExceptions, 1);
+    assert.equal((await request(app).get(libraryPath).set({ Authorization: `Bearer ${await token(carer)}` })).status, 403);
+    const otherAgency = randomUUID();
+    const superadmin = await repo.save("UserEntity", { agencyId: otherAgency, firstName: "Other", lastName: "Admin", email: "other-report-admin@example.test", role: "SUPERADMIN", isActive: true });
+    const otherClient = await repo.save("UserEntity", { agencyId: otherAgency, firstName: "Other", lastName: "Client", email: "other-report-client@example.test", role: "USER", isActive: true });
+    const otherCarer = await repo.save("UserEntity", { agencyId: otherAgency, firstName: "Other", lastName: "Carer", email: "other-report-carer@example.test", role: "CAREGIVER", isActive: true });
+    await db.query(`INSERT INTO node_roster_visits(id,agency_id,client_id,staff_id,visit_date,start_time,end_time,title,status,created_by,updated_by)
+      VALUES($1,$2,$3,$4,'2026-09-25','11:00','12:00','Other organisation visit','SCHEDULED',$5,$5)`, [randomUUID(), otherAgency, otherClient.id, otherCarer.id, superadmin.id]);
+    const isolated = await request(app).get(libraryPath).set({ Authorization: `Bearer ${await token(superadmin)}` });
+    assert.equal(isolated.status, 200, JSON.stringify(isolated.body));
+    assert.deepEqual(isolated.body.results.data.visits.map((visit) => visit.clientId), [otherClient.id]);
+    assert.deepEqual((await request(app).get(libraryPath).set(headers)).body.results.data.visits.map((visit) => visit.clientId), [client.id]);
   } finally { await db.close(); }
 });

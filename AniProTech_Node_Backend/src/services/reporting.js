@@ -1,8 +1,10 @@
 import { reply } from "../http.js";
 import { dateRange } from "./activity.js";
 import { registerReportingAudits } from "./reporting-audits.js";
+import { registerReportingLibrary } from "./reporting-library.js";
 export function registerReporting({ db, auth }, route) {
   registerReportingAudits({ db, auth }, route);
+  registerReportingLibrary({ db, auth }, route);
   const periodStats=async(agency,from,to)=>(await db.query(`SELECT count(*) FILTER(WHERE status<>'CANCELLED')::int visits,count(*) FILTER(WHERE status='COMPLETED')::int completed,COALESCE(sum(EXTRACT(EPOCH FROM(actual_end-actual_start))/60) FILTER(WHERE status='COMPLETED' AND actual_start IS NOT NULL AND actual_end IS NOT NULL),0)::int AS "actualMinutes" FROM node_roster_visits WHERE agency_id=$1 AND visit_date BETWEEN $2 AND $3`,[agency,from,to])).rows[0];
   route("GET", "/api/reports/summary", async (req, res) => {
     auth.admin(req);

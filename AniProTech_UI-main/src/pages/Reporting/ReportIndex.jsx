@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { _get } from "../../utils/ApiService";
 import { Page, Field, ErrorBox, inputClass, buttonClass, londonToday, money, downloadCsv } from "../../components/Operations/common";
 import ReportLibrary from "./ReportLibrary";
@@ -17,7 +17,8 @@ const previousPeriod = (from, to) => {
 };
 
 export default function ReportIndex() {
-    const [from, setFrom] = useState(() => londonToday().slice(0, 8) + "01"), [to, setTo] = useState(londonToday);
+    const [params] = useSearchParams();
+    const [from, setFrom] = useState(() => /^\d{4}-\d{2}-\d{2}$/.test(params.get("from") || "") ? params.get("from") : londonToday().slice(0, 8) + "01"), [to, setTo] = useState(() => /^\d{4}-\d{2}-\d{2}$/.test(params.get("to") || "") ? params.get("to") : londonToday());
     const [tab, setTab] = useState("library"), [data, setData] = useState(null), [comparison, setComparison] = useState(null), [reconciliation, setReconciliation] = useState(null), [audits, setAudits] = useState(null), [graceMinutes, setGraceMinutes] = useState(5);
     const [error, setError] = useState(""), [loading, setLoading] = useState(false), [search, setSearch] = useState("");
     const load = useCallback(async () => {

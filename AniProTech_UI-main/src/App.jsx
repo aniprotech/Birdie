@@ -5,6 +5,7 @@ import Layout from "./layout";
 import ClientIndex from "./pages/Clients/ClientIndex";
 import TeamIndex from "./pages/Teams/TeamIndex";
 import ReportIndex from "./pages/Reporting/ReportIndex";
+import ReportDetail from "./pages/Reporting/ReportDetail";
 import GovernanceIndex from "./pages/Governance/GovernanceIndex";
 import LogIndex from "./pages/Log/LogIndex";
 import RosterIndex from "./pages/Roster/RosterIndex";
@@ -680,6 +681,10 @@ const router = createBrowserRouter([
             {
                 path: "reports",
                 element: <ReportIndex />,
+            },
+            {
+                path: "reports/:reportId",
+                element: <ReportDetail />,
             },
             {
                 path: "governance",

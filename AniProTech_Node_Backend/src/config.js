@@ -43,6 +43,9 @@ export function configuration(overrides = {}) {
       "https://backend.aniprotech.com/api/auth/microsoft/callback",
     tinkClientId: process.env.TINK_CLIENT_ID,
     tinkClientSecret: process.env.TINK_CLIENT_SECRET,
+    tinkBankingEnabled: process.env.TINK_BANKING_ENABLED === "true",
+    tinkRedirectUri: process.env.TINK_REDIRECT_URI ||
+      "https://backend.aniprotech.com/api/accounting/banking/tink/callback",
     shareAccessUrl:
       process.env.SHARE_ACCESS_URL ||
       (production

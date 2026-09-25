@@ -32,6 +32,7 @@ import { registerActivity } from "./services/activity.js";
 import { registerFinanceReview } from './services/finance-review.js';
 import { registerFinance } from "./services/finance.js";
 import { registerAccounting } from "./services/accounting.js";
+import { registerTinkBanking, tinkCallback } from "./services/tink-banking.js";
 import { registerReporting } from "./services/reporting.js";
 import {createInboxNotifications} from './inbox-notifications.js';
 import {registerNotificationDelivery} from './services/notification-delivery.js';
@@ -64,6 +65,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
       },
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
     }),
   );
   app.use(express.json({ limit: "2mb" }));
@@ -198,6 +200,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
       return res.redirect(`${config.frontendUrl}/login?authError=microsoft_failed`);
     }
   });
+  app.get("/api/accounting/banking/tink/callback", authLimit, tinkCallback(ctx));
   app.get("/uploads/{*file}", files.download);
   app.use("/api/portal", createPortal(ctx));
   app.use("/api", auth.authenticate);
@@ -254,6 +257,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     registerCareLog,
     registerFinance,
     registerAccounting,
+    registerTinkBanking,
     registerFinanceReview,
     registerReporting,
     registerNotificationDelivery,

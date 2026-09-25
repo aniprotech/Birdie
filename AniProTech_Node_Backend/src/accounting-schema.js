@@ -58,4 +58,37 @@ export async function initializeAccounting(db) {
     updated_by uuid NOT NULL REFERENCES users(id),
     updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_tink_connection_attempts (
+    state_hash text PRIMARY KEY,
+    agency_id uuid NOT NULL,
+    started_by uuid NOT NULL REFERENCES users(id),
+    expires_at timestamptz NOT NULL,
+    completed_at timestamptz,
+    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_tink_accounts (
+    agency_id uuid NOT NULL,
+    provider_account_id text NOT NULL,
+    name text NOT NULL DEFAULT '',
+    currency text NOT NULL DEFAULT '',
+    account_type text NOT NULL DEFAULT '',
+    last_four text NOT NULL DEFAULT '',
+    connected_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (agency_id,provider_account_id)
+  )`);
+  await db.query(`CREATE TABLE IF NOT EXISTS node_tink_transactions (
+    agency_id uuid NOT NULL,
+    provider_transaction_id text NOT NULL,
+    provider_account_id text NOT NULL,
+    booked_at date,
+    description text NOT NULL DEFAULT '',
+    amount_pence bigint NOT NULL,
+    currency text NOT NULL,
+    imported_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (agency_id,provider_transaction_id),
+    FOREIGN KEY (agency_id,provider_account_id) REFERENCES node_tink_accounts(agency_id,provider_account_id)
+  )`);
+  await db.query(`CREATE INDEX IF NOT EXISTS node_tink_transactions_account_date
+    ON node_tink_transactions(agency_id,provider_account_id,booked_at DESC)`);
 }

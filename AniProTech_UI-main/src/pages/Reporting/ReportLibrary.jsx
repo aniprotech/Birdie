@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { _get } from "../../utils/ApiService";
 import { buttonClass, downloadCsv, inputClass } from "../../components/Operations/common";
+import { ReportBars, ReportDonut } from "./ReportCharts";
 
 const unwrap = (response) => response.data.results.data;
 const ratio = (a, b) => b ? Math.round(100 * a / b) : 0;
@@ -84,9 +85,27 @@ function measure(key, visits, alerts, graceMinutes) {
     }
 }
 
-function Chart({ data }) {
-    const max = Math.max(1, ...data.map((row) => Number(row.value) || 0));
-    return <div className="space-y-3">{data.map((row) => <div key={row.label} className="grid grid-cols-[8rem_1fr_4rem] items-center gap-3 text-sm"><span className="truncate text-slate-600" title={row.label}>{row.label}</span><div className="h-5 rounded bg-slate-100"><div className="h-5 rounded bg-teal-600" style={{ width: `${Math.max(0, Number(row.value) || 0) / max * 100}%` }} /></div><strong className="text-right text-slate-900">{row.value}</strong></div>)}{!data.length && <p className="text-sm text-slate-500">No records in this period.</p>}</div>;
+function distribution(key, visits, alerts, graceMinutes) {
+    const completed = visits.filter((visit) => visit.status === "COMPLETED");
+    if (["alerts", "openAlerts"].includes(key)) return [{ label: "Open", value: alerts.filter((alert) => alert.status === "OPEN").length }, { label: "Other status", value: alerts.filter((alert) => alert.status !== "OPEN").length }];
+    if (key === "secure") return [{ label: "Inside radius", value: sum(visits, "verifiedEvents") }, { label: "Outside radius", value: sum(visits, "outsideEvents") }, { label: "Location unknown", value: sum(visits, "unverifiedEvents") }];
+    if (["medication", "medicationExceptions"].includes(key)) return [{ label: "Administered", value: sum(visits, "administered") }, { label: "Other outcome", value: sum(visits, "medicationExceptions") }];
+    if (key === "activities") return [{ label: "Marked complete", value: sum(visits, "completedActivities") }, { label: "Other status", value: sum(visits, "activities") - sum(visits, "completedActivities") }];
+    if (key === "punctual") return [{ label: "On time", value: completed.filter((visit) => visit.actualStart && new Date(visit.actualStart) - new Date(visit.scheduledStart) <= graceMinutes * 60000).length }, { label: "Late", value: completed.filter((visit) => visit.actualStart && new Date(visit.actualStart) - new Date(visit.scheduledStart) > graceMinutes * 60000).length }, { label: "No check-in", value: completed.filter((visit) => !visit.actualStart).length }];
+    if (key === "fulfilled") return [{ label: "At least 75% of plan", value: completed.filter((visit) => visit.actualMinutes !== null && visit.plannedMinutes > 0 && visit.actualMinutes >= visit.plannedMinutes * 0.75).length }, { label: "Below 75%", value: completed.filter((visit) => visit.actualMinutes !== null && visit.plannedMinutes > 0 && visit.actualMinutes < visit.plannedMinutes * 0.75).length }, { label: "Duration missing", value: completed.filter((visit) => visit.actualMinutes === null).length }];
+    if (key === "longer") return [{ label: "45+ minutes planned", value: visits.filter((visit) => visit.plannedMinutes >= 45).length }, { label: "Shorter planned", value: visits.filter((visit) => visit.plannedMinutes < 45).length }];
+    if (key === "observations") return [{ label: "With observation", value: completed.filter((visit) => visit.observations > 0).length }, { label: "No observation", value: completed.filter((visit) => !visit.observations).length }];
+    if (key === "notes") return [{ label: "With note", value: completed.filter((visit) => visit.notes > 0).length }, { label: "No note", value: completed.filter((visit) => !visit.notes).length }];
+    if (key === "hours") return [{ label: "Duration recorded", value: completed.filter((visit) => visit.actualMinutes !== null).length }, { label: "Duration missing", value: completed.filter((visit) => visit.actualMinutes === null).length }];
+    if (key === "consistent") {
+        const carers = new Map();
+        for (const visit of completed) {
+            if (!carers.has(visit.clientId)) carers.set(visit.clientId, new Set());
+            if (visit.staffId) carers.get(visit.clientId).add(visit.staffId);
+        }
+        return [{ label: "1–6 carers", value: [...carers.values()].filter((staff) => staff.size > 0 && staff.size <= 6).length }, { label: "7+ carers", value: [...carers.values()].filter((staff) => staff.size > 6).length }, { label: "No assigned carer", value: [...carers.values()].filter((staff) => !staff.size).length }];
+    }
+    return [{ label: "Completed", value: completed.length }, { label: "In progress", value: visits.filter((visit) => visit.status === "IN_PROGRESS").length }, { label: "Scheduled", value: visits.filter((visit) => visit.status === "SCHEDULED").length }, { label: "Draft", value: visits.filter((visit) => visit.status === "DRAFT").length }];
 }
 
 export default function ReportLibrary({ from, to, graceMinutes, reportId }) {
@@ -121,6 +140,7 @@ export default function ReportLibrary({ from, to, graceMinutes, reportId }) {
     }), [visits, selected]);
     const detailAlerts = selected === "openAlerts" ? alerts.filter((a) => a.status === "OPEN") : alerts;
     const current = measure(selected, visits, alerts, graceMinutes);
+    const segments = distribution(selected, visits, alerts, graceMinutes);
     const weekly = useMemo(() => {
         const buckets = new Map();
         for (const visit of visits) {
@@ -172,7 +192,8 @@ export default function ReportLibrary({ from, to, graceMinutes, reportId }) {
             {error && <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-800">{error}</p>}{loading && <p className="text-sm text-slate-600">Loading report…</p>}
             {data && !loading && !error && <><div className="flex flex-wrap items-center gap-4"><div className="min-w-52 rounded-xl bg-slate-50 p-4"><p className="text-3xl font-semibold text-slate-900">{current.value}<span className="ml-2 text-sm font-normal text-slate-500">{current.unit}</span></p><p className="mt-1 text-xs text-slate-600">{current.detail}</p></div><label className="text-sm text-slate-700">Find client or carer<input className={`${inputClass} mt-1`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search this report" /></label></div>
                 {data.truncated && <p className="rounded bg-amber-50 p-3 text-sm text-amber-900">More than 10,000 source records match this period. Figures are incomplete; choose a shorter date range before using or exporting this report.</p>}
-                <div className="grid gap-5 lg:grid-cols-2"><div className="rounded-xl border p-4"><h4 className="mb-4 font-semibold">By week</h4><Chart data={weekly} /></div><div className="rounded-xl border p-4"><h4 className="mb-4 font-semibold">{selected === "carers" ? "By carer" : "By client"}</h4><Chart data={breakdown.map((item) => ({ label: item.label, value: item.result.value }))} /></div></div>
+                <div className="grid gap-5 lg:grid-cols-2"><ReportDonut title="Recorded breakdown" rows={segments} /><ReportBars title="By week" rows={weekly.slice(-12)} note="Most recent 12 weeks in the selected range" /></div>
+                <ReportBars title={selected === "carers" ? "By carer" : "By client"} rows={breakdown.map((item) => ({ label: item.label, value: item.result.value }))} note="Top 12 records by the selected measure" />
                 {isAlertReport ? <div className="overflow-x-auto rounded-xl border"><table className="w-full text-left text-sm"><thead className="bg-slate-50"><tr>{["Raised", "Client", "Alert", "Category", "Status", "Record"].map((header) => <th key={header} className="p-3">{header}</th>)}</tr></thead><tbody>{detailAlerts.slice(0, 250).map((a) => <tr key={a.id} className="border-t"><td className="p-3">{new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", dateStyle: "medium", timeStyle: "short" }).format(new Date(a.createdAt))}</td><td className="p-3">{a.clientName}</td><td className="p-3">{a.title}</td><td className="p-3">{a.category || "—"}</td><td className="p-3">{a.status}</td><td className="p-3"><Link className="font-medium text-teal-700 underline" to="/admin/inbox">Open</Link></td></tr>)}</tbody></table>{!detailAlerts.length && <p className="p-4 text-sm text-slate-500">No alerts match this period and search.</p>}{detailAlerts.length > 250 && <p className="border-t p-3 text-xs text-slate-500">Showing the first 250 alerts. Export for the full detail.</p>}</div> : <div className="overflow-x-auto rounded-xl border"><table className="w-full text-left text-sm"><thead className="bg-slate-50"><tr>{["Date", "Client", "Carer", "Visit", "Status", "Planned", "Actual", "Activities", "Observations", "Notes", "eMAR", "Record"].map((header) => <th key={header} className="whitespace-nowrap p-3">{header}</th>)}</tr></thead><tbody>{detailVisits.slice(0, 250).map((v) => <tr key={v.id} className="border-t"><td className="p-3">{v.date}</td><td className="p-3">{v.clientName}</td><td className="p-3">{v.staffName || "Unassigned"}</td><td className="p-3">{v.title}</td><td className="p-3">{v.status.replaceAll("_", " ")}</td><td className="p-3">{v.plannedMinutes}m</td><td className="p-3">{v.actualMinutes === null ? "—" : `${v.actualMinutes}m`}</td><td className="p-3">{v.completedActivities}</td><td className="p-3">{v.observations}</td><td className="p-3">{v.notes}</td><td className="p-3">{v.administrations}</td><td className="p-3"><Link className="font-medium text-teal-700 underline" to={`/admin/clients/${v.clientId}/visits?date=${v.date}&visit=${v.id}`}>Open</Link></td></tr>)}</tbody></table>{!detailVisits.length && <p className="p-4 text-sm text-slate-500">No visits match this report and search.</p>}{detailVisits.length > 250 && <p className="border-t p-3 text-xs text-slate-500">Showing the first 250 visits. Export the full selected period for detail.</p>}</div>}
                 <p className="text-xs text-slate-500">Definitions: {Object.values(data.definitions).join(" · ")}</p></>}
         </section>

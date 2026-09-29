@@ -3,12 +3,20 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
-const DateField = ({ name, label, value, onChange, onBlur, style, error,minDate, required, access, disable }) => {
+const parseSelectedDate = (value) => {
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+};
+
+const DateField = ({ name, label, value, onChange, onBlur, style, error, minDate, min, required, disable }) => {
     const handleDateChange = (date) => {
-        if (date) {
-            const formattedDate = date.toISOString().split("T")[0]; // yyyy-MM-dd
-            onChange({ target: { name, value: formattedDate } });
-        }
+        const formattedDate = date
+            ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+            : "";
+        onChange({ target: { name, value: formattedDate } });
     };
 
     return (
@@ -23,11 +31,16 @@ const DateField = ({ name, label, value, onChange, onBlur, style, error,minDate,
 
             <div className={`relative ${style === "mt" || style === "width" ? "mt-2" : ""}`}>
                 <DatePicker
-                    selected={value}
+                    selected={parseSelectedDate(value)}
                     onChange={handleDateChange}
                     onBlur={onBlur}
+                    onChangeRaw={(event) => event?.preventDefault()}
                     dateFormat="dd-MM-yyyy"
-                    minDate={minDate ? new Date(minDate) : undefined}
+                    minDate={parseSelectedDate(minDate || min) || undefined}
+                    showMonthDropdown
+                    showYearDropdown
+                    scrollableYearDropdown
+                    yearDropdownItemNumber={110}
                     disabled={disable}
                     className={` ${style === "width" ? "w-full" : "min-w-[160px] md:min-w-[180px]"} disabled:cursor-text cursor-pointer rounded border p-3 pr-10 text-sm ${error ? "border-red-500" : "border-gray-300"} focus:outline-none focus:ring-1`}
                     placeholderText="dd-mm-yyyy"

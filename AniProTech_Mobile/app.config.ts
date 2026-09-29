@@ -17,13 +17,21 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: "aniprotech-mobile",
     plugins: [
       "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      ["expo-local-authentication", { faceIDPermission: "Allow Caremonitor to use Face ID to unlock care information on this device." }],
+      ["expo-notifications", { color: "#00AEEB" }],
+      ["expo-camera", { cameraPermission: "Allow Caremonitor to scan a client's check-in QR code.", recordAudioAndroid: false, barcodeScannerEnabled: true }],
       ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 320, resizeMode: "contain", backgroundColor: "#071A33" }],
       ["expo-image-picker", { "photosPermission": "Allow Caremonitor to attach care evidence to an assigned visit.", "cameraPermission": "Allow Caremonitor to take a photo for an assigned visit." }],
       ["expo-location", { "locationWhenInUsePermission": "Allow Caremonitor to verify check-in, check-out, photo evidence and location while an assigned visit is active." }],
       ["expo-speech-recognition", { microphonePermission: "Allow Caremonitor to convert caregiver speech into editable visit text.", speechRecognitionPermission: "Allow Caremonitor to convert caregiver speech into editable visit text.", androidSpeechServicePackages: ["com.google.android.googlequicksearchbox"] }],
       [
         "expo-build-properties",
-        { android: { usesCleartextTraffic: !production && local } },
+        { android: {
+          usesCleartextTraffic: !production && local,
+          enableMinifyInReleaseBuilds: production,
+          enableShrinkResourcesInReleaseBuilds: production,
+        } },
       ],
     ],
     ios: {

@@ -258,6 +258,13 @@ export default function LiveClientFeed({ team = false, visitRecord = null, onVis
     const feedBase = team ? `/api/team/${routeId}/activity-feed` : `/api/clients/${routeId}/feed`;
     const [moreFilters, setMoreFilters] = useState(false);
     useEffect(() => {
+        if (visitRecord) return;
+        const update = () => { if (document.visibilityState === "visible") setRefresh((value) => value + 1); };
+        const timer = window.setInterval(update, 30000);
+        document.addEventListener("visibilitychange", update);
+        return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", update); };
+    }, [visitRecord]);
+    useEffect(() => {
         if (visitRecord) { setSelected({...visitRecord, kind: "VISIT"}); setTab("Details"); return; }
         pendingVisit.current = requestedVisit;
         setSelected(null);
@@ -465,6 +472,7 @@ export default function LiveClientFeed({ team = false, visitRecord = null, onVis
                         ["ALERT", "Alerts"],
                         ["VISIT", "Visits"],
                         ["NOTE", "Notes"],
+                        ...(!team ? [["OBSERVATION", "Observations"]] : []),
                         ["ACTION", "Actions"],
                     ].map(([key, name]) => (
                         <button

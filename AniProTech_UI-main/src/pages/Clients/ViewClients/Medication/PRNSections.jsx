@@ -5,6 +5,7 @@ import StatusToggleButtonGroup from "../../../../components/TextInput/StatusTogg
 import SearchableDropdown from "../../../../components/DropdownInput/SearchableDropdown";
 import { useState } from "react";
 import InnerLoader from "../../../../components/Loader/InnerLoader";
+import MedicationBodyMapEditor from "./MedicationBodyMapEditor";
 
 const PRNSections = ({ values, setFieldValue, unlockedSections, openSection, setOpenSection, moveToNextSection, isSubmitting, isEditMode }) => {
     const handleSectionToggle = (sectionName) => {
@@ -716,53 +717,7 @@ const PRNSections = ({ values, setFieldValue, unlockedSections, openSection, set
             )}
 
             {/* Body Map Modal */}
-            {values.showBodyMapModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h3 className="poppins-medium text-lg text-customBlack">Create Body Map</h3>
-                            <button
-                                type="button"
-                                onClick={() => setFieldValue("showBodyMapModal", false)}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="py-8 text-center">
-                            <p className="text-customGrey1">Body map functionality will be implemented here.</p>
-                        </div>
-                        <div className="flex justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setFieldValue("showBodyMapModal", false)}
-                                className="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFieldValue("showBodyMapModal", false)}
-                                className="rounded bg-customDropdownBorder px-4 py-2 text-sm text-white"
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {values.showBodyMapModal && <MedicationBodyMapEditor value={values.bodyMapData || ""} onChange={(value) => setFieldValue("bodyMapData", value)} onClose={() => setFieldValue("showBodyMapModal", false)} />}
         </>
     );
 };

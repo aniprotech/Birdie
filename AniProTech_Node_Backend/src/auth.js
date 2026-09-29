@@ -56,11 +56,20 @@ export function createAuth({ db, repo, config, mail }) {
   async function requestLink(email, { mobile = false } = {}) {
     const login = await createLoginLink(email, { mobile });
     if (!login) return;
+    // Email clients often block custom-scheme links. Use an HTTPS handoff
+    // page so the user can explicitly open the installed mobile app.
+    const emailLink = mobile
+      ? new URL("/mobile-sign-in.html", config.frontendUrl)
+      : login.link;
+    if (mobile)
+      emailLink.hash = new URLSearchParams({
+        token: login.link.searchParams.get("token"),
+      }).toString();
     await mail.send({
       to: login.user.email,
       subject: "Your secure sign-in link",
-      text: `Use this one-time link within 15 minutes. For your security, the link can only be used once.\n${login.link}`,
-      actionUrl: login.link.toString(),
+      text: `Use this one-time link within 15 minutes. For your security, the link can only be used once.\n${mobile ? "Open the page and tap Open Caremonitor to continue in the mobile app.\n" : ""}${emailLink}`,
+      actionUrl: emailLink.toString(),
       actionLabel: "Sign in to Caremonitor",
     });
   }

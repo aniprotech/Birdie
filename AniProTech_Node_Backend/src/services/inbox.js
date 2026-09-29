@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { reply, fail } from "../http.js";
 const bodySchema = z.string().trim().min(1).max(6000);
-export function registerInbox(ctx, route) { const {db,repo}=ctx; registerInboxAlerts(ctx,route);
+export function registerInbox(ctx, route) { const {db,repo,push}=ctx; registerInboxAlerts(ctx,route);
   async function member(req, id) {
     const row = (
       await db.query(
@@ -95,6 +95,7 @@ export function registerInbox(ctx, route) { const {db,repo}=ctx; registerInboxAl
       "INSERT INTO node_messages(id,thread_id,sender_id,body) VALUES($1,$2,$3,$4)",
       [randomUUID(), id, req.user.id, body],
     );
+    req.afterCommit.push(()=>push.sendToUsers(req.user.agencyId,ids.filter((userId)=>userId!==req.user.id),"You have a new team message. Open Caremonitor to read it."));
     return reply(res, { id, subject }, "Conversation created", 201);
   });
   route("GET", "/api/inbox/threads/:id/messages", async (req, res) => {
@@ -133,6 +134,10 @@ export function registerInbox(ctx, route) { const {db,repo}=ctx; registerInboxAl
       "UPDATE node_thread_members SET archived=false WHERE thread_id=$1",
       [req.params.id],
     );
+    req.afterCommit.push(async()=>{
+      const recipients=(await db.query("SELECT user_id FROM node_thread_members WHERE thread_id=$1 AND user_id<>$2",[req.params.id,req.user.id])).rows.map((row)=>row.user_id);
+      await push.sendToUsers(req.user.agencyId,recipients,"You have a new team message. Open Caremonitor to read it.");
+    });
     return reply(res, {}, "Message sent", 201);
   });
   route("POST", "/api/inbox/threads/:id/read", async (req, res) => {

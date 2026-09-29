@@ -439,10 +439,16 @@ test("Operations modules", async (t) => {
         );
       },
     );
-    await t.test('Mobile links use a fixed app scheme and remain single use',async()=>{
+    await t.test('Mobile email uses the HTTPS app handoff and links remain single use',async()=>{
       await call('post','/api/auth/request-link',{email:admin.email,client:'mobile'});
-      const link=sent.at(-1).text.match(/aniprotech:[^\s]+/)[0];
-      const [email,password]=Buffer.from(new URL(link).searchParams.get('token'),'base64url').toString().split(':');
+      const message=sent.at(-1),handoff=new URL(message.actionUrl);
+      assert.equal(handoff.pathname,'/mobile-sign-in.html');
+      assert.equal(handoff.origin,new URL(app.locals.ctx.config.frontendUrl).origin);
+      assert.ok(message.text.includes(message.actionUrl));
+      assert.ok(!message.text.includes('aniprotech://'));
+      assert.equal(handoff.search,'');
+      const token=new URLSearchParams(handoff.hash.slice(1)).get('token');
+      const [email,password]=Buffer.from(token,'base64url').toString().split(':');
       assert.equal((await call('post','/api/auth/get-token',{email,password})).status,200);
       assert.equal((await call('post','/api/auth/get-token',{email,password})).status,401);
       assert.equal((await call('post','/api/auth/request-link',{email:admin.email,client:'https://untrusted.example'})).status,400);

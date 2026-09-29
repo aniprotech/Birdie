@@ -56,15 +56,13 @@ export function createAuth({ db, repo, config, mail }) {
   async function requestLink(email, { mobile = false } = {}) {
     const login = await createLoginLink(email, { mobile });
     if (!login) return;
-    // Email clients often block custom-scheme links. Use an HTTPS handoff
-    // page so the user can explicitly open the installed mobile app.
+    // Email clients commonly refuse custom-scheme anchors. Send a regular
+    // HTTPS page that requires a user tap before handing the link to the app.
+    // The fragment is not transmitted to the web server on page load.
     const emailLink = mobile
       ? new URL("/mobile-sign-in.html", config.frontendUrl)
       : login.link;
-    if (mobile)
-      emailLink.hash = new URLSearchParams({
-        token: login.link.searchParams.get("token"),
-      }).toString();
+    if (mobile) emailLink.hash = new URLSearchParams({ token: login.link.searchParams.get("token") }).toString();
     await mail.send({
       to: login.user.email,
       subject: "Your secure sign-in link",
@@ -187,14 +185,18 @@ export function createAuth({ db, repo, config, mail }) {
         carer: req.user.id,
         client: id,
       });
-      if (
-        !assignment ||
-        assignment.deletedAt ||
-        !assignment.viewAccess ||
-        assignment.revokeViewaccess ||
-        assignment.declineCarer
-      )
-        fail(403, "Client is not assigned to this carer");
+      const careTeamAccess = assignment && !assignment.deletedAt && assignment.viewAccess &&
+        !assignment.revokeViewaccess && !assignment.declineCarer;
+      const explicitlyRevoked = assignment && !assignment.deletedAt &&
+        (!assignment.viewAccess || assignment.revokeViewaccess || assignment.declineCarer);
+      const rosterAccess = !careTeamAccess && !explicitlyRevoked && (await db.query(
+        `SELECT id FROM node_roster_visits WHERE agency_id=$1 AND client_id=$2 AND staff_id=$3
+         AND status IN ('SCHEDULED','IN_PROGRESS','COMPLETED')
+         AND visit_date BETWEEN ((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/London')::date-30)
+           AND ((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/London')::date+6) LIMIT 1`,
+        [req.user.agencyId, id, req.user.id],
+      )).rows.length > 0;
+      if (!careTeamAccess && !rosterAccess) fail(403, "Client is not assigned to this carer");
     }
     return user;
   }

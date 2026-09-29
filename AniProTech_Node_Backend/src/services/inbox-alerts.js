@@ -82,15 +82,21 @@ export function registerInboxAlerts({ db, repo, auth, notifications }, route) {
   });
   async function scope(req) {
     if (req.user.role !== "CAREGIVER") return { sql: "", ids: [] };
-    const links = (
-      await repo.find("ClientCareTeamEntity", { carer: req.user.id })
-    ).filter(
-      (l) =>
-        !l.deletedAt && l.viewAccess && !l.revokeViewaccess && !l.declineCarer,
-    );
+    const links = await repo.find("ClientCareTeamEntity", { carer: req.user.id });
+    const ids = new Set(links.filter((l) => !l.deletedAt && l.viewAccess &&
+      !l.revokeViewaccess && !l.declineCarer).map((l) => l.client));
+    const revoked = new Set(links.filter((l) => !l.deletedAt &&
+      (!l.viewAccess || l.revokeViewaccess || l.declineCarer)).map((l) => l.client));
+    const assigned = (await db.query(
+      `SELECT DISTINCT client_id FROM node_roster_visits WHERE agency_id=$1 AND staff_id=$2
+       AND status IN ('SCHEDULED','IN_PROGRESS','COMPLETED')
+       AND visit_date BETWEEN CURRENT_DATE-30 AND CURRENT_DATE+90`,
+      [req.user.agencyId, req.user.id],
+    )).rows;
+    for (const row of assigned) if (!revoked.has(row.client_id)) ids.add(row.client_id);
     return {
       sql: " AND e.client_id=ANY($3::uuid[]) AND (m.assigned_to=$2 OR e.created_by=$2) AND (e.visit_id IS NULL OR v.staff_id=$2)",
-      ids: links.map((l) => l.client),
+      ids: [...ids],
     };
   }
   async function queryScope(req) {

@@ -76,7 +76,7 @@ export function registerClientFeed({ db, repo, auth }, route) {
       page = Number(req.query.page || 1),
       search = String(req.query.search || "").trim();
     if (
-      !["ALL", "VISIT", "NOTE", "ALERT", "ACTION"].includes(kind) ||
+      !["ALL", "VISIT", "NOTE", "OBSERVATION", "ALERT", "ACTION"].includes(kind) ||
       !Number.isInteger(page) ||
       page < 1 ||
       search.length > 200
@@ -98,7 +98,7 @@ export function registerClientFeed({ db, repo, auth }, route) {
       to,
       "%" + search + "%",
     ];
-    const union = `SELECT v.id,'VISIT' AS kind,v.title,v.notes AS body,v.status,
+    const union = `SELECT v.id,'VISIT' AS kind,v.title,v.notes AS body,v.status,NULL::text AS category,
       (v.visit_date+v.start_time) AT TIME ZONE 'Europe/London' AS occurred_at,
       v.visit_date::text AS date,to_char(v.start_time,'HH24:MI') AS "startTime",to_char(v.end_time,'HH24:MI') AS "endTime",
       (extract(epoch from (v.end_time-v.start_time))/60)::int AS "plannedMinutes",
@@ -108,8 +108,8 @@ export function registerClientFeed({ db, repo, auth }, route) {
       (SELECT count(*)::int FROM node_client_entries e WHERE e.visit_id=v.id AND e.kind='ACTIVITY' AND e.status='COMPLETED') AS activities
       FROM node_roster_visits v WHERE v.client_id=$1 AND v.agency_id=$2 AND ($3::uuid IS NULL OR v.staff_id=$3)
       AND ($4::date IS NULL OR v.visit_date>=$4) AND ($5::date IS NULL OR v.visit_date<=$5) AND (v.title ILIKE $6 OR v.notes ILIKE $6)
-      UNION ALL SELECT e.id,e.kind,e.title,e.body,e.status,e.created_at,NULL,NULL,NULL,NULL,NULL,0,0,0
-      FROM node_client_entries e WHERE e.client_id=$1 AND e.agency_id=$2 AND e.kind IN ('NOTE','ALERT','ACTION')
+      UNION ALL SELECT e.id,e.kind,e.title,e.body,e.status,e.category,e.created_at,NULL,NULL,NULL,NULL,NULL,0,0,0
+      FROM node_client_entries e WHERE e.client_id=$1 AND e.agency_id=$2 AND e.kind IN ('NOTE','OBSERVATION','ALERT','ACTION')
       AND ($3::uuid IS NULL OR e.visit_id IS NULL OR EXISTS(SELECT 1 FROM node_roster_visits v WHERE v.id=e.visit_id AND v.staff_id=$3))
       AND ($4::date IS NULL OR (e.created_at AT TIME ZONE 'Europe/London')::date>=$4)
       AND ($5::date IS NULL OR (e.created_at AT TIME ZONE 'Europe/London')::date<=$5) AND (e.title ILIKE $6 OR e.body ILIKE $6)`;

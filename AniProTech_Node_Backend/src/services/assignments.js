@@ -1,6 +1,6 @@
 import { reply, fail, requireValue, uuid, pagination } from "../http.js";
 export function registerAssignments(ctx, route) {
-  const { repo, db, auth } = ctx,
+  const { repo, db, auth, mail, config } = ctx,
     name = "ClientCareTeamEntity";
   const flags = [
     "viewAccess",
@@ -104,6 +104,7 @@ export function registerAssignments(ctx, route) {
         fail(400, "Invalid assignment owner");
       await db.query("SELECT id FROM users WHERE id=$1 FOR UPDATE", [client]);
       old = old || (await repo.one(name, { client, carer }));
+      const previouslyGranted = !!(old && !old.deletedAt && old.viewAccess && !old.revokeViewaccess && !old.declineCarer);
       const data = {
         id: old?.id,
         client,
@@ -114,6 +115,23 @@ export function registerAssignments(ctx, route) {
       for (const key of flags)
         if (body[key] !== undefined) data[key] = body[key];
       const saved = await repo.save(name, data);
+      const nowGranted = !!(saved.viewAccess && !saved.revokeViewaccess && !saved.declineCarer && !saved.deletedAt);
+      const caregiver = reverse ? owner : other;
+      if (!previouslyGranted && nowGranted && caregiver.role === "CAREGIVER" && caregiver.isActive && caregiver.email) {
+        req.afterCommit.push(async () => {
+          const login = await auth.createLoginLink(caregiver.email);
+          if (!login) return;
+          const mobileUrl = new URL("/mobile-sign-in.html", config.frontendUrl);
+          mobileUrl.hash = new URLSearchParams({ token: login.link.searchParams.get("token") }).toString();
+          await mail.send({
+            to: caregiver.email,
+            subject: "New client access in Caremonitor",
+            text: `Hello ${caregiver.firstName},\n\nYour organisation has granted you access to a client care record. No client details are included in this email.\n\nOn your phone, open ${mobileUrl}\nOn a computer, open ${login.link}\n\nThese links are one-time and expire in 15 minutes. You can request a fresh link in the app or on the login page.`,
+            actionUrl: mobileUrl.toString(),
+            actionLabel: "Open Caremonitor on your phone",
+          });
+        });
+      }
       return output(saved, other);
     }
     route("PUT", prefix + "/update/:" + parentKey, async (req, res) =>

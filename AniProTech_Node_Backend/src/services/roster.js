@@ -63,11 +63,14 @@ const select = `SELECT v.id,v.client_id AS "clientId",v.staff_id AS "staffId",v.
   to_char(v.start_time,'HH24:MI') AS "startTime",to_char(v.end_time,'HH24:MI') AS "endTime",
   v.title,v.notes,v.status,v.revision,v.call_group_id AS "callGroupId",v.required_staff AS "requiredStaff",
   v.slot_index AS "slotIndex",v.open_shift AS "openShift",c.first_name || ' ' || c.last_name AS "clientName",
-  s.first_name || ' ' || s.last_name AS "staffName" FROM node_roster_visits v
-  JOIN users c ON c.id=v.client_id LEFT JOIN users s ON s.id=v.staff_id`;
+  s.first_name || ' ' || s.last_name AS "staffName",
+  concat_ws(', ',a.address_line1,a.city,a.postal_code) AS "clientAddress" FROM node_roster_visits v
+  JOIN users c ON c.id=v.client_id LEFT JOIN users s ON s.id=v.staff_id
+  LEFT JOIN LATERAL (SELECT address_line1,city,postal_code FROM user_primary_address
+    WHERE user_id=v.client_id AND deleted_at IS NULL ORDER BY is_primary DESC,id LIMIT 1) a ON true`;
 
 export function registerRoster(ctx, route) {
-  const { db, repo, auth } = ctx;
+  const { db, repo, auth, push } = ctx;
   async function lock(req) {
     if (!req.user.agencyId) fail(403, "An organisation is required");
     await db.query(
@@ -234,7 +237,7 @@ export function registerRoster(ctx, route) {
       await db.query(
         select +
           ` WHERE v.agency_id=$1 AND v.visit_date BETWEEN $2 AND $3
-      AND ($4::uuid IS NULL OR v.staff_id=$4) ORDER BY v.visit_date,v.start_time,v.id`,
+      AND ($4::uuid IS NULL OR (v.staff_id=$4 AND v.visit_date<=((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/London')::date+6))) ORDER BY v.visit_date,v.start_time,v.id`,
         [
           req.user.agencyId,
           from,
@@ -245,7 +248,7 @@ export function registerRoster(ctx, route) {
     ).rows;
     return reply(res, { visits: rows, timezone: "Europe/London" });
   });
-  route("GET","/api/roster/open-shifts",async(req,res)=>{const {from,to}=req.query;if(!dateOnly(from)||!dateOnly(to)||to<from||(Date.parse(to)-Date.parse(from))/dayMs>62)fail(400,"Choose a date range of up to 63 days");const rows=(await db.query(select+` JOIN client_care_team ct ON ct.client_id=v.client_id AND ct.carer_id=$4 AND ct.deleted_at IS NULL AND COALESCE(ct.decline_carer,false)=false AND COALESCE(ct.revoke_viewaccess,false)=false AND COALESCE(ct.allowed_to_visit,false)=true WHERE v.agency_id=$1 AND v.visit_date BETWEEN $2 AND $3 AND v.open_shift=true AND v.staff_id IS NULL AND v.status='DRAFT' ORDER BY v.visit_date,v.start_time,v.id`,[req.user.agencyId,from,to,req.user.id])).rows;return reply(res,{visits:rows,timezone:"Europe/London"})});
+  route("GET","/api/roster/open-shifts",async(req,res)=>{const {from,to}=req.query;if(!dateOnly(from)||!dateOnly(to)||to<from||(Date.parse(to)-Date.parse(from))/dayMs>62)fail(400,"Choose a date range of up to 63 days");const rows=(await db.query(select+` JOIN client_care_team ct ON ct.client_id=v.client_id AND ct.carer_id=$4 AND ct.deleted_at IS NULL AND COALESCE(ct.decline_carer,false)=false AND COALESCE(ct.revoke_viewaccess,false)=false AND COALESCE(ct.allowed_to_visit,false)=true WHERE v.agency_id=$1 AND v.visit_date BETWEEN $2 AND $3 AND v.visit_date<=((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/London')::date+6) AND v.open_shift=true AND v.staff_id IS NULL AND v.status='DRAFT' ORDER BY v.visit_date,v.start_time,v.id`,[req.user.agencyId,from,to,req.user.id])).rows;return reply(res,{visits:rows,timezone:"Europe/London"})});
   route("POST", "/api/roster/visits", async (req, res) => {
     auth.admin(req);
     const parsed = input.safeParse(req.body);
@@ -269,6 +272,8 @@ export function registerRoster(ctx, route) {
         [id,req.user.agencyId,v.clientId,staffId,visit.date,v.startTime,v.endTime,v.title,v.notes,status,callGroupId,v.requiredStaff,slot,openShift,req.user.id]);
         await visitEvent(db,id,req.user.id,v.requiredStaff>1?`Double-up visit slot ${slot} of ${v.requiredStaff} created`:openShift?"Open shift created":"Visit schedule created");visits.push(await get(req,id));}
     }
+    const assigned=[...new Set(visits.map((item)=>item.staffId).filter(Boolean))];
+    if(assigned.length)req.afterCommit.push(()=>push.sendToUsers(req.user.agencyId,assigned,"Your visits have been updated. Open Caremonitor to view your rota."));
     return reply(res, { visits }, "Visits created", 201);
   });
   route("PUT", "/api/roster/visits/:id", async (req, res) => {
@@ -304,6 +309,8 @@ export function registerRoster(ctx, route) {
       ],
     );
     for(const sibling of siblings)await visitEvent(db,sibling.id,req.user.id,old.callGroupId?"Double-up call schedule updated":"Visit schedule or assigned carer updated");
+    if(v.staffId && (v.staffId!==old.staffId||v.date!==old.date||v.startTime!==old.startTime||v.endTime!==old.endTime))
+      req.afterCommit.push(()=>push.sendToUsers(req.user.agencyId,[v.staffId],"Your visits have been updated. Open Caremonitor to view your rota."));
     return reply(res, await get(req, old.id), "Visit updated");
   });
   route("POST","/api/roster/visits/:id/claim",async(req,res)=>{await lock(req);const old=(await db.query(select+" WHERE v.id=$1 AND v.agency_id=$2 FOR UPDATE OF v",[req.params.id,req.user.agencyId])).rows[0];if(!old)fail(404,"Visit not found");if(!old.openShift||old.staffId||old.status!=="DRAFT")fail(409,"This open shift is no longer available");const staffId=req.user.role==="CAREGIVER"?req.user.id:req.body.staffId;if(!staffId)fail(400,"Choose a staff member");if(req.user.role==="CAREGIVER"){const link=await repo.one("ClientCareTeamEntity",{client:old.clientId,carer:staffId});if(!link||link.deletedAt||link.declineCarer||link.revokeViewaccess||!link.allowedToVisit)fail(403,"This shift is not available to your care team");}const proposed={...old,staffId,status:"SCHEDULED",repeatWeeks:1,requiredStaff:old.requiredStaff||1,openShift:false,callGroupId:old.callGroupId};await check(req,proposed,old.id);const claimed=await db.query("UPDATE node_roster_visits SET staff_id=$2,status='SCHEDULED',open_shift=false,revision=revision+1,updated_by=$3,updated_at=CURRENT_TIMESTAMP WHERE id=$1 AND staff_id IS NULL AND open_shift=true AND status='DRAFT' RETURNING id",[old.id,staffId,req.user.id]);if(!claimed.rows.length)fail(409,"This open shift is no longer available");await visitEvent(db,old.id,req.user.id,"Open shift claimed");return reply(res,await get(req,old.id),"Open shift assigned")});

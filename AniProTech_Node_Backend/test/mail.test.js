@@ -65,3 +65,10 @@ test("Production refuses incomplete Gmail API configuration", () => {
     if (previous !== undefined) process.env.GMAIL_REFRESH_TOKEN = previous;
   }
 });
+
+test("Unsupported mail modes fail instead of silently writing to the outbox", () => {
+  assert.throws(
+    () => createMail({ production: false, mailMode: "unknown" }),
+    /Unsupported MAIL_MODE/,
+  );
+});

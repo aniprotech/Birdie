@@ -170,6 +170,32 @@ test("Express migration integration tests against PostgreSQL", async (t) => {
         );
       },
     );
+    await t.test("new caregivers receive a working one-time invitation", async () => {
+      const before = sent.length;
+      const created = await call("post", "/api/team/create-user", {
+        firstName: "New", lastName: "Caregiver", email: "new-caregiver@example.test", role: "CAREGIVER",
+      });
+      assert.equal(created.status, 201, JSON.stringify(created.body));
+      assert.equal(sent.length, before + 1);
+      const invitation = sent.at(-1);
+      assert.equal(invitation.to, "new-caregiver@example.test");
+      assert.match(invitation.actionUrl, /\/mobile-sign-in\.html#token=/);
+      const webUrl = invitation.text.match(/On a computer, open (http[^\s]+)/)?.[1];
+      assert.ok(webUrl);
+      const [email, password] = Buffer.from(new URL(webUrl).searchParams.get("token"), "base64url").toString().split(":");
+      const signedIn = await call("post", "/api/auth/get-token", { email, password }, null);
+      assert.equal(signedIn.status, 200, JSON.stringify(signedIn.body));
+      const caregiverAccess = data(signedIn).accessToken;
+      assert.equal((await call("get", "/api/client/get-client/" + clientId, undefined, caregiverAccess)).status, 403);
+      assert.equal((await call("post", "/api/auth/get-token", { email, password }, null)).status, 401);
+      const repeat = await call("put", "/api/team/update-user/" + data(created).id, { primaryPhone: "+441234567890" });
+      assert.equal(repeat.status, 200);
+      assert.equal(sent.length, before + 1);
+      const resent = await call("post", "/api/team/invite/" + data(created).id, {});
+      assert.equal(resent.status, 200);
+      assert.equal(sent.length, before + 2);
+      assert.match(sent.at(-1).actionUrl, /\/mobile-sign-in\.html#token=/);
+    });
     await t.test(
       "all 18 care domains round-trip assessments, review audit and risks",
       async () => {
@@ -257,6 +283,10 @@ test("Express migration integration tests against PostgreSQL", async (t) => {
           { carerId: carer.id, viewAccess: true, allowedToVisit: true },
         );
         assert.equal(assigned.status, 200, JSON.stringify(assigned.body));
+        assert.equal(sent.at(-1).to, carer.email);
+        assert.match(sent.at(-1).subject, /client access/i);
+        assert.match(sent.at(-1).actionUrl, /\/mobile-sign-in\.html#token=/);
+        assert.doesNotMatch(sent.at(-1).text, /Demo Client/);
         assert.equal(
           (
             await call(
@@ -268,12 +298,20 @@ test("Express migration integration tests against PostgreSQL", async (t) => {
           ).status,
           200,
         );
+        assert.equal(data(await call("post", "/api/client/get-all-clients", {}, carerToken)).users.some((u) => u.id === clientId), true);
+        assert.equal((await call("get", `/api/mobile/clients/${clientId}/care-overview`, undefined, carerToken)).status, 200);
+        assert.equal((await call("get", `/api/client-care-plan/${Object.keys(carePlans)[0]}/${clientId}`, undefined, carerToken)).status, 200);
+        assert.equal((await call("get", "/api/client/get-client/" + other.id, undefined, carerToken)).status, 404);
         const teamClients = await call(
           "post",
           "/api/team-clients/getByTeamMember/" + carer.id,
           {},
         );
         assert.equal(data(teamClients).data.clients[0].clientId, clientId);
+        const notificationCount = sent.length;
+        assert.equal((await call("put", "/api/client-care-team/update/" + clientId,
+          { carerId: carer.id, viewAccess: true, allowedToVisit: true })).status, 200);
+        assert.equal(sent.length, notificationCount);
         assert.equal(
           (
             await call(

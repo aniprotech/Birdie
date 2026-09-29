@@ -3,6 +3,7 @@ import { openDatabase } from "./db.js";
 import { initializeRegistration } from "./registration-schema.js";
 import { initializeMobileCare } from "./mobile-care-schema.js";
 import { initializeAccounting } from "./accounting-schema.js";
+import { initializeTimeOff } from "./time-off-schema.js";
 import { createApp } from "./app.js";
 import { startGovernanceJobs } from "./governance-jobs.js";
 const config = configuration(),
@@ -17,6 +18,8 @@ await initializeRegistration(db);
 await db.transaction(async()=>initializeMobileCare(db));
 // Keep Accounting schema current when a rolling deploy skips the pre-deploy hook.
 await db.transaction(async()=>initializeAccounting(db));
+// Availability and leave requests must exist even when Railway skips pre-deploy migration.
+await db.transaction(async()=>initializeTimeOff(db));
 const app = createApp({ db, config });
 const stopNotifications=app.locals.ctx.notifications.start();
 const stopGovernanceJobs=startGovernanceJobs(app.locals.ctx);

@@ -13,9 +13,9 @@
     "db:init": "node scripts/init-db.js",
     "db:check": "node scripts/check-schema.js",
     "seed:demo": "node scripts/seed-demo.js",
-    "check": "node scripts/check-routes.js"
-    ,"backup": "node scripts/backup.js"
-    ,"restore:drill": "node scripts/restore-drill.js"
+    "check": "node scripts/check-routes.js",
+    "backup": "node scripts/backup.js",
+    "restore:drill": "node scripts/restore-drill.js"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.14",
@@ -27,6 +27,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "nodemailer": "^10.0.12",
     "pg": "^8.16.3",
     "zod": "^4.1.12"
   },

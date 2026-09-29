@@ -23,6 +23,9 @@ test("administrator account settings are tenant scoped, validated and audited", 
   assert.equal(updated.body.results.data.user.email,"info@aniprotech.com");
   assert.equal(updated.body.results.data.organisation.name,"Anipro Tech");
   assert.equal(updated.body.results.data.organisation.carer_app_settings.allowVoiceNotes,true);
-  assert.equal((await db.query("SELECT count(*)::int AS count FROM node_audit_log WHERE path='/api/account'")).rows[0].count,1);
+  const mobileUpdate=await request(app).put("/api/account").set(bearer).send({...payload,organisationName:"Caremonitor Organisation"});
+  assert.equal(mobileUpdate.status,200,JSON.stringify(mobileUpdate.body));
+  assert.equal(mobileUpdate.body.results.data.organisation.name,"Caremonitor Organisation");
+  assert.equal((await db.query("SELECT count(*)::int AS count FROM node_audit_log WHERE path='/api/account'")).rows[0].count,2);
   await db.close();
 });

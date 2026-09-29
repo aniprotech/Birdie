@@ -31,6 +31,7 @@ export function configuration(overrides = {}) {
       .split(",")
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean),
+    mobileLatestPublishedVersion: process.env.MOBILE_LATEST_PUBLISHED_VERSION || "",
     inboxNotificationsEnabled: process.env.INBOX_NOTIFICATIONS_ENABLED !== 'false',
     trustProxy: process.env.TRUST_PROXY === "true",
     jwtSecret: process.env.JWT_SECRET,

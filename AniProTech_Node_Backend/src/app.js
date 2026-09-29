@@ -37,16 +37,18 @@ import { registerReporting } from "./services/reporting.js";
 import {createInboxNotifications} from './inbox-notifications.js';
 import {registerNotificationDelivery} from './services/notification-delivery.js';
 import { registerMobileCare } from "./services/mobile-care.js";
+import { createMobilePush, registerMobilePush } from "./services/mobile-push.js";
 import { registerPlatformAdmin } from "./services/platform-admin.js";
 import { registerPrivacy, registerSecurity } from "./services/security.js";
 import { postcodeValid } from "./location.js";
 import { registerGovernance } from "./services/governance.js";
 
-export function createApp({ db, config, mail = createMail(config) }) {
+export function createApp({ db, config, mail = createMail(config), pushTransport }) {
   const app = express(),
     repo = new Repository(db),
     files = createFiles(config, db);
   const ctx = { db, config, repo, mail, files };
+  ctx.push=createMobilePush({db,transport:pushTransport});
   ctx.notifications=createInboxNotifications(ctx);
   ctx.auth = createAuth(ctx);
   const auth = ctx.auth;
@@ -80,6 +82,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     return res.json({ status: "UP", service: "aniprotech-express" });
   };
   app.get("/api/health", health);
+  app.get("/api/mobile/version", (req,res) => reply(res, {latestPublishedVersion:/^\d+\.\d+\.\d+$/.test(config.mobileLatestPublishedVersion||"")?config.mobileLatestPublishedVersion:""}));
   app.get("/health", health);
   app.get("/actuator/health", health);
   app.get("/api/ready", async (req, res, next) => {
@@ -262,6 +265,7 @@ export function createApp({ db, config, mail = createMail(config) }) {
     registerReporting,
     registerNotificationDelivery,
     registerMobileCare,
+    registerMobilePush,
     registerGovernance,
   ])
     register(ctx, route);

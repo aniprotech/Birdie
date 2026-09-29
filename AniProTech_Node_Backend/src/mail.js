@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import nodemailer from "nodemailer";
 
 const encodeHeader = (value) =>
   /[^\x20-\x7e]/.test(value)
@@ -65,9 +66,20 @@ export function createMail(config) {
     sender: process.env.GMAIL_SENDER,
   };
   const usesGmail = config.mailMode === "gmail";
+  const usesSmtp = config.mailMode === "smtp";
+  if (!["gmail", "smtp", "outbox"].includes(config.mailMode))
+    throw new Error(`Unsupported MAIL_MODE: ${config.mailMode}`);
   const configured = Object.values(gmail).every(Boolean);
   if (config.production && !(usesGmail && configured))
     throw new Error("Production requires Gmail API email configuration.");
+  const smtp = usesSmtp ? nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+  }) : null;
+  if (usesSmtp && ![process.env.SMTP_HOST, process.env.SMTP_USER, process.env.SMTP_PASSWORD, process.env.SMTP_FROM].every(Boolean))
+    throw new Error("SMTP mail mode requires SMTP_HOST, SMTP_USER, SMTP_PASSWORD and SMTP_FROM.");
 
   async function accessToken() {
     const response = await fetch("https://oauth2.googleapis.com/token", {
@@ -93,7 +105,7 @@ export function createMail(config) {
   }
 
   return {
-    verify: async () => !usesGmail || configured,
+    verify: async () => usesSmtp ? smtp.verify() : !usesGmail || configured,
     async send(message) {
       const branded = {
         ...message,
@@ -128,6 +140,19 @@ export function createMail(config) {
           accepted: Array.isArray(branded.to) ? branded.to : [branded.to],
           rejected: [],
         };
+      }
+      if (usesSmtp) {
+        try {
+          return await smtp.sendMail({
+            from: process.env.SMTP_FROM,
+            to: branded.to,
+            subject: branded.subject,
+            text: branded.text,
+            html: branded.html,
+          });
+        } catch {
+          throw gmailError("SMTP delivery failed", 503, "smtp_send");
+        }
       }
       await fs.mkdir(config.outboxDir, { recursive: true, mode: 0o700 });
       await fs.writeFile(

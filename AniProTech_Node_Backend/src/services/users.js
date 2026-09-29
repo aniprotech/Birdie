@@ -4,6 +4,21 @@ import { parseJson, replaceChildren, singleton } from "./common.js";
 
 export function registerUsers(ctx, route) {
   const { repo, db, auth, files } = ctx;
+  async function inviteCaregiver(user, subject = "Your caregiver account is ready") {
+    if (!user.isActive || user.role !== "CAREGIVER") return;
+    const login = await auth.createLoginLink(user.email);
+    if (!login) return;
+    const webUrl = login.link.toString();
+    const mobileUrl = new URL("/mobile-sign-in.html", ctx.config.frontendUrl);
+    mobileUrl.hash = new URLSearchParams({ token: login.link.searchParams.get("token") }).toString();
+    await ctx.mail.send({
+      to: user.email,
+      subject,
+      text: `Hello ${user.firstName},\n\nYour organisation has invited you to Caremonitor. Use one of these secure, one-time links within 15 minutes.\n\nOn your phone, open ${mobileUrl}\nOn a computer, open ${webUrl}\n\nAfter the link expires, request a new sign-in link in the app or on the login page. Client records appear only after your organisation grants access.`,
+      actionUrl: mobileUrl.toString(),
+      actionLabel: "Open Caremonitor on your phone",
+    });
+  }
   async function detail(req, id) {
     const user = await auth.userAccess(req, id);
     const result = await repo.serialize("UserEntity", user, { children: true });
@@ -38,6 +53,18 @@ export function registerUsers(ctx, route) {
           )
           .map((l) => l.client),
       );
+      if (client) {
+        const revoked = new Set(links.filter((l) => !l.deletedAt &&
+          (!l.viewAccess || l.revokeViewaccess || l.declineCarer)).map((l) => l.client));
+        const assigned = (await db.query(
+          `SELECT DISTINCT client_id FROM node_roster_visits WHERE agency_id=$1 AND staff_id=$2
+           AND status IN ('SCHEDULED','IN_PROGRESS','COMPLETED')
+           AND visit_date BETWEEN ((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/London')::date-30)
+             AND ((CURRENT_TIMESTAMP AT TIME ZONE 'Europe/London')::date+6)`,
+          [req.user.agencyId, req.user.id],
+        )).rows;
+        for (const row of assigned) if (!revoked.has(row.client_id)) ids.add(row.client_id);
+      }
       users = users.filter((u) =>
         client ? ids.has(u.id) : u.id === req.user.id,
       );
@@ -196,6 +223,8 @@ export function registerUsers(ctx, route) {
       }
       if (old && (!user.isActive || old.role !== user.role))
         await auth.reset(user.id);
+      if (!client && user.role === "CAREGIVER" && user.isActive && (!old || !old.isActive || old.role !== "CAREGIVER" || old.email !== user.email))
+        req.afterCommit.push(() => inviteCaregiver(user));
       return detail(req, user.id);
     });
   }
@@ -241,14 +270,9 @@ export function registerUsers(ctx, route) {
   route("POST", "/api/team/invite/:userId", async (req, res) => {
     auth.admin(req);
     const user = await auth.userAccess(req, req.params.userId);
-    await ctx.mail.send({
-      to: user.email,
-      subject: "You have been invited",
-      text: "Your organisation has invited you to use Caremonitor. Use the button below to request your secure sign-in link.",
-      actionUrl: `${ctx.config.frontendUrl}/login`,
-      actionLabel: "Open Caremonitor",
-    });
-    return reply(res, {}, "Invitation queued");
+    if (user.role !== "CAREGIVER" || !user.isActive) fail(400, "An active caregiver is required");
+    await inviteCaregiver(user, "Your Caremonitor invitation");
+    return reply(res, {}, "Invitation sent");
   });
   route("GET", "/api/client-information/:userId", async (req, res) => {
     const row = await singleton(

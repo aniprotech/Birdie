@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Formik, Form } from "formik";
 import AssessmentFormField from "../../../../../../components/FormFields/AssessmentFormField";
@@ -30,7 +31,7 @@ const AssessmentForm = ({
     const { id: clientId } = useParams();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const questions = sections.reduce((acc, section) => [...acc, ...section.questions], []);
+    const questions = useMemo(() => sections.flatMap((section) => section.questions), [sections]);
     const [localAssessmentName, setLocalAssessmentName] = useState(assessmentName || "");
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [tempAssessmentName, setTempAssessmentName] = useState("");
@@ -39,6 +40,8 @@ const AssessmentForm = ({
     const [isSubmittingAPI, setIsSubmittingAPI] = useState(false);
     const [formData, setFormData] = useState(initialData);
     const [isAutoSaving, setIsAutoSaving] = useState(false);
+    const autoSaveInFlightRef = useRef(false);
+    const initializedCreateIdRef = useRef(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -53,6 +56,131 @@ const AssessmentForm = ({
     const currentAssessmentId = assessmentId || urlUpdateId || urlAssessmentId;
 
     const assessmentTypeOnPage = assessmentPageType;
+
+    useEffect(() => {
+        setLocalAssessmentName(assessmentName || "");
+    }, [assessmentName]);
+
+    useEffect(() => {
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    const handleNameChange = (e) => {
+        const newName = e.target.value;
+        setTempAssessmentName(newName);
+    };
+
+    const handleEditClick = () => {
+        setTempAssessmentName(localAssessmentName);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleEditConfirm = () => {
+        if (tempAssessmentName.trim()) {
+            setLocalAssessmentName(tempAssessmentName);
+            onAssessmentNameChange(tempAssessmentName);
+            setIsEditDialogOpen(false);
+        }
+    };
+
+    const autoSaveOriginalData = useCallback(async (originalData) => {
+        if (!currentAssessmentId || autoSaveInFlightRef.current) return;
+
+        try {
+            autoSaveInFlightRef.current = true;
+            setIsAutoSaving(true);
+
+            const dataToSave = {
+                ...originalData,
+                id: currentAssessmentId,
+            };
+
+            if (isReviewMode) {
+                dataToSave.assessmentInprogress = null;
+                dataToSave.reviewInprogress = true;
+            }
+
+            if (isUpdateMode || isCreateMode) {
+                dataToSave.assessmentInprogress = true;
+                dataToSave.reviewInprogress = null;
+            }
+
+            const endpoint = assessmentTypeOnPage === "Additional_Assessment" ? createOrUpdateAdditionalAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId) : createOrUpdateInitialAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId);
+            await _post(endpoint, dataToSave);
+
+        } catch (error) {
+            console.error("Auto-save original data error:", error);
+            showError("Failed to auto-save assessment. Please try again later.");
+        } finally {
+            autoSaveInFlightRef.current = false;
+            setIsAutoSaving(false);
+        }
+    }, [assessmentType, assessmentTypeOnPage, clientId, currentAssessmentId, isCreateMode, isReviewMode, isUpdateMode]);
+
+    const autoSave = useCallback(async (values) => {
+        if (!currentAssessmentId || autoSaveInFlightRef.current) return;
+
+        try {
+            autoSaveInFlightRef.current = true;
+            setIsAutoSaving(true);
+
+            const transformedData = {};
+            questions.forEach((question) => {
+                let answer = values[question.id];
+
+                if (answer && typeof answer === "object" && answer.answer !== undefined) {
+                    answer = answer.answer;
+                }
+
+                if (answer instanceof Date) {
+                    answer = answer.toISOString();
+                } else if (typeof answer === "object" && answer !== null && !Array.isArray(answer)) {
+                    try {
+                        answer = JSON.stringify(answer);
+                    } catch {
+                        console.warn("Could not serialize answer object:", answer);
+                        answer = "";
+                    }
+                }
+
+                const details = question.show_details || question.has_note ? values[`${question.id}_details`] || "" : "";
+
+                transformedData[question.id] = {
+                    answer: answer !== undefined && answer !== null ? answer : "",
+                    details: details,
+                };
+            });
+
+            if (isReviewMode) {
+                transformedData.assessmentInprogress = null;
+                transformedData.reviewInprogress = true;
+            }
+
+            if (localAssessmentName?.trim() && (isUpdateMode || isCreateMode)) {
+                transformedData.name = localAssessmentName;
+              }
+
+            if (isUpdateMode || isCreateMode) {
+                transformedData.assessmentInprogress = true;
+                transformedData.reviewInprogress = null;
+            }
+
+            transformedData.id = currentAssessmentId;
+
+            const endpoint = assessmentTypeOnPage === "Additional_Assessment" ? createOrUpdateAdditionalAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId) : createOrUpdateInitialAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId);
+            await _post(endpoint, transformedData);
+        } catch (error) {
+            console.error("Auto-save error:", error);
+            showError("Failed to auto-save assessment. Please try again later.");
+        } finally {
+            autoSaveInFlightRef.current = false;
+            setIsAutoSaving(false);
+        }
+    }, [assessmentType, assessmentTypeOnPage, clientId, currentAssessmentId, isCreateMode, isReviewMode, isUpdateMode, localAssessmentName, questions]);
 
     useEffect(() => {
         const loadAssessmentData = async () => {
@@ -121,137 +249,19 @@ const AssessmentForm = ({
         };
 
         loadAssessmentData();
-    }, [isUpdateMode, isReviewMode, dataLoadingId, assessmentType]);
+    }, [isUpdateMode, isReviewMode, dataLoadingId, assessmentType, assessmentTypeOnPage, questions, autoSaveOriginalData]);
 
     useEffect(() => {
         if (!currentAssessmentId || (!isUpdateMode && !isReviewMode && !isCreateMode)) return;
 
         if (isCreateMode) {
+            if (initializedCreateIdRef.current === currentAssessmentId) return;
+            initializedCreateIdRef.current = currentAssessmentId;
             const initialValues = generateInitialValues(questions);
             autoSave(initialValues);
         }
-    }, [currentAssessmentId, isUpdateMode, isReviewMode, isCreateMode]);
+    }, [currentAssessmentId, isUpdateMode, isReviewMode, isCreateMode, questions, autoSave]);
 
-    useEffect(() => {
-        setLocalAssessmentName(assessmentName || "");
-    }, [assessmentName]);
-
-    useEffect(() => {
-        return () => {
-            if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current);
-            }
-        };
-    }, []);
-
-    const handleNameChange = (e) => {
-        const newName = e.target.value;
-        setTempAssessmentName(newName);
-    };
-
-    const handleEditClick = () => {
-        setTempAssessmentName(localAssessmentName);
-        setIsEditDialogOpen(true);
-    };
-
-    const handleEditConfirm = () => {
-        if (tempAssessmentName.trim()) {
-            setLocalAssessmentName(tempAssessmentName);
-            onAssessmentNameChange(tempAssessmentName);
-            setIsEditDialogOpen(false);
-        }
-    };
-
-    const autoSaveOriginalData = async (originalData) => {
-        if (!currentAssessmentId || isAutoSaving) return;
-
-        try {
-            setIsAutoSaving(true);
-
-            const dataToSave = {
-                ...originalData,
-                id: currentAssessmentId,
-            };
-
-            if (isReviewMode) {
-                dataToSave.assessmentInprogress = null;
-                dataToSave.reviewInprogress = true;
-            }
-
-            if (isUpdateMode || isCreateMode) {
-                dataToSave.assessmentInprogress = true;
-                dataToSave.reviewInprogress = null;
-            }
-
-            const endpoint = assessmentTypeOnPage === "Additional_Assessment" ? createOrUpdateAdditionalAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId) : createOrUpdateInitialAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId);
-            await _post(endpoint, dataToSave);
-
-        } catch (error) {
-            console.error("Auto-save original data error:", error);
-            showError("Failed to auto-save assessment. Please try again later.");
-        } finally {
-            setIsAutoSaving(false);
-        }
-    };
-
-    const autoSave = async (values) => {
-        if (!currentAssessmentId || isAutoSaving) return;
-
-        try {
-            setIsAutoSaving(true);
-
-            const transformedData = {};
-            questions.forEach((question) => {
-                let answer = values[question.id];
-
-                if (answer && typeof answer === "object" && answer.answer !== undefined) {
-                    answer = answer.answer;
-                }
-
-                if (answer instanceof Date) {
-                    answer = answer.toISOString();
-                } else if (typeof answer === "object" && answer !== null && !Array.isArray(answer)) {
-                    try {
-                        answer = JSON.stringify(answer);
-                    } catch {
-                        console.warn("Could not serialize answer object:", answer);
-                        answer = "";
-                    }
-                }
-
-                const details = question.show_details || question.has_note ? values[`${question.id}_details`] || "" : "";
-
-                transformedData[question.id] = {
-                    answer: answer !== undefined && answer !== null ? answer : "",
-                    details: details,
-                };
-            });
-
-            if (isReviewMode) {
-                transformedData.assessmentInprogress = null;
-                transformedData.reviewInprogress = true;
-            }
-
-            if (localAssessmentName?.trim() && (isUpdateMode || isCreateMode)) {
-                transformedData.name = localAssessmentName;
-              }
-
-            if (isUpdateMode || isCreateMode) {
-                transformedData.assessmentInprogress = true;
-                transformedData.reviewInprogress = null;
-            }
-
-            transformedData.id = currentAssessmentId;
-
-            const endpoint = assessmentTypeOnPage === "Additional_Assessment" ? createOrUpdateAdditionalAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId) : createOrUpdateInitialAssessmentAPI(assessmentType, "update", currentAssessmentId, clientId);
-            await _post(endpoint, transformedData);
-        } catch (error) {
-            console.error("Auto-save error:", error);
-            showError("Failed to auto-save assessment. Please try again later.");
-        } finally {
-            setIsAutoSaving(false);
-        }
-    };
 
     const handleDeleteAssessment = () => {
         setShowDeleteDialog(true);
@@ -533,7 +543,7 @@ const AssessmentForm = ({
                 console.error("Error in auto-save effect:", error);
             }
         }
-    }, [formValues, formData, isCreateMode]);
+    }, [formValues, formData, isCreateMode, currentAssessmentId, isUpdateMode, isReviewMode, questions, autoSave]);
 
     if (isLoadingData) {
         return <DotLoader loading={true} />;

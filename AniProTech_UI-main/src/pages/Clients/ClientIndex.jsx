@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import React, { useState, useEffect } from "react";
 import SwitchComponents from "../../components/SwitchComponent/SwitchComponent";
 import ClientFilterControls from "./ClientFilterControls";
@@ -24,7 +25,7 @@ const ClientIndex = () => {
         navigate("/admin/clients/add-clients");
     };
 
-    const handleClientAPI = async () => {
+    const handleClientAPI = useCallback(async () => {
         setLoading(true);
         const payload = {
             search: searchTerm,
@@ -45,11 +46,11 @@ const ClientIndex = () => {
                 setLoading(false);
             }, 1000);
         }
-    };
+    }, [isActive, page, pageSize, searchTerm]);
 
     useEffect(() => {
         handleClientAPI();
-    }, [isActive, page, searchTerm]);
+    }, [handleClientAPI, isActive, page, searchTerm]);
 
     return (
         <div>

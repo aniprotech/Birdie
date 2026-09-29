@@ -29,7 +29,7 @@ export default function AddClients() {
             }
         };
         fetchClientData();
-    }, [pathname]);
+    }, [id, pathname, setClientsPersonalDetailData]);
 
     // Fetch client settings (for visitPlanning)
     useEffect(() => {
@@ -44,7 +44,7 @@ export default function AddClients() {
             }
         };
         fetchSettings();
-    }, [pathname]);
+    }, [id, pathname]);
 
     // Handle window resize for mobile detection
     useEffect(() => {

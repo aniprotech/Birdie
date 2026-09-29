@@ -5,6 +5,11 @@ const DEFAULT_POSITION = { lat: 12.9716, lng: 77.5946 };
 
 const AddressMapAndZone = ({ lat, lng, onPinDragged }) => {
   const mapRef = useRef(null);
+  const onPinDraggedRef = useRef(onPinDragged);
+
+  useEffect(() => {
+    onPinDraggedRef.current = onPinDragged;
+  }, [onPinDragged]);
 
   useEffect(() => {
     let mapInstance = null;
@@ -49,7 +54,7 @@ const AddressMapAndZone = ({ lat, lng, onPinDragged }) => {
           );
           infoWindow.open(mapInstance, marker);
   
-          onPinDragged?.({ lat: newPos.lat, lng: newPos.lng });
+          onPinDraggedRef.current?.({ lat: newPos.lat, lng: newPos.lng });
         });
       } catch (error) {
         console.error("Failed to initialize map:", error);
@@ -57,7 +62,7 @@ const AddressMapAndZone = ({ lat, lng, onPinDragged }) => {
     };
   
     requestAnimationFrame(initMap); 
-  }, []);
+  }, [lat, lng]);
   
   return <div ref={mapRef} className="w-full h-[40vh] rounded-lg shadow-md" />;
 };

@@ -26,7 +26,7 @@ const BaseInfoIndex = () => {
 
     useEffect(() => {
         fetchData(() => _get(APIConfig?.CLIENTS?.GET_BY_ID(id)), setData, setLoading, setTeamsPersonalDetailData);
-    }, [id]);
+    }, [id, setTeamsPersonalDetailData]);
 
     if (loading) {
         return (

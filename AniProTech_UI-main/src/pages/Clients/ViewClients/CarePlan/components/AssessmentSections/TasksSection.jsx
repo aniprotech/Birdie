@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import SearchDropdown from "../../../../../../components/SearchDropdown/SearchDropdown";
@@ -19,7 +20,7 @@ const TasksSection = ({ clientId, dataId, assessmentType, tasksPlans, fetchDataB
     const [selectedTaskData, setSelectedTaskData] = useState(null);
 
 
-    const fetchTasksByQuery = async () => {
+    const fetchTasksByQuery = useCallback(async () => {
         const payload = {
             searchString: query,
         };
@@ -29,11 +30,11 @@ const TasksSection = ({ clientId, dataId, assessmentType, tasksPlans, fetchDataB
         const tasksFromApi = response?.data?.results?.data || [];
         setTaskData(tasksFromApi);
         setSearchResults(tasksFromApi);
-    };
+    }, [query]);
 
     useEffect(() => {
         fetchTasksByQuery();
-    }, [query, clientId, dataId]);
+    }, [query, clientId, dataId, fetchTasksByQuery]);
 
     // Filter tasks based on query
     useEffect(() => {

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useParams } from "react-router-dom";
@@ -36,11 +37,11 @@ const TaskPlanPopUp = ({ onClose, onSave, editTask }) => {
     useEffect(() => {
         fetchCategories();
         fetchTasksByCategory([]);
-    }, []);
+    }, [fetchTasksByCategory]);
 
     useEffect(() => {
         fetchTasksByCategory(selectedCategories);
-    }, [selectedCategories, searchTerm]);
+    }, [selectedCategories, searchTerm, fetchTasksByCategory]);
 
     useEffect(() => {
         if (editTask) {
@@ -57,7 +58,7 @@ const TaskPlanPopUp = ({ onClose, onSave, editTask }) => {
         }
     };
 
-    const fetchTasksByCategory = async (categoryIds) => {
+    const fetchTasksByCategory = useCallback(async (categoryIds) => {
         const payload = {
             searchString: searchTerm,
             category: categoryIds,
@@ -76,7 +77,7 @@ const TaskPlanPopUp = ({ onClose, onSave, editTask }) => {
             setCategoriesWithTasks(response.data.results.data.data.categories);
             setTotalTaskCount(response.data.results.data.data.totalTaskCount || 0);
         }
-    };
+    }, [searchTerm]);
 
     const fetchTaskById = async (taskId) => {
         const response = await fetchData(() => _get(APIConfig.CLIENT_TASK_PLAN.GET_BY_ID(taskId)), null, setLoading, null, null, false);

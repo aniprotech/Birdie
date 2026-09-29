@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftIcon, Trash2, Calendar, PlusCircle, FileText } from "lucide-react";
@@ -38,9 +39,9 @@ const SignDocument = () => {
 
     useEffect(() => {
         fetchPack();
-    }, [clientId]);
+    }, [clientId, fetchPack]);
 
-    const fetchPack = async () => {
+    const fetchPack = useCallback(async () => {
         setIsLoading(true);
         try {
             const packRes = await _get(APIConfig.CLIENT_SIGNATURE_DOCUMENTS.GET_PACK_DETAILS(clientId));
@@ -66,7 +67,7 @@ const SignDocument = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [clientId, navigate]);
 
     const formik = useFormik({
         initialValues: {

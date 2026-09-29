@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { _get, _post } from "../../utils/ApiService";
-import { Page, Field, ErrorBox, inputClass, buttonClass, londonToday, money, downloadCsv } from "../../components/Operations/common";
+import { Page, Field, ErrorBox } from "../../components/Operations/common";
+import { inputClass, buttonClass, londonToday, money, downloadCsv } from "../../components/Operations/common-utils";
 export default function FinanceWorkspace({ initialTab = "INVOICE" }) {
     const [tab, setTab] = useState(initialTab),
         [people, setPeople] = useState([]),

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +30,7 @@ const AdditionalDocumentsAssessmentLayout = ({ title, description, previousAsses
 
     useScrollToTop();
 
-    const fetchAssessment = async () => {
+    const fetchAssessment = useCallback(async () => {
         setLoading(true);
         try {
             const { data } = await _get(getAdditionalAssessmentAPIEndpoint(assessmentType, clientId));
@@ -43,12 +44,12 @@ const AdditionalDocumentsAssessmentLayout = ({ title, description, previousAsses
         } finally {
             setLoading(false);
         }
-    };
+    }, [assessmentType, clientId]);
    
 
     useEffect(() => {
         fetchAssessment();
-    }, [assessmentType, clientId]);
+    }, [assessmentType, clientId, fetchAssessment]);
 
     const riskEndpoint = createAdditionalAssessmentRiskAPI(assessmentType, clientId);
 

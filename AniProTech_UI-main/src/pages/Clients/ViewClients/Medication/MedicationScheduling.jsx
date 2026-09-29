@@ -27,7 +27,7 @@ const MedicationScheduling = () => {
             if (!item.isStopped && filters.active) return true;
             return false;
         });
-    }, [data, filters]);
+    }, [data, filters.active, filters.stopped, isAnyFilterSelected]);
 
     useEffect(() => {
         const fetchSchedulingData = async () => {

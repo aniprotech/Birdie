@@ -8,7 +8,7 @@ import TableLoader from "../../components/Loader/TableLoader";
 const PAGE_SIZE = 5;
 
 const TeamTable = ({ data, setLoading, loading, page, setPage, pageSize, setPageSize, totalCount, setTotalCount ,setSearchTerm,searchTerm}) => {
-    const rows = Array.isArray(data) && data.length ? data : [];
+    const rows = useMemo(() => Array.isArray(data) ? data : [], [data]);
     const [showGroup, setShowGroup] = useState(false);
     const [groupFilter, setGroupFilter] = useState([]);
     const [tempGroupFilter, setTempGroupFilter] = useState([]);
@@ -25,7 +25,7 @@ const TeamTable = ({ data, setLoading, loading, page, setPage, pageSize, setPage
         //     const term = searchTerm.toLowerCase();
         //     return Object.values(row).some((val) => String(val).toLowerCase().includes(term));
         // });
-    }, [rows, groupFilter]);
+    }, [rows]);
 
     const totalPages = Math.ceil(totalCount / pageSize) || 1;
 

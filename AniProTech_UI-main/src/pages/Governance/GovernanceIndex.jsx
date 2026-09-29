@@ -1,7 +1,8 @@
 import {useCallback,useEffect,useState} from "react";
 import {useSearchParams} from "react-router-dom";
 import {_get,_post,_postForm} from "../../utils/ApiService";
-import {Page,ErrorBox,buttonClass,inputClass} from "../../components/Operations/common";
+import { Page, ErrorBox } from "../../components/Operations/common";
+import { buttonClass, inputClass } from "../../components/Operations/common-utils";
 const val=r=>r.data.results.data,blankCase={clientId:"",kind:"INCIDENT",severity:"MEDIUM",title:"",description:"",ownerId:"",dueAt:""},blankPolicy={title:"",version:"1.0",status:"DRAFT",effectiveAt:"",reviewAt:"",documentUrl:""},blankCredential={staffId:"",kind:"",reference:"",issuedAt:"",expiresAt:"",evidenceUrl:""};
 const paths=["overview","cases","policies","credentials","ai-reviews","metrics","settings","ai-models","report-schedules","release-signoffs"];
 const governanceTabs=["overview","cases","policies","credentials","assistance","analytics","release"];

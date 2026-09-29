@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useReactToPrint } from "react-to-print";
 import { useRef, useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
@@ -14,9 +15,9 @@ const QRCodeSection = ({ clientId, clientName }) => {
 
     useEffect(() => {
         if (clientId) regenerateQRCode();
-    }, [clientId]);
+    }, [clientId, regenerateQRCode]);
 
-    const regenerateQRCode = async () => {
+    const regenerateQRCode = useCallback(async () => {
         try {
             const res = await _post(APIConfig.CLIENT_SETTINGS.REGENERATE_QR_CODE(clientId));
             if (res?.data?.error === false) {
@@ -29,7 +30,7 @@ const QRCodeSection = ({ clientId, clientName }) => {
         } catch (err) {
             showError(err?.response?.data?.message || "Network error");
         }
-    };
+    }, [clientId]);
 
     // ✅ Use contentRef directly (newer API)
     const handlePrint = useReactToPrint({

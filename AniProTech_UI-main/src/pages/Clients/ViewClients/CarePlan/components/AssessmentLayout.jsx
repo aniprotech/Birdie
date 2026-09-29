@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
@@ -54,7 +55,7 @@ const AssessmentLayout = ({
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const fetchDataBasedOnClientId = async () => {
+    const fetchDataBasedOnClientId = useCallback(async () => {
         try {
             const response = await _get(getInitialAssessmentAPIEndpoint(assessmentType, clientId));
             setDataId(response?.data?.results?.data?.id);
@@ -66,11 +67,11 @@ const AssessmentLayout = ({
             console.error("Error fetching assessment data:", error);
             showError("Failed to load assessment data. Please try again.");
         }
-    };
+    }, [assessmentType, clientId]);
 
     useEffect(() => {
         fetchDataBasedOnClientId();
-    }, [assessmentType, clientId]);
+    }, [assessmentType, clientId, fetchDataBasedOnClientId]);
 
     const handleBackClick = () => {
         navigate(`/admin/clients/${clientsPersonalDetailData?.id}/care-plan`);
